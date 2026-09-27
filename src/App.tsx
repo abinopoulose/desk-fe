@@ -5,6 +5,9 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { OrgChartPage } from './pages/org/OrgChartPage';
 import { BrowseFoldersPage } from './pages/folders/BrowseFoldersPage';
+import { TicketTypeAdminPage } from './pages/admin/TicketTypeAdminPage';
+import { TicketTypeFormPage } from './pages/admin/TicketTypeFormPage';
+import { TicketStatusManager } from './pages/admin/TicketStatusManager';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -22,6 +25,10 @@ function App() {
           <Route path="/dashboard" element={<div>DashboardPage Placeholder</div>} />
           <Route path="/browse" element={<BrowseFoldersPage />} />
           <Route path="/tickets/*" element={<div>Tickets Placeholder</div>} />
+          <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
+          <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
+          <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
+          <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
           <Route path="/admin/*" element={<div>Admin Placeholder</div>} />
           <Route path="/metrics" element={<div>MetricsPage Placeholder</div>} />
           <Route path="/org-chart" element={<OrgChartPage />} />
