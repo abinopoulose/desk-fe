@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { FolderContents } from './FolderContents';
 import { folderApi } from '../../api/folderApi';
-import { BrowserRouter, useNavigate } from 'react-router';
+import { BrowserRouter } from 'react-router';
 
 vi.mock('../../api/folderApi', () => ({
   folderApi: {
@@ -14,7 +14,7 @@ const mockNavigate = vi.fn();
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
-    ...actual as any,
+    ...actual as object,
     useNavigate: () => mockNavigate,
   };
 });

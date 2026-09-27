@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { FolderNodeDTO, FolderContentsDTO } from '../types/folder';
+import type { FolderNodeDTO, FolderContentsDTO } from '../types/folder';
 
 export const folderApi = {
   getFolderTree: async (): Promise<FolderNodeDTO[]> => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { folderApi } from '../../api/folderApi';
-import { FolderContentsDTO } from '../../types/folder';
+import type { FolderContentsDTO } from '../../types/folder';
 
 interface FolderContentsProps {
   folderId: string;
@@ -22,7 +22,7 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
         const data = await folderApi.getFolderContents(folderId);
         setContents(data);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load folder contents');
       } finally {
         setIsLoading(false);

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { folderApi } from '../../api/folderApi';
-import { FolderNodeDTO } from '../../types/folder';
-import { useSearchParams } from 'react-router';
+import type { FolderNodeDTO } from '../../types/folder';
 
 interface FolderTreeNavProps {
   onSelectFolder: (folderId: string) => void;
@@ -76,7 +75,7 @@ export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({ onSelectFolder, ac
         const data = await folderApi.getFolderTree();
         setTreeData(data);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load folder tree');
       } finally {
         setIsLoading(false);

@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router';
 
 // Mock child components
 vi.mock('../../components/folders/FolderTreeNav', () => ({
-  FolderTreeNav: ({ onSelectFolder }: any) => (
+  FolderTreeNav: ({ onSelectFolder }: { onSelectFolder: (id: string) => void }) => (
     <div data-testid="folder-tree-nav">
       <button onClick={() => onSelectFolder('mock-id')}>Select Folder</button>
     </div>
@@ -13,7 +13,7 @@ vi.mock('../../components/folders/FolderTreeNav', () => ({
 }));
 
 vi.mock('../../components/folders/FolderContents', () => ({
-  FolderContents: ({ folderId }: any) => (
+  FolderContents: ({ folderId }: { folderId: string }) => (
     <div data-testid="folder-contents">{folderId}</div>
   ),
 }));
@@ -22,7 +22,7 @@ const mockSetSearchParams = vi.fn();
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
-    ...actual as any,
+    ...actual as object,
     useSearchParams: () => [new URLSearchParams('?folderId=123'), mockSetSearchParams],
   };
 });
