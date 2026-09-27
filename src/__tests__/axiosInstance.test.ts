@@ -20,7 +20,7 @@ describe('axiosInstance interceptors', () => {
   });
 
   it('adds Authorization header if token is in localStorage', async () => {
-    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('desk_token', 'test-token');
     mock.onGet('/test').reply(200, {});
 
     const response = await axiosInstance.get('/test');
@@ -35,7 +35,7 @@ describe('axiosInstance interceptors', () => {
   });
 
   it('removes token and redirects to login on 401 response', async () => {
-    localStorage.setItem('token', 'stale-token');
+    localStorage.setItem('desk_token', 'stale-token');
     mock.onGet('/protected').reply(401, {});
 
     try {
@@ -44,7 +44,7 @@ describe('axiosInstance interceptors', () => {
       // Expected to throw
     }
 
-    expect(localStorage.getItem('token')).toBeNull();
+    expect(localStorage.getItem('desk_token')).toBeNull();
     expect(window.location.href).toBe('/login');
   });
 
