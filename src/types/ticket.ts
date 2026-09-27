@@ -114,7 +114,7 @@ export interface TicketDetailResponse {
 export interface CommentDTO {
   id: string;
   ticketId: string;
-  author: { id: string; fullName: string; email: string };
+  author: { id: string; fullName: string; email: string; avatarUrl?: string };
   content: string;
   attachments?: string[];
   createdAt: string;

@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import React from 'react';
-import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import MetricsDashboardPage from '../../../pages/metrics/MetricsDashboardPage';
 import { metricsApi } from '../../../api/metricsApi';

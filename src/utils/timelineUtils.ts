@@ -10,8 +10,8 @@ export const mergeTimeline = (
 
   // Process history entries
   history.forEach((entry) => {
-    let type: TimelineItem['type'] = 'FIELD_CHANGE';
-    let summary = '';
+    let type: TimelineItem['type'];
+    let summary: string;
     
     const actorName = entry.changedBy?.fullName || 'Unknown User';
 

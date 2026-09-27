@@ -99,7 +99,7 @@ describe('timelineUtils', () => {
     const timeline = mergeTimeline([{
       id: 'h-missing',
       ticketId: 't1',
-      changedBy: undefined as any,
+      changedBy: undefined as unknown as import('../types/audit').UserSummaryDTO,
       changedAt: '2023-10-10T10:00:00Z',
       fieldName: 'status',
       oldValue: null,

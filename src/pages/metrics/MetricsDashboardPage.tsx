@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -28,8 +29,8 @@ export const MetricsDashboardPage: React.FC = () => {
     try {
       const data = await metricsApi.getPerformanceMetrics(currentFilters);
       setMetrics(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch metrics');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
     } finally {
       setLoading(false);
     }
@@ -41,8 +42,8 @@ export const MetricsDashboardPage: React.FC = () => {
       if (Array.isArray(response.data)) {
         setDepartments(response.data);
       }
-    } catch (err) {
-      // Ignored for now
+    } catch { /* noop */ 
+
     }
   };
 
@@ -133,7 +134,7 @@ export const MetricsDashboardPage: React.FC = () => {
                   paddingAngle={5}
                   dataKey="count"
                   nameKey="priority"
-                  label={(props: any) => `P${props.priority} ${((props.percent || 0) * 100).toFixed(0)}%`}
+                  label={(props: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => `P${props.priority} ${((props.percent || 0) * 100).toFixed(0)}%`}
                 >
                   {metrics.byPriority.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -59,7 +59,6 @@ describe('TicketDetailsPage', () => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({
       hasPrivilege: () => false,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       user: null as any,
       isAuthenticated: true
     });
@@ -130,7 +129,6 @@ describe('TicketDetailsPage', () => {
     // Now with privileges
     vi.mocked(useAuth).mockReturnValue({
       hasPrivilege: (p: string) => p === 'TICKET_MANAGEMENT',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       user: null as any,
       isAuthenticated: true
     });
@@ -146,7 +144,6 @@ describe('TicketDetailsPage', () => {
   it('allows management users to update status and assignee', async () => {
     vi.mocked(useAuth).mockReturnValue({
       hasPrivilege: (p: string) => p === 'TICKET_MANAGEMENT',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       user: null as any,
       isAuthenticated: true
     });
@@ -186,7 +183,6 @@ describe('TicketDetailsPage', () => {
     // Write privilege
     vi.mocked(useAuth).mockReturnValue({
       hasPrivilege: (p: string) => p === 'TICKET_WRITE',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       user: null as any,
       isAuthenticated: true
     });

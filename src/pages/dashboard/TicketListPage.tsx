@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ticketApi } from '../../api/ticketApi';
@@ -60,7 +61,7 @@ export const TicketListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [tab, page, size, sort, status, priority, user?.id]);
+  }, [tab, page, size, sort, status, priority, user]);
 
   useEffect(() => {
     fetchTickets(search);

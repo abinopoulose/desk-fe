@@ -12,12 +12,12 @@ vi.mock('../../../api/ticketApi');
 describe('TicketListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAuth as any).mockReturnValue({
+    (useAuth as import("vitest").Mock).mockReturnValue({
       user: { id: 'user-1' },
       hasPrivilege: vi.fn().mockReturnValue(true)
     });
     
-    (ticketApi.getTickets as any).mockResolvedValue({
+    (ticketApi.getTickets as import("vitest").Mock).mockResolvedValue({
       content: [
         {
           id: 'ticket-1',
@@ -137,7 +137,7 @@ describe('TicketListPage', () => {
   });
 
   it('handles pagination', async () => {
-    (ticketApi.getTickets as any).mockResolvedValue({
+    (ticketApi.getTickets as import("vitest").Mock).mockResolvedValue({
       content: [],
       page: 0,
       size: 20,
