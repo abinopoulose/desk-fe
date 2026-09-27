@@ -57,3 +57,39 @@ export interface CreateStatusRequest {
 }
 
 export type UpdateStatusRequest = CreateStatusRequest;
+
+export interface CreateTicketRequest {
+  ticketTypeId: string;
+  priority: number;
+  formData: Record<string, unknown>;
+  attachments?: string[];
+}
+
+export interface FormSchemaResponse {
+  id: string;
+  title: string;
+  description: string;
+  departmentId: string;
+  folderId: string;
+  formSchema: Record<string, unknown>;
+}
+
+export interface TicketDTO {
+  id: string;
+  ticketTypeId: string;
+  ticketTypeTitle: string;
+  requesterId: string;
+  requesterName: string;
+  assigneeId?: string;
+  assigneeName?: string;
+  currentStatusId: string;
+  currentStatusName: string;
+  mappedState: 'OPEN' | 'CLOSED';
+  priority: number;
+  formData: Record<string, unknown>;
+  slaDueAt: string;
+  slaBreached: boolean;
+  attachments?: string[];
+  createdAt: string;
+  updatedAt: string;
+}

@@ -12,6 +12,7 @@ export interface DynamicFormRendererProps {
   onSubmit: (data: Record<string, unknown>) => void;
   initialData?: Record<string, unknown>;
   isSubmitting?: boolean;
+  externalErrors?: Record<string, string>;
 }
 
 export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
@@ -19,6 +20,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   onSubmit,
   initialData = {},
   isSubmitting = false,
+  externalErrors = {},
 }) => {
   const [values, setValues] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -109,7 +111,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
       field,
       value: values[field.name],
       onChange: (val: any) => handleChange(field.name, val),
-      error: errors[field.name],
+      error: errors[field.name] || externalErrors[field.name],
     };
 
     switch (field.type) {
