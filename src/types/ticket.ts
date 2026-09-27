@@ -129,3 +129,38 @@ export interface TicketHistoryDTO {
   oldValue: string;
   newValue: string;
 }
+
+export interface TicketFilterParams {
+  tab?: 'my' | 'assigned' | 'all';
+  status?: 'OPEN' | 'CLOSED';
+  priority?: number;
+  requesterId?: string;
+  assigneeId?: string;
+  search?: string;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+export interface TicketSummaryDTO {
+  id: string;
+  ticketTypeTitle: string;
+  departmentName: string;
+  requesterName: string;
+  assigneeName?: string;
+  statusName: string;
+  mappedState: 'OPEN' | 'CLOSED';
+  priority: number;
+  slaDueAt: string;
+  slaBreached: boolean;
+  createdAt: string;
+}

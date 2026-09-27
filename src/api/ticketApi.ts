@@ -4,10 +4,18 @@ import type {
   CreateTicketRequest, 
   TicketDTO, 
   TicketDetailResponse, 
-  CommentDTO 
+  CommentDTO,
+  TicketFilterParams,
+  PaginatedResponse,
+  TicketSummaryDTO
 } from '../types/ticket';
 
 export const ticketApi = {
+  getTickets: async (params: TicketFilterParams): Promise<PaginatedResponse<TicketSummaryDTO>> => {
+    const response = await axiosInstance.get<PaginatedResponse<TicketSummaryDTO>>('/tickets', { params });
+    return response.data;
+  },
+
   createTicket: async (request: CreateTicketRequest): Promise<TicketDTO> => {
     const response = await axiosInstance.post<TicketDTO>('/tickets', request);
     return response.data;
