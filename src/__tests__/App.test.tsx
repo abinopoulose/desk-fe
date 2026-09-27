@@ -1,12 +1,14 @@
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi } from "vitest";
 import { render, screen, cleanup } from '@testing-library/react';
 import App from '../App';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+vi.mock('../pages/metrics/MetricsDashboardPage', () => ({ MetricsDashboardPage: () => <div>Performance Metrics</div> }));
 import { useAuthStore } from '../store/authStore';
 
 describe('App Routing', () => {
   beforeEach(() => {
     window.history.pushState({}, 'Test page', '/');
-    useAuthStore.setState({ isAuthenticated: true, user: { id: '1', email: 'a@b.com', fullName: 'A', roles: [] }, token: 'mock-token', privileges: [] });
+    useAuthStore.setState({ isAuthenticated: true, user: { id: '1', email: 'a@b.com', fullName: 'A', roles: [] }, token: 'mock-token', privileges: ['METRICS_READ'] });
   });
 
   afterEach(() => {
@@ -15,7 +17,7 @@ describe('App Routing', () => {
 
   it('renders dashboard redirect initially and layout', () => {
     render(<App />);
-    expect(screen.getByText('DashboardPage Placeholder')).toBeDefined();
+    expect(screen.getByText('Ticket Dashboard')).toBeDefined();
     expect(screen.getByText('Desk App')).toBeDefined();
   });
 
@@ -34,7 +36,7 @@ describe('App Routing', () => {
   it('navigates to metrics', async () => {
     window.history.pushState({}, 'Test page', '/metrics');
     render(<App />);
-    expect(screen.getByText('MetricsPage Placeholder')).toBeDefined();
+    expect(screen.getByText('Performance Metrics')).toBeDefined();
   });
 
   it('renders login placeholder', async () => {
