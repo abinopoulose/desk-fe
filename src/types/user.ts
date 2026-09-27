@@ -28,6 +28,9 @@ export interface UserProfileResponse {
 }
 
 export interface OrgNode {
-  user: UserSummaryDTO;
-  children: OrgNode[];
+  id: string;
+  fullName: string;
+  title?: string;
+  email: string;
+  children?: OrgNode[];
 }

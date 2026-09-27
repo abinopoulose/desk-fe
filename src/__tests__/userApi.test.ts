@@ -31,7 +31,7 @@ describe('userApi', () => {
       (axiosInstance.get as Mock).mockResolvedValueOnce({ data: mockData });
 
       const result = await getOrgHierarchy();
-      expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/users/org-hierarchy', { params: {} });
+      expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/users/hierarchy', { params: {} });
       expect(result).toEqual(mockData);
     });
 
@@ -40,7 +40,7 @@ describe('userApi', () => {
       (axiosInstance.get as Mock).mockResolvedValueOnce({ data: mockData });
 
       const result = await getOrgHierarchy('123');
-      expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/users/org-hierarchy', { params: { rootUserId: '123' } });
+      expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/users/hierarchy', { params: { rootUserId: '123' } });
       expect(result).toEqual(mockData);
     });
   });

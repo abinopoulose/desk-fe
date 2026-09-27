@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
+import { OrgChartPage } from './pages/org/OrgChartPage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -21,6 +22,7 @@ function App() {
           <Route path="/tickets/*" element={<div>Tickets Placeholder</div>} />
           <Route path="/admin/*" element={<div>Admin Placeholder</div>} />
           <Route path="/metrics" element={<div>MetricsPage Placeholder</div>} />
+          <Route path="/org-chart" element={<OrgChartPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
