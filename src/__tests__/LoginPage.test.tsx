@@ -50,7 +50,7 @@ describe('LoginPage', () => {
   it('handles successful login', async () => {
     vi.mocked(authApi.login).mockResolvedValueOnce({
       token: 'test-token',
-      user: { id: '1', email: 'test@example.com', roles: [] },
+      user: { id: '1', email: 'test@example.com', fullName: 'Test User', roles: [] },
     });
 
     renderComponent();
@@ -64,7 +64,7 @@ describe('LoginPage', () => {
   });
 
   it('handles failed login', async () => {
-    const error = {
+    const error: any = {
       response: {
         status: 401,
         data: { message: 'Invalid credentials' }

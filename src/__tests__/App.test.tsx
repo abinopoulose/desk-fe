@@ -1,10 +1,16 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import App from '../App';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { useAuthStore } from '../store/authStore';
 
 describe('App Routing', () => {
   beforeEach(() => {
     window.history.pushState({}, 'Test page', '/');
+    useAuthStore.setState({ isAuthenticated: true, user: { id: '1', email: 'a@b.com', fullName: 'A', roles: [] }, token: 'mock-token', privileges: [] });
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('renders dashboard redirect initially and layout', () => {
@@ -32,6 +38,7 @@ describe('App Routing', () => {
   });
 
   it('renders login placeholder', async () => {
+    useAuthStore.setState({ isAuthenticated: false });
     window.history.pushState({}, 'Test page', '/login');
     render(<App />);
     expect(screen.getByText('LoginPage Placeholder')).toBeDefined();

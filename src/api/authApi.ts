@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
+import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
 
 export const login = async (request: LoginRequest): Promise<AuthResponse> => {
   const response = await axiosInstance.post<AuthResponse>('/auth/login', request);

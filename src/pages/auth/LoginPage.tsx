@@ -32,8 +32,7 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await loginApi({ email, password });
-      localStorage.setItem('desk_token', response.token);
-      loginAction(response.user);
+      loginAction(response.token, response.user, response.user.roles || []);
       
       const state = location.state as { from?: { pathname: string } } | null;
       const from = state?.from?.pathname || '/dashboard';

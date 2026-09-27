@@ -1,16 +1,70 @@
 import { create } from 'zustand';
-import { UserDTO } from '../types/auth';
+import type { UserDTO } from '../types/auth';
 
-interface AuthState {
+export interface AuthState {
   user: UserDTO | null;
+  token: string | null;
   isAuthenticated: boolean;
-  login: (user: UserDTO) => void;
+  privileges: string[];
+  login: (token: string, user: UserDTO, privileges?: string[]) => void;
   logout: () => void;
+  initialize: () => void;
 }
+
+const isTokenValid = (token: string): boolean => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  token: null,
   isAuthenticated: false,
-  login: (user) => set({ user, isAuthenticated: true }),
-  logout: () => set({ user: null, isAuthenticated: false }),
+  privileges: [],
+  login: (token, user, privileges = []) => {
+    localStorage.setItem('desk_token', token);
+    localStorage.setItem('desk_user', JSON.stringify(user));
+    localStorage.setItem('desk_privileges', JSON.stringify(privileges));
+    set({ user, token, isAuthenticated: true, privileges });
+  },
+  logout: () => {
+    localStorage.removeItem('desk_token');
+    localStorage.removeItem('desk_user');
+    localStorage.removeItem('desk_privileges');
+    set({ user: null, token: null, isAuthenticated: false, privileges: [] });
+    // redirect to login
+    window.location.href = '/login';
+  },
+  initialize: () => {
+    const token = localStorage.getItem('desk_token');
+    if (token) {
+      if (isTokenValid(token)) {
+        let user = null;
+        let privileges: string[] = [];
+        try {
+          const userStr = localStorage.getItem('desk_user');
+          if (userStr) user = JSON.parse(userStr);
+          const privStr = localStorage.getItem('desk_privileges');
+          if (privStr) privileges = JSON.parse(privStr);
+        } catch (e) {
+          // ignore parsing errors
+        }
+        set({ token, user, isAuthenticated: true, privileges });
+      } else {
+        localStorage.removeItem('desk_token');
+        localStorage.removeItem('desk_user');
+        localStorage.removeItem('desk_privileges');
+        set({ user: null, token: null, isAuthenticated: false, privileges: [] });
+      }
+    }
+  }
 }));
