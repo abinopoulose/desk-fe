@@ -93,3 +93,39 @@ export interface TicketDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface TicketDetailResponse {
+  id: string;
+  ticketType: { id: string; title: string };
+  requester: { id: string; fullName: string; email: string };
+  assignee?: { id: string; fullName: string; email: string };
+  currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };
+  priority: number;
+  formData: Record<string, unknown>;
+  slaDueAt: string;
+  slaBreached: boolean;
+  attachments?: string[];
+  comments: CommentDTO[];
+  history: TicketHistoryDTO[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommentDTO {
+  id: string;
+  ticketId: string;
+  author: { id: string; fullName: string; email: string };
+  content: string;
+  attachments?: string[];
+  createdAt: string;
+}
+
+export interface TicketHistoryDTO {
+  id: string;
+  changedByUserId: string;
+  changedByUserName: string;
+  changedAt: string;
+  fieldName: string;
+  oldValue: string;
+  newValue: string;
+}

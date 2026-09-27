@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldProps } from './types';
+import type { FieldProps } from './types';
 
 export const NumberField: React.FC<FieldProps> = ({ field, value, onChange, error }) => {
   return (

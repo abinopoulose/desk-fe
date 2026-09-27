@@ -9,6 +9,7 @@ import { TicketTypeAdminPage } from './pages/admin/TicketTypeAdminPage';
 import { TicketTypeFormPage } from './pages/admin/TicketTypeFormPage';
 import { TicketStatusManager } from './pages/admin/TicketStatusManager';
 import { CreateTicketPage } from './pages/tickets/CreateTicketPage';
+import { TicketDetailsPage } from './pages/tickets/TicketDetailsPage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -26,7 +27,8 @@ function App() {
           <Route path="/dashboard" element={<div>DashboardPage Placeholder</div>} />
           <Route path="/browse" element={<BrowseFoldersPage />} />
           <Route path="/tickets/new" element={<CreateTicketPage />} />
-          <Route path="/tickets/*" element={<div>Tickets Placeholder</div>} />
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+          <Route path="/tickets" element={<div>Tickets Placeholder</div>} />
           <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
           <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
           <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />

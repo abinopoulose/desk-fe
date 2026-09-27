@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
-import { FormSchema } from '../../types/formSchema';
+import type { FormSchema } from '../../types/formSchema';
 import { SchemaBuilder } from '../../components/admin/SchemaBuilder';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 

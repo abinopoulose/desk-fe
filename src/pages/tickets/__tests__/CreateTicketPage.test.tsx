@@ -108,7 +108,7 @@ describe('CreateTicketPage', () => {
 
   it('opens confirmation modal and submits successfully', async () => {
     vi.mocked(ticketApi.getTicketSchema).mockResolvedValue(mockSchema);
-    vi.mocked(ticketApi.createTicket).mockResolvedValue({ id: 'ticket-999' } as any);
+    vi.mocked(ticketApi.createTicket).mockResolvedValue({ id: 'ticket-999' } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
     
     renderComponent();
     

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { TicketTypeSummaryDTO } from '../../types/ticket';
+import type { TicketTypeSummaryDTO } from '../../types/ticket';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 

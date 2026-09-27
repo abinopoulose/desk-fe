@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import {
+import type {
   TicketTypeSummaryDTO,
   TicketTypeDTO,
   CreateTicketTypeRequest,

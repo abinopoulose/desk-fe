@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
-import { TicketStatusDTO, TicketTypeDTO } from '../../types/ticket';
+import type { TicketStatusDTO, TicketTypeDTO } from '../../types/ticket';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 
 export const TicketStatusManager: React.FC = () => {

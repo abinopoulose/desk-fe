@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ticketTypeApi } from '../api/ticketTypeApi';
 import axiosInstance from '../api/axiosInstance';
-import { TicketTypeSummaryDTO, TicketTypeDTO, TicketStatusDTO } from '../types/ticket';
+import type { TicketTypeSummaryDTO, TicketTypeDTO, TicketStatusDTO } from '../types/ticket';
 
 vi.mock('../api/axiosInstance');
 

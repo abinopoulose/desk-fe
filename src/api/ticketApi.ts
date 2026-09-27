@@ -1,5 +1,11 @@
 import axiosInstance from './axiosInstance';
-import { FormSchemaResponse, CreateTicketRequest, TicketDTO } from '../types/ticket';
+import type { 
+  FormSchemaResponse, 
+  CreateTicketRequest, 
+  TicketDTO, 
+  TicketDetailResponse, 
+  CommentDTO 
+} from '../types/ticket';
 
 export const ticketApi = {
   createTicket: async (request: CreateTicketRequest): Promise<TicketDTO> => {
@@ -9,6 +15,31 @@ export const ticketApi = {
 
   getTicketSchema: async (typeId: string): Promise<FormSchemaResponse> => {
     const response = await axiosInstance.get<FormSchemaResponse>(`/ticket-types/${typeId}/schema`);
+    return response.data;
+  },
+
+  getTicketDetails: async (ticketId: string): Promise<TicketDetailResponse> => {
+    const response = await axiosInstance.get<TicketDetailResponse>(`/tickets/${ticketId}`);
+    return response.data;
+  },
+
+  updateTicketStatus: async (ticketId: string, statusId: string): Promise<TicketDTO> => {
+    const response = await axiosInstance.patch<TicketDTO>(`/tickets/${ticketId}/status`, { statusId });
+    return response.data;
+  },
+
+  assignTicket: async (ticketId: string, assigneeId: string | null): Promise<TicketDTO> => {
+    const response = await axiosInstance.patch<TicketDTO>(`/tickets/${ticketId}/assign`, { assigneeId });
+    return response.data;
+  },
+
+  addComment: async (ticketId: string, content: string): Promise<CommentDTO> => {
+    const response = await axiosInstance.post<CommentDTO>(`/tickets/${ticketId}/comments`, { content });
+    return response.data;
+  },
+
+  getComments: async (ticketId: string): Promise<CommentDTO[]> => {
+    const response = await axiosInstance.get<CommentDTO[]>(`/tickets/${ticketId}/comments`);
     return response.data;
   },
 };

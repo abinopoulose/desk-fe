@@ -2,8 +2,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { DynamicFormRenderer } from '../components/forms/DynamicFormRenderer';
-import { FormSchema } from '../types/formSchema';
-import React from 'react';
+import type { FormSchema } from '../types/formSchema';
 
 const mockSchema: FormSchema = {
   fields: [

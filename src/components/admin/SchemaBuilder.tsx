@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FormSchema, FormField, FieldType } from '../../types/formSchema';
+import type { FormSchema, FormField, FieldType } from '../../types/formSchema';
 import { DynamicFormRenderer } from '../forms/DynamicFormRenderer';
 
 export interface SchemaBuilderProps {

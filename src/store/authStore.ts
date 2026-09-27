@@ -68,3 +68,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   }
 }));
+
+export const useAuth = () => {
+  const privileges = useAuthStore((state) => state.privileges);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  return {
+    hasPrivilege: (p: string) => privileges.includes(p),
+    user,
+    isAuthenticated
+  };
+};

@@ -1,9 +1,8 @@
-import React from 'react';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SchemaBuilder } from '../components/admin/SchemaBuilder';
-import { FormSchema } from '../types/formSchema';
+import type { FormSchema } from '../types/formSchema';
 
 describe('SchemaBuilder', () => {
   afterEach(() => {

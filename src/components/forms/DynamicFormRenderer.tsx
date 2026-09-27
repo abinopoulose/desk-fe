@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { FormSchema, FormField } from '../../types/formSchema';
+import type { FormSchema, FormField } from '../../types/formSchema';
 import { TextField } from './fields/TextField';
 import { TextAreaField } from './fields/TextAreaField';
 import { SelectField } from './fields/SelectField';
@@ -15,22 +16,24 @@ export interface DynamicFormRendererProps {
   externalErrors?: Record<string, string>;
 }
 
+const EMPTY_OBJECT = {};
 export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   schema,
   onSubmit,
-  initialData = {},
+  initialData = EMPTY_OBJECT as Record<string, any>,
   isSubmitting = false,
   externalErrors = {},
 }) => {
-  const [values, setValues] = useState<Record<string, any>>(initialData);
+      const [values, setValues] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValues(initialData);
     setErrors({});
   }, [initialData, schema]);
 
-  const validateField = (field: FormField, value: any): string | null => {
+    const validateField = (field: FormField, value: any): string | null => {
     if (field.required && (value === undefined || value === null || value === '')) {
       return 'This field is required';
     }
@@ -64,7 +67,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     return values[depField] === depValue;
   };
 
-  const handleChange = (name: string, value: any) => {
+    const handleChange = (name: string, value: any) => {
     setValues((prev) => ({ ...prev, [name]: value }));
     // Clear error when user changes value
     if (errors[name]) {
@@ -110,7 +113,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
       key: field.name,
       field,
       value: values[field.name],
-      onChange: (val: any) => handleChange(field.name, val),
+            onChange: (val: any) => handleChange(field.name, val),
       error: errors[field.name] || externalErrors[field.name],
     };
 

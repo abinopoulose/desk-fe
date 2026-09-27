@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
 import { ticketApi } from '../../api/ticketApi';
-import { FormSchemaResponse } from '../../types/ticket';
+import type { FormSchemaResponse } from '../../types/ticket';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
-import { FormSchema } from '../../types/formSchema';
+import type { FormSchema } from '../../types/formSchema';
 
 export const CreateTicketPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +23,7 @@ export const CreateTicketPage: React.FC = () => {
 
   useEffect(() => {
     if (typeId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       ticketApi.getTicketSchema(typeId)
         .then((res) => {
@@ -86,7 +87,7 @@ export const CreateTicketPage: React.FC = () => {
         formData: stagedFormData,
       });
       navigate(`/tickets/${result.id}`);
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setShowConfirmModal(false);
       if (err.response && err.response.status === 400 && err.response.data && err.response.data.errors) {
         setFieldErrors(err.response.data.errors);

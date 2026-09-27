@@ -1,4 +1,3 @@
-import React from 'react';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -6,7 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router';
 import { TicketStatusManager } from '../pages/admin/TicketStatusManager';
 import { ticketTypeApi } from '../api/ticketTypeApi';
 import { useAuthStore } from '../store/authStore';
-import { TicketTypeDTO, TicketStatusDTO } from '../types/ticket';
+import type { TicketTypeDTO, TicketStatusDTO } from '../types/ticket';
 
 vi.mock('../api/ticketTypeApi');
 
