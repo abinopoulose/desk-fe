@@ -20,7 +20,7 @@ const isTokenValid = (token: string): boolean => {
       return false;
     }
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           if (userStr) user = JSON.parse(userStr);
           const privStr = localStorage.getItem('desk_privileges');
           if (privStr) privileges = JSON.parse(privStr);
-        } catch (e) {
+        } catch {
           // ignore parsing errors
         }
         set({ token, user, isAuthenticated: true, privileges });

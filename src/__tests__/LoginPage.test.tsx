@@ -64,15 +64,14 @@ describe('LoginPage', () => {
   });
 
   it('handles failed login', async () => {
-    const error: any = {
+    const error = Object.assign(new Error(), {
+      isAxiosError: true,
+      name: 'AxiosError',
       response: {
         status: 401,
         data: { message: 'Invalid credentials' }
       }
-    };
-    Object.setPrototypeOf(error, { isAxiosError: true });
-    error.name = 'AxiosError';
-    error.isAxiosError = true;
+    });
 
     vi.mocked(authApi.login).mockRejectedValueOnce(error);
 
