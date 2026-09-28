@@ -132,14 +132,23 @@ export interface TicketHistoryDTO {
 
 export interface TicketFilterParams {
   tab?: 'my' | 'assigned' | 'all';
-  status?: 'OPEN' | 'CLOSED';
+  status?: string;
+  mappedState?: 'OPEN' | 'CLOSED';
   priority?: number;
   requesterId?: string;
   assigneeId?: string;
+  departmentId?: string;
   search?: string;
   page?: number;
   size?: number;
   sort?: string;
+}
+
+export interface TicketListResponse {
+  tickets: TicketDTO[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 export interface PaginatedResponse<T> {

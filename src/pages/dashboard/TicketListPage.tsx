@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ticketApi } from '../../api/ticketApi';
-import type { TicketSummaryDTO, TicketFilterParams } from '../../types/ticket';
+import type { TicketDTO, TicketFilterParams } from '../../types/ticket';
 import { useAuth } from '../../store/authStore';
 
 export const TicketListPage = () => {
@@ -11,13 +11,15 @@ export const TicketListPage = () => {
   const canManage = hasPrivilege('TICKET_MANAGEMENT');
   
   const [tab, setTab] = useState<'my' | 'assigned' | 'all'>('my');
-  const [tickets, setTickets] = useState<TicketSummaryDTO[]>([]);
+  const [tickets, setTickets] = useState<TicketDTO[]>([]);
   const [page, setPage] = useState(0);
-  const size = 20;
+  const [size, setSize] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   
   const [status, setStatus] = useState<string>('');
+  const [mappedState, setMappedState] = useState<string>('');
+  const [assigneeId, setAssigneeId] = useState<string>('');
   const [priority, setPriority] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [sort, setSort] = useState<string>('createdAt,desc');
@@ -41,9 +43,14 @@ export const TicketListPage = () => {
       }
       if (tab === 'assigned' && user?.id) {
         params.assigneeId = user.id;
+      } else if (assigneeId) {
+        params.assigneeId = assigneeId;
       }
       if (status) {
-        params.status = status as 'OPEN' | 'CLOSED';
+        params.status = status;
+      }
+      if (mappedState) {
+        params.mappedState = mappedState as 'OPEN' | 'CLOSED';
       }
       if (priority) {
         params.priority = Number(priority);
@@ -53,15 +60,15 @@ export const TicketListPage = () => {
       }
       
       const res = await ticketApi.getTickets(params);
-      setTickets(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
+      setTickets(res.tickets || []);
+      setTotalElements(res.totalElements || 0);
+      setTotalPages(res.totalPages || 0);
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
     } finally {
       setLoading(false);
     }
-  }, [tab, page, size, sort, status, priority, user]);
+  }, [tab, page, size, sort, status, mappedState, assigneeId, priority, user]);
 
   useEffect(() => {
     fetchTickets(search);
@@ -122,7 +129,7 @@ export const TicketListPage = () => {
         )}
       </div>
       
-      <div className="flex space-x-4 mb-4 items-center">
+      <div className="flex flex-wrap gap-4 mb-4 items-center">
         <input 
           type="text" 
           placeholder="Search by ID or Requester" 
@@ -131,12 +138,28 @@ export const TicketListPage = () => {
           className="border p-2 rounded"
         />
         
-        <select 
-          value={status} 
+        <input 
+          type="text" 
+          placeholder="Filter by Status ID" 
+          value={status}
           onChange={e => { setStatus(e.target.value); setPage(0); }}
           className="border p-2 rounded"
+        />
+        
+        <input 
+          type="text" 
+          placeholder="Filter by Assignee ID" 
+          value={assigneeId}
+          onChange={e => { setAssigneeId(e.target.value); setPage(0); }}
+          className="border p-2 rounded"
+        />
+
+        <select 
+          value={mappedState} 
+          onChange={e => { setMappedState(e.target.value); setPage(0); }}
+          className="border p-2 rounded"
         >
-          <option value="">All Status</option>
+          <option value="">All States</option>
           <option value="OPEN">Open</option>
           <option value="CLOSED">Closed</option>
         </select>
@@ -151,6 +174,16 @@ export const TicketListPage = () => {
           <option value="2">2 - High</option>
           <option value="3">3 - Medium</option>
           <option value="4">4 - Low</option>
+        </select>
+
+        <select 
+          value={size} 
+          onChange={e => { setSize(Number(e.target.value)); setPage(0); }}
+          className="border p-2 rounded"
+        >
+          <option value="10">10 per page</option>
+          <option value="20">20 per page</option>
+          <option value="50">50 per page</option>
         </select>
       </div>
 
@@ -191,7 +224,6 @@ export const TicketListPage = () => {
                   <td className="py-2 px-4 border">{t.id.substring(0, 8)}...</td>
                   <td className="py-2 px-4 border">
                     <div>{t.ticketTypeTitle}</div>
-                    <div className="text-xs text-gray-500">{t.departmentName}</div>
                   </td>
                   <td className="py-2 px-4 border">{t.requesterName}</td>
                   <td className="py-2 px-4 border">
@@ -199,7 +231,7 @@ export const TicketListPage = () => {
                   </td>
                   <td className="py-2 px-4 border">
                     <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      {t.statusName} ({t.mappedState})
+                      {t.currentStatusName} ({t.mappedState})
                     </span>
                   </td>
                   <td className="py-2 px-4 border">

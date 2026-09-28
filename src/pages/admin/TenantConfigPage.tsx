@@ -1,10 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 import { tenantApi } from '../../api/tenantApi';
-import type { TenantConfigDTO } from '../../types/tenant';
-
 export const TenantConfigPage: React.FC = () => {
-  const [configId, setConfigId] = useState<string>('');
   const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
   const [superAdminEmail, setSuperAdminEmail] = useState<string>('');
   const [newDomain, setNewDomain] = useState<string>('');
@@ -12,15 +10,10 @@ export const TenantConfigPage: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-  useEffect(() => {
-    loadConfig();
-  }, []);
-
   const loadConfig = async () => {
     setLoading(true);
     try {
       const config = await tenantApi.getTenantConfig();
-      setConfigId(config.id);
       setAllowedDomains(config.allowedDomains || []);
       setSuperAdminEmail(config.superAdminEmail || '');
     } catch (err) {
@@ -29,6 +22,12 @@ export const TenantConfigPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+
 
   const handleAddDomain = () => {
     const domain = newDomain.trim().toLowerCase();

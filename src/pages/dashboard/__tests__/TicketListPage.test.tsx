@@ -18,26 +18,29 @@ describe('TicketListPage', () => {
     });
     
     (ticketApi.getTickets as import("vitest").Mock).mockResolvedValue({
-      content: [
+      tickets: [
         {
           id: 'ticket-1',
+          ticketTypeId: 'type-1',
           ticketTypeTitle: 'Laptop Issue',
-          departmentName: 'IT',
+          requesterId: 'user-1',
           requesterName: 'John Doe',
+          assigneeId: 'user-2',
           assigneeName: 'Jane Smith',
-          statusName: 'Open',
+          currentStatusId: 'status-1',
+          currentStatusName: 'Open',
           mappedState: 'OPEN',
           priority: 1,
+          formData: {},
           slaDueAt: '2023-12-01T00:00:00Z',
           slaBreached: true,
-          createdAt: '2023-11-01T00:00:00Z'
+          createdAt: '2023-11-01T00:00:00Z',
+          updatedAt: '2023-11-01T00:00:00Z'
         }
       ],
-      page: 0,
-      size: 20,
+      currentPage: 0,
       totalElements: 1,
       totalPages: 1,
-      last: true
     });
   });
 
@@ -105,14 +108,14 @@ describe('TicketListPage', () => {
     }, { timeout: 1000 });
   });
 
-  it('applies status filter', async () => {
+  it('applies mappedState filter', async () => {
     renderComponent();
     const selects = screen.getAllByRole('combobox');
     fireEvent.change(selects[0], { target: { value: 'OPEN' } });
     
     await waitFor(() => {
       expect(ticketApi.getTickets).toHaveBeenCalledWith(expect.objectContaining({
-        status: 'OPEN'
+        mappedState: 'OPEN'
       }));
     });
   });
@@ -138,12 +141,10 @@ describe('TicketListPage', () => {
 
   it('handles pagination', async () => {
     (ticketApi.getTickets as import("vitest").Mock).mockResolvedValue({
-      content: [],
-      page: 0,
-      size: 20,
+      tickets: [],
+      currentPage: 0,
       totalElements: 40,
       totalPages: 2,
-      last: false
     });
     renderComponent();
     
