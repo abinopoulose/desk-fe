@@ -4,7 +4,6 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
 import { OrgChartPage } from './pages/org/OrgChartPage';
 import { BrowseFoldersPage } from './pages/folders/BrowseFoldersPage';
 import { TicketTypeAdminPage } from './pages/admin/TicketTypeAdminPage';
@@ -15,6 +14,7 @@ import { TicketDetailsPage } from './pages/tickets/TicketDetailsPage';
 import { TicketListPage } from './pages/dashboard/TicketListPage';
 import { MetricsDashboardPage } from './pages/metrics/MetricsDashboardPage';
 import { PrivilegeGate } from './components/auth/PrivilegeGate';
+import UserProfilePage from './pages/user/UserProfilePage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -27,7 +27,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<TicketListPage />} />
@@ -42,6 +41,7 @@ function App() {
           <Route path="/admin/*" element={<div>Admin Placeholder</div>} />
           <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
           <Route path="/org-chart" element={<OrgChartPage />} />
+          <Route path="/users/:userId" element={<UserProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

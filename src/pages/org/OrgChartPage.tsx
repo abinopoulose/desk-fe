@@ -55,7 +55,7 @@ export const OrgChartPage: React.FC = () => {
   }, []);
 
   const handleSelectUser = useCallback((userId: string) => {
-    navigate(`/users/${userId}/profile`);
+    navigate(`/users/${userId}`);
   }, [navigate]);
 
   const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 2));

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, Link } from 'react-router';
 import { useAuth } from '../../store/authStore';
 import { ticketApi } from '../../api/ticketApi';
 import type { TicketDetailResponse } from '../../types/ticket';
@@ -185,7 +185,7 @@ export const TicketDetailsPage: React.FC = () => {
           </div>
           <h2 className="text-xl text-gray-800">{ticket.ticketType.title}</h2>
           <div className="text-sm text-gray-500 mt-2">
-            Opened on {new Date(ticket.createdAt).toLocaleDateString()} by {ticket.requester.fullName}
+            Opened on {new Date(ticket.createdAt).toLocaleDateString()} by <Link to={`/users/${ticket.requester.id}`} className="text-blue-600 hover:underline">{ticket.requester.fullName}</Link>
             <span className="mx-2">•</span>
             Updated {new Date(ticket.updatedAt).toLocaleString()}
           </div>
@@ -235,7 +235,7 @@ export const TicketDetailsPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">{comment.author.fullName}</span>
+                      <Link to={`/users/${comment.author.id}`} className="font-semibold text-blue-600 hover:underline">{comment.author.fullName}</Link>
                       <span className="text-xs text-gray-500">{new Date(comment.createdAt).toLocaleString()}</span>
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
@@ -306,7 +306,13 @@ export const TicketDetailsPage: React.FC = () => {
                   {/* Ideally populate with users */}
                 </select>
               ) : (
-                <div className="p-2 bg-gray-50 rounded border text-sm">{ticket.assignee?.fullName || 'Unassigned'}</div>
+                <div className="p-2 bg-gray-50 rounded border text-sm">
+                  {ticket.assignee ? (
+                    <Link to={`/users/${ticket.assignee.id}`} className="text-blue-600 hover:underline">{ticket.assignee.fullName}</Link>
+                  ) : (
+                    'Unassigned'
+                  )}
+                </div>
               )}
             </div>
           </div>

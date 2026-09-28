@@ -104,7 +104,7 @@ const UserProfilePage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow border">
           <h2 className="text-xl font-semibold mb-4 border-b pb-2">Reporting Manager</h2>
           {profile.manager ? (
-            <Link to={`/users/${profile.manager.id}/profile`} className="block hover:bg-gray-50 p-3 rounded border">
+            <Link to={`/users/${profile.manager.id}`} className="block hover:bg-gray-50 p-3 rounded border">
               <div className="font-medium text-blue-600">{profile.manager.fullName}</div>
               <div className="text-gray-600 text-sm">{profile.manager.title || 'No Title'}</div>
             </Link>
@@ -135,7 +135,7 @@ const UserProfilePage: React.FC = () => {
           {profile.reportees && profile.reportees.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {profile.reportees.map(reportee => (
-                <Link key={reportee.id} to={`/users/${reportee.id}/profile`} className="block hover:bg-gray-50 p-3 rounded border">
+                <Link key={reportee.id} to={`/users/${reportee.id}`} className="block hover:bg-gray-50 p-3 rounded border">
                   <div className="font-medium text-blue-600">{reportee.fullName}</div>
                   <div className="text-gray-600 text-sm">{reportee.title || 'No Title'}</div>
                 </Link>
