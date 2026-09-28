@@ -1,0 +1,19 @@
+export interface RoleDTO {
+  id?: string;
+  roleName: string;
+  privileges: string[];
+}
+
+export interface CreateRoleRequest {
+  roleName: string;
+  privileges: string[];
+}
+
+export interface AssignRolesRequest {
+  roles: string[];
+}
+
+export interface UserRolesResponse {
+  userId: string;
+  roles: string[];
+}
