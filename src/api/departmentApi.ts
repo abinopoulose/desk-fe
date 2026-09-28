@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../types/department';
+import type { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../types/department';
 
 const BASE_URL = '/api/v1/departments';
 

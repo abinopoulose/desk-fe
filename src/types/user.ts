@@ -34,10 +34,3 @@ export interface OrgNode {
   email: string;
   children?: OrgNode[];
 }
-
-export interface UserListResponse {
-  users: UserSummaryDTO[];
-  totalElements: number;
-  totalPages: number;
-  currentPage: number;
-}

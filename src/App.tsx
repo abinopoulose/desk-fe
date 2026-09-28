@@ -15,6 +15,7 @@ import { TicketListPage } from './pages/dashboard/TicketListPage';
 import { MetricsDashboardPage } from './pages/metrics/MetricsDashboardPage';
 import { PrivilegeGate } from './components/auth/PrivilegeGate';
 import UserProfilePage from './pages/user/UserProfilePage';
+import { SlaConfigPage } from './pages/admin/SlaConfigPage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -38,6 +39,7 @@ function App() {
           <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
           <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
           <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
+          <Route path="/admin/sla-config" element={<SlaConfigPage />} />
           <Route path="/admin/*" element={<div>Admin Placeholder</div>} />
           <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
           <Route path="/org-chart" element={<OrgChartPage />} />
