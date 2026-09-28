@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
+import { LoginPage } from './pages/auth/LoginPage';
 import { OrgChartPage } from './pages/org/OrgChartPage';
 import { BrowseFoldersPage } from './pages/folders/BrowseFoldersPage';
 import { TicketTypeAdminPage } from './pages/admin/TicketTypeAdminPage';
@@ -24,7 +25,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<div>LoginPage Placeholder</div>} />
+        <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<TicketListPage />} />

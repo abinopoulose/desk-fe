@@ -39,10 +39,10 @@ describe('App Routing', () => {
     expect(screen.getByText('Performance Metrics')).toBeDefined();
   });
 
-  it('renders login placeholder', async () => {
+  it('renders login page', async () => {
     useAuthStore.setState({ isAuthenticated: false });
     window.history.pushState({}, 'Test page', '/login');
     render(<App />);
-    expect(screen.getByText('LoginPage Placeholder')).toBeDefined();
+    expect(screen.getByText('Sign in to your account')).toBeDefined();
   });
 });
