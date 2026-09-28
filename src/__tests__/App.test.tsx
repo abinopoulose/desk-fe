@@ -21,16 +21,16 @@ describe('App Routing', () => {
     expect(screen.getByText('Desk App')).toBeDefined();
   });
 
-  it('navigates to tickets', async () => {
+  it('navigates to tickets redirects to dashboard', async () => {
     window.history.pushState({}, 'Test page', '/tickets');
     render(<App />);
-    expect(screen.getByText('Tickets Placeholder')).toBeDefined();
+    expect(screen.getByText('Ticket Dashboard')).toBeDefined();
   });
 
-  it('navigates to admin', async () => {
-    window.history.pushState({}, 'Test page', '/admin');
+  it('navigates to admin roles', async () => {
+    window.history.pushState({}, 'Test page', '/admin/roles');
     render(<App />);
-    expect(screen.getByText('Admin Placeholder')).toBeDefined();
+    expect(screen.getByText('Role Admin Page')).toBeDefined();
   });
 
   it('navigates to metrics', async () => {

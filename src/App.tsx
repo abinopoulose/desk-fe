@@ -16,6 +16,9 @@ import { MetricsDashboardPage } from './pages/metrics/MetricsDashboardPage';
 import { PrivilegeGate } from './components/auth/PrivilegeGate';
 import UserProfilePage from './pages/user/UserProfilePage';
 import { SlaConfigPage } from './pages/admin/SlaConfigPage';
+import { DepartmentAdminPage } from './pages/admin/DepartmentAdminPage';
+import { RoleAdminPage } from './pages/admin/RoleAdminPage';
+import { TenantConfigPage } from './pages/admin/TenantConfigPage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -34,13 +37,15 @@ function App() {
           <Route path="/browse" element={<BrowseFoldersPage />} />
           <Route path="/tickets/new" element={<CreateTicketPage />} />
           <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
-          <Route path="/tickets" element={<div>Tickets Placeholder</div>} />
+          <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
           <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
           <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
           <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
           <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
-          <Route path="/admin/sla-config" element={<SlaConfigPage />} />
-          <Route path="/admin/*" element={<div>Admin Placeholder</div>} />
+          <Route path="/admin/sla-configs" element={<SlaConfigPage />} />
+          <Route path="/admin/departments" element={<DepartmentAdminPage />} />
+          <Route path="/admin/roles" element={<RoleAdminPage />} />
+          <Route path="/admin/tenant" element={<TenantConfigPage />} />
           <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
           <Route path="/org-chart" element={<OrgChartPage />} />
           <Route path="/users/:userId" element={<UserProfilePage />} />
