@@ -20,4 +20,12 @@ export default defineConfig({
       exclude: ['src/main.tsx', 'src/vite-env.d.ts', 'src/**/*.d.ts'],
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
+    }
+  }
 })
