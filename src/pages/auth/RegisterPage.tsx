@@ -1,68 +1,12 @@
 import { ROUTES } from '../../constants';
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
-import { register as registerApi } from '../../api/authApi';
-import { useAuthStore } from '../../store/authStore';
-import { AxiosError } from 'axios';
+import { Link } from 'react-router';
+import { useRegister } from '../../hooks';
 import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, Loader2, User } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { formState, setField, submit, loading, error } = useRegister();
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const navigate = useNavigate();
-  const loginAction = useAuthStore(state => state.login);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!email || !fullName || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await registerApi({ email, fullName, password });
-      
-      if (response && response.token) {
-        loginAction(response.token, response.user, response.user.roles || []);
-        navigate(ROUTES.DASHBOARD, { replace: true });
-      } else {
-        navigate(ROUTES.AUTH.LOGIN, { state: { message: 'Registration successful. Please log in.' } });
-      }
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 403) {
-          setError('Email domain not allowed. Please use your organization email.');
-        } else if (err.response?.status === 409) {
-          setError('Email already registered.');
-        } else {
-          setError(err.response?.data?.message || 'A network error occurred. Please try again.');
-        }
-      } else {
-        setError('An unexpected error occurred');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="flex min-h-screen relative overflow-hidden bg-slate-50 items-center justify-center p-4">
@@ -80,7 +24,7 @@ export const RegisterPage: React.FC = () => {
             <p className="text-slate-500 mt-2">Get started with your new workspace</p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+          <form className="space-y-5" onSubmit={submit} noValidate>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex items-start gap-3 animate-in slide-in-from-top-2">
                 <span className="block sm:inline">{error}</span>
@@ -104,8 +48,8 @@ export const RegisterPage: React.FC = () => {
                     required
                     className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    value={formState.fullName}
+                    onChange={(e) => setField('fullName', e.target.value)}
                   />
                 </div>
               </div>
@@ -126,8 +70,8 @@ export const RegisterPage: React.FC = () => {
                     required
                     className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formState.email}
+                    onChange={(e) => setField('email', e.target.value)}
                   />
                 </div>
               </div>
@@ -149,8 +93,8 @@ export const RegisterPage: React.FC = () => {
                     minLength={8}
                     className="block w-full pl-11 pr-11 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formState.password}
+                    onChange={(e) => setField('password', e.target.value)}
                   />
                   <button
                     type="button"
@@ -179,8 +123,8 @@ export const RegisterPage: React.FC = () => {
                     minLength={8}
                     className="block w-full pl-11 pr-11 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={formState.confirmPassword}
+                    onChange={(e) => setField('confirmPassword', e.target.value)}
                   />
                 </div>
               </div>
@@ -188,10 +132,10 @@ export const RegisterPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-white font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/30 transition-all duration-200 shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed group"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Registering...
@@ -208,7 +152,7 @@ export const RegisterPage: React.FC = () => {
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+              <Link to={ROUTES.AUTH.LOGIN} className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                 Sign in
               </Link>
             </p>

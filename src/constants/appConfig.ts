@@ -13,5 +13,8 @@ export const APP_CONFIG = {
   THEME: {
     DEFAULT: 'system',
     OPTIONS: ['light', 'dark', 'system'],
-  }
+  },
+  AUTH: {
+    MIN_PASSWORD_LENGTH: 8,
+  },
 } as const;

@@ -1,4 +1,6 @@
 export * from './useAuth';
+export * from './useLogin';
+export * from './useRegister';
 export * from './useTickets';
 export * from './useTicketTypes';
 export * from './useTicketStatuses';

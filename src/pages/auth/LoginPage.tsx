@@ -1,55 +1,12 @@
 import { ROUTES } from '../../constants';
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router';
-import { login as loginApi } from '../../api/authApi';
-import { useAuthStore } from '../../store/authStore';
-import { AxiosError } from 'axios';
+import { Link } from 'react-router';
+import { useLogin } from '../../hooks';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { formState, setField, submit, loading, error } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const navigate = useNavigate();
-  const location = useLocation();
-  const loginAction = useAuthStore(state => state.login);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await loginApi({ email, password });
-      loginAction(response.token, response.user, response.user.roles || []);
-      
-      const state = location.state as { from?: { pathname: string } } | null;
-      const from = state?.from?.pathname || ROUTES.DASHBOARD;
-      navigate(from, { replace: true });
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 401) {
-          setError('Invalid credentials');
-        } else if (err.response?.status === 403) {
-          setError('Unauthorized domain');
-        } else {
-          setError(err.response?.data?.message || 'A network error occurred. Please try again.');
-        }
-      } else {
-        setError('An unexpected error occurred');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="flex min-h-screen relative overflow-hidden bg-slate-50 items-center justify-center p-4">
@@ -67,7 +24,7 @@ export const LoginPage: React.FC = () => {
             <p className="text-slate-500 mt-2">Enter your credentials to access your workspace</p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+          <form className="space-y-5" onSubmit={submit} noValidate>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex items-start gap-3 animate-in slide-in-from-top-2">
                 <span className="block sm:inline">{error}</span>
@@ -91,8 +48,8 @@ export const LoginPage: React.FC = () => {
                     required
                     className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formState.email}
+                    onChange={(e) => setField('email', e.target.value)}
                   />
                 </div>
               </div>
@@ -113,8 +70,8 @@ export const LoginPage: React.FC = () => {
                     required
                     className="block w-full pl-11 pr-11 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formState.password}
+                    onChange={(e) => setField('password', e.target.value)}
                   />
                   <button
                     type="button"
@@ -129,10 +86,10 @@ export const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-white font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/30 transition-all duration-200 shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed group"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...
@@ -149,7 +106,7 @@ export const LoginPage: React.FC = () => {
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
               Don't have an account?{' '}
-              <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+              <Link to={ROUTES.AUTH.REGISTER} className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                 Create one now
               </Link>
             </p>
