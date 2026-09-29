@@ -10,21 +10,22 @@ import {
   LogOut, ShieldCheck
 } from 'lucide-react';
 
-export function AppLayout() {
-  const { user, hasPrivilege } = useAuth();
-  const { isSidebarOpen, toggleSidebar } = useAppStore();
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-3 group ${
+    isActive 
+      ? 'bg-indigo-50 text-indigo-700 font-medium' 
+      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+  }`;
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-3 group ${
-      isActive 
-        ? 'bg-indigo-50 text-indigo-700 font-medium' 
-        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-    }`;
+interface NavItemProps {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
 
-  const showAdmin = hasPrivilege('TICKET_TYPE_WRITE') || hasPrivilege('DEPARTMENT_WRITE') || hasPrivilege('ROLE_WRITE') || hasPrivilege('SLA_WRITE') || hasPrivilege('TENANT_MANAGE');
-  const showAnalytics = hasPrivilege('METRICS_READ');
-
-  const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: string }) => (
+function NavItem({ to, icon: Icon, label }: NavItemProps) {
+  const isSidebarOpen = useAppStore((state) => state.isSidebarOpen);
+  return (
     <NavLink to={to} className={navLinkClass}>
       {({ isActive }) => (
         <>
@@ -36,6 +37,14 @@ export function AppLayout() {
       )}
     </NavLink>
   );
+}
+
+export function AppLayout() {
+  const { user, hasPrivilege } = useAuth();
+  const { isSidebarOpen, toggleSidebar } = useAppStore();
+
+  const showAdmin = hasPrivilege('TICKET_TYPE_WRITE') || hasPrivilege('DEPARTMENT_WRITE') || hasPrivilege('ROLE_WRITE') || hasPrivilege('SLA_WRITE') || hasPrivilege('TENANT_MANAGE');
+  const showAnalytics = hasPrivilege('METRICS_READ');
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
