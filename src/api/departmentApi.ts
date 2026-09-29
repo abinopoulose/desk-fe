@@ -1,7 +1,8 @@
+import { API_PATHS } from '../constants';
 import axiosInstance from './axiosInstance';
 import type { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../types/department';
 
-const BASE_URL = '/api/v1/departments';
+const BASE_URL = API_PATHS.DEPARTMENTS.BASE;
 
 export const departmentApi = {
   getAllDepartments: async (): Promise<DepartmentDTO[]> => {

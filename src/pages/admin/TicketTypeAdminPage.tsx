@@ -1,3 +1,4 @@
+import { ROUTES } from '../../constants';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { TicketTypeSummaryDTO } from '../../types/ticket';
@@ -51,7 +52,7 @@ export const TicketTypeAdminPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Ticket Types Management</h1>
           <button
-            onClick={() => navigate('/admin/ticket-types/new')}
+            onClick={() => navigate(ROUTES.ADMIN.TICKET_TYPE_NEW)}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
           >
             Create New Type

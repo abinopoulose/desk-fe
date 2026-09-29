@@ -1,3 +1,4 @@
+import { API_PATHS } from '../../constants';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { departmentApi } from '../departmentApi';
 import axiosInstance from '../axiosInstance';
@@ -21,7 +22,7 @@ describe('departmentApi', () => {
     vi.mocked(axiosInstance.get).mockResolvedValueOnce({ data: mockData });
 
     const result = await departmentApi.getAllDepartments();
-    expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/departments');
+    expect(axiosInstance.get).toHaveBeenCalledWith(API_PATHS.DEPARTMENTS.BASE);
     expect(result).toEqual(mockData);
   });
 
@@ -30,7 +31,7 @@ describe('departmentApi', () => {
     vi.mocked(axiosInstance.get).mockResolvedValueOnce({ data: mockData });
 
     const result = await departmentApi.getDepartmentById('1');
-    expect(axiosInstance.get).toHaveBeenCalledWith('/api/v1/departments/1');
+    expect(axiosInstance.get).toHaveBeenCalledWith('/departments/1');
     expect(result).toEqual(mockData);
   });
 
@@ -40,7 +41,7 @@ describe('departmentApi', () => {
     vi.mocked(axiosInstance.post).mockResolvedValueOnce({ data: mockData });
 
     const result = await departmentApi.createDepartment(request);
-    expect(axiosInstance.post).toHaveBeenCalledWith('/api/v1/departments', request);
+    expect(axiosInstance.post).toHaveBeenCalledWith(API_PATHS.DEPARTMENTS.BASE, request);
     expect(result).toEqual(mockData);
   });
 
@@ -50,7 +51,7 @@ describe('departmentApi', () => {
     vi.mocked(axiosInstance.put).mockResolvedValueOnce({ data: mockData });
 
     const result = await departmentApi.updateDepartment('1', request);
-    expect(axiosInstance.put).toHaveBeenCalledWith('/api/v1/departments/1', request);
+    expect(axiosInstance.put).toHaveBeenCalledWith('/departments/1', request);
     expect(result).toEqual(mockData);
   });
 
@@ -58,6 +59,6 @@ describe('departmentApi', () => {
     vi.mocked(axiosInstance.delete).mockResolvedValueOnce({});
 
     await departmentApi.deleteDepartment('1');
-    expect(axiosInstance.delete).toHaveBeenCalledWith('/api/v1/departments/1');
+    expect(axiosInstance.delete).toHaveBeenCalledWith('/departments/1');
   });
 });

@@ -1,3 +1,4 @@
+import { ROUTES } from '../constants';
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { vi } from "vitest";
 import { render, screen, cleanup } from '@testing-library/react';
@@ -28,7 +29,7 @@ describe('App Routing', () => {
   });
 
   it('navigates to admin roles', async () => {
-    window.history.pushState({}, 'Test page', '/admin/roles');
+    window.history.pushState({}, 'Test page', ROUTES.ADMIN.ROLES);
     render(<App />);
     expect(screen.getByText('Role Admin Page')).toBeDefined();
   });
@@ -41,8 +42,8 @@ describe('App Routing', () => {
 
   it('renders login page', async () => {
     useAuthStore.setState({ isAuthenticated: false });
-    window.history.pushState({}, 'Test page', '/login');
+    window.history.pushState({}, 'Test page', ROUTES.AUTH.LOGIN);
     render(<App />);
-    expect(screen.getByText('Sign in to your account')).toBeDefined();
+    expect(screen.getByText('Welcome back')).toBeDefined();
   });
 });

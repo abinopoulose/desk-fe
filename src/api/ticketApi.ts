@@ -1,3 +1,4 @@
+import { API_PATHS } from '../constants';
 import axiosInstance from './axiosInstance';
 import type { 
   FormSchemaResponse, 
@@ -11,12 +12,12 @@ import type {
 
 export const ticketApi = {
   getTickets: async (params: TicketFilterParams): Promise<TicketListResponse> => {
-    const response = await axiosInstance.get<TicketListResponse>('/tickets', { params });
+    const response = await axiosInstance.get<TicketListResponse>(API_PATHS.TICKETS.BASE, { params });
     return response.data;
   },
 
   createTicket: async (request: CreateTicketRequest): Promise<TicketDTO> => {
-    const response = await axiosInstance.post<TicketDTO>('/tickets', request);
+    const response = await axiosInstance.post<TicketDTO>(API_PATHS.TICKETS.BASE, request);
     return response.data;
   },
 

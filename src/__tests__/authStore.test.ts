@@ -1,3 +1,4 @@
+import { ROUTES } from '../constants';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAuthStore } from '../store/authStore';
 
@@ -30,7 +31,7 @@ describe('authStore', () => {
     useAuthStore.getState().logout();
     expect(localStorage.getItem('desk_token')).toBeNull();
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
-    expect(window.location.href).toBe('/login');
+    expect(window.location.href).toBe(ROUTES.AUTH.LOGIN);
   });
 
   it('initializes correctly with valid token', () => {

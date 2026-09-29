@@ -1,3 +1,4 @@
+import { ROUTES } from '../../constants';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
@@ -148,7 +149,7 @@ export const TicketStatusManager: React.FC = () => {
             <p className="text-gray-600">for {ticketType?.title}</p>
           </div>
           <button
-            onClick={() => navigate('/admin/ticket-types')}
+            onClick={() => navigate(ROUTES.ADMIN.TICKET_TYPES)}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
           >
             Back to List

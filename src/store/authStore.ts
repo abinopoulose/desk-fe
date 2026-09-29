@@ -1,3 +1,4 @@
+import { ROUTES } from '../constants';
 import { create } from 'zustand';
 import type { UserDTO } from '../types/auth';
 
@@ -42,7 +43,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('desk_privileges');
     set({ user: null, token: null, isAuthenticated: false, privileges: [] });
     // redirect to login
-    window.location.href = '/login';
+    window.location.href = ROUTES.AUTH.LOGIN;
   },
   initialize: () => {
     const token = localStorage.getItem('desk_token');

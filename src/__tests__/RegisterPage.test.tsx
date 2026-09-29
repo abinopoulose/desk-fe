@@ -32,13 +32,13 @@ describe('RegisterPage', () => {
     expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Confirm Password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Register/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Already have an account\? Sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Sign in/i })).toBeInTheDocument();
   });
 
   it('shows error when fields are empty', async () => {
     renderComponent();
-    fireEvent.click(screen.getByRole('button', { name: /Register/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
     expect(await screen.findByText('Please fill in all fields')).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText(/Email address/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/^Password$/i), { target: { value: 'password123' } });
     fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password1234' } });
-    fireEvent.click(screen.getByRole('button', { name: /Register/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
     
     expect(await screen.findByText('Passwords do not match')).toBeInTheDocument();
   });
@@ -64,7 +64,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText(/Email address/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/^Password$/i), { target: { value: 'password123' } });
     fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /Register/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {
       expect(localStorage.getItem('desk_token')).toBe('test-token');
@@ -88,7 +88,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText(/Email address/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/^Password$/i), { target: { value: 'password123' } });
     fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /Register/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     expect(await screen.findByText('An unexpected error occurred')).toBeInTheDocument();
   });

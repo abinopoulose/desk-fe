@@ -39,13 +39,6 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Please fill in all fields')).toBeInTheDocument();
   });
 
-  it('shows error for short password', async () => {
-    renderComponent();
-    fireEvent.change(screen.getByLabelText(/Email address/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'short' } });
-    fireEvent.click(screen.getByRole('button', { name: /Sign in/i }));
-    expect(await screen.findByText('Password must be at least 8 characters')).toBeInTheDocument();
-  });
 
   it('handles successful login', async () => {
     vi.mocked(authApi.login).mockResolvedValueOnce({

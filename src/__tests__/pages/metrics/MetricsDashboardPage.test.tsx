@@ -3,15 +3,20 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import MetricsDashboardPage from '../../../pages/metrics/MetricsDashboardPage';
+import { departmentApi } from '../../../api/departmentApi';
 import { metricsApi } from '../../../api/metricsApi';
-import axios from 'axios';
 
 vi.mock('../../../api/metricsApi', () => ({
   metricsApi: {
     getPerformanceMetrics: vi.fn(),
   },
 }));
-vi.mock('axios');
+
+vi.mock('../../../api/departmentApi', () => ({
+  departmentApi: {
+    getAllDepartments: vi.fn(),
+  },
+}));
 vi.mock('recharts', () => {
   return {
     LineChart: ({ children }: any) => <div>{children}</div>,
@@ -52,9 +57,9 @@ describe('MetricsDashboardPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (axios.get as any).mockResolvedValue({
-      data: [{ id: 'd1', name: 'IT' }, { id: 'd2', name: 'HR' }]
-    });
+    (departmentApi.getAllDepartments as any).mockResolvedValue([
+      { id: 'd1', name: 'IT' }, { id: 'd2', name: 'HR' }
+    ]);
   });
 
   afterEach(() => {

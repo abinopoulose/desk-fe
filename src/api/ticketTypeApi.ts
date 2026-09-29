@@ -1,3 +1,4 @@
+import { API_PATHS } from '../constants';
 import axiosInstance from './axiosInstance';
 import type {
   TicketTypeSummaryDTO,
@@ -12,7 +13,7 @@ import type {
 export const ticketTypeApi = {
   getTicketTypes: async (includeInactive?: boolean): Promise<TicketTypeSummaryDTO[]> => {
     const params = includeInactive ? { includeInactive } : {};
-    const response = await axiosInstance.get('/ticket-types', { params });
+    const response = await axiosInstance.get(API_PATHS.TICKET_TYPES.BASE, { params });
     return response.data;
   },
 
@@ -22,7 +23,7 @@ export const ticketTypeApi = {
   },
 
   createTicketType: async (data: CreateTicketTypeRequest): Promise<TicketTypeDTO> => {
-    const response = await axiosInstance.post('/ticket-types', data);
+    const response = await axiosInstance.post(API_PATHS.TICKET_TYPES.BASE, data);
     return response.data;
   },
 

@@ -1,3 +1,4 @@
+import { ROUTES } from '../constants';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import axiosInstance from '../api/axiosInstance';
 import MockAdapter from 'axios-mock-adapter';
@@ -45,7 +46,7 @@ describe('axiosInstance interceptors', () => {
     }
 
     expect(localStorage.getItem('desk_token')).toBeNull();
-    expect(window.location.href).toBe('/login');
+    expect(window.location.href).toBe(ROUTES.AUTH.LOGIN);
   });
 
   it('returns response normally on success', async () => {

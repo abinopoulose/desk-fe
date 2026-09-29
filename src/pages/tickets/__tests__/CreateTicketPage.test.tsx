@@ -1,3 +1,4 @@
+import { ROUTES } from '../../../constants';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -47,7 +48,7 @@ describe('CreateTicketPage', () => {
   };
 
   it('renders prompt to select type when no typeId is provided', () => {
-    renderComponent('/tickets/new');
+    renderComponent(ROUTES.TICKETS.NEW);
     expect(screen.getByText('Select a Service Request Type')).toBeInTheDocument();
     expect(screen.getByText('Browse Folders')).toBeInTheDocument();
   });

@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { metricsApi } from '../../api/metricsApi';
+import { departmentApi } from '../../api/departmentApi';
 import type { PerformanceMetricsResponse, MetricsFilterParams } from '../../types/metrics';
 
 interface Department {
@@ -38,9 +38,9 @@ export const MetricsDashboardPage: React.FC = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get('/api/v1/departments');
-      if (Array.isArray(response.data)) {
-        setDepartments(response.data);
+      const departmentsData = await departmentApi.getAllDepartments();
+      if (Array.isArray(departmentsData)) {
+        setDepartments(departmentsData);
       }
     } catch { /* noop */ 
 
