@@ -2,6 +2,7 @@ export * from './useAuth';
 export * from './useLogin';
 export * from './useRegister';
 export * from './useTickets';
+export * from './useTicketList';
 export * from './useTicketTypes';
 export * from './useTicketStatuses';
 export * from './useDepartments';

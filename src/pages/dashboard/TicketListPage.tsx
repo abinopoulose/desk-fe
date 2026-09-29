@@ -1,189 +1,116 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router';
-import { ticketApi } from '../../api/ticketApi';
-import type { TicketDTO, TicketFilterParams } from '../../types/ticket';
 import { useAuth } from '../../store/authStore';
+import { useTicketList } from '../../hooks';
+import { APP_CONFIG } from '../../constants';
 
-export const TicketListPage = () => {
+export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, hasPrivilege } = useAuth();
+  const { hasPrivilege } = useAuth();
   const canManage = hasPrivilege('TICKET_MANAGEMENT');
-  
-  const [tab, setTab] = useState<'my' | 'assigned' | 'all'>('my');
-  const [tickets, setTickets] = useState<TicketDTO[]>([]);
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(20);
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  
-  const [status, setStatus] = useState<string>('');
-  const [mappedState, setMappedState] = useState<string>('');
-  const [assigneeId, setAssigneeId] = useState<string>('');
-  const [priority, setPriority] = useState<string>('');
-  const [search, setSearch] = useState<string>('');
-  const [sort, setSort] = useState<string>('createdAt,desc');
-  
-  const [loading, setLoading] = useState(false);
-  
-  const searchTimeoutRef = useRef<number | null>(null);
 
-  const fetchTickets = useCallback(async (currentSearch: string) => {
-    setLoading(true);
-    try {
-      const params: TicketFilterParams = {
-        tab,
-        page,
-        size,
-        sort,
-      };
-      
-      if (tab === 'my' && user?.id) {
-        params.requesterId = user.id;
-      }
-      if (tab === 'assigned' && user?.id) {
-        params.assigneeId = user.id;
-      } else if (assigneeId) {
-        params.assigneeId = assigneeId;
-      }
-      if (status) {
-        params.status = status;
-      }
-      if (mappedState) {
-        params.mappedState = mappedState as 'OPEN' | 'CLOSED';
-      }
-      if (priority) {
-        params.priority = Number(priority);
-      }
-      if (currentSearch) {
-        params.search = currentSearch;
-      }
-      
-      const res = await ticketApi.getTickets(params);
-      setTickets(res.tickets || []);
-      setTotalElements(res.totalElements || 0);
-      setTotalPages(res.totalPages || 0);
-    } catch (err) {
-      console.error('Failed to fetch tickets:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, page, size, sort, status, mappedState, assigneeId, priority, user]);
+  const {
+    tickets,
+    loading,
+    filters,
+    setFilter,
+    sort,
+    handleSort,
+    pagination,
+  } = useTicketList();
 
-  useEffect(() => {
-    fetchTickets(search);
-  }, [fetchTickets]); // search intentionally excluded to debounce
-  
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setSearch(val);
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setPage(0);
-      fetchTickets(val);
-    }, 300);
-  };
-  
-  const handleSort = (field: string) => {
-    const [currentField, currentDir] = sort.split(',');
-    if (currentField === field) {
-      setSort(`${field},${currentDir === 'asc' ? 'desc' : 'asc'}`);
-    } else {
-      setSort(`${field},asc`);
-    }
-    setPage(0);
-  };
-  
   const renderSortIcon = (field: string) => {
     const [currentField, currentDir] = sort.split(',');
     if (currentField !== field) return null;
     return <span>{currentDir === 'asc' ? ' ▲' : ' ▼'}</span>;
   };
-  
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Ticket Dashboard</h1>
-      
+
       <div className="flex space-x-4 mb-4 border-b">
-        <button 
-          className={`py-2 px-4 ${tab === 'my' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
-          onClick={() => { setTab('my'); setPage(0); }}
+        <button
+          className={`py-2 px-4 ${filters.tab === 'my' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
+          onClick={() => setFilter('tab', 'my')}
         >
           My Tickets
         </button>
-        <button 
-          className={`py-2 px-4 ${tab === 'assigned' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
-          onClick={() => { setTab('assigned'); setPage(0); }}
+        <button
+          className={`py-2 px-4 ${filters.tab === 'assigned' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
+          onClick={() => setFilter('tab', 'assigned')}
         >
           Assigned to Me
         </button>
         {canManage && (
-          <button 
-            className={`py-2 px-4 ${tab === 'all' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
-            onClick={() => { setTab('all'); setPage(0); }}
+          <button
+            className={`py-2 px-4 ${filters.tab === 'all' ? 'border-b-2 border-blue-500 font-bold' : ''}`}
+            onClick={() => setFilter('tab', 'all')}
           >
             All Tickets
           </button>
         )}
       </div>
-      
+
       <div className="flex flex-wrap gap-4 mb-4 items-center">
-        <input 
-          type="text" 
-          placeholder="Search by ID or Requester" 
-          value={search}
-          onChange={handleSearchChange}
-          className="border p-2 rounded"
-        />
-        
-        <input 
-          type="text" 
-          placeholder="Filter by Status ID" 
-          value={status}
-          onChange={e => { setStatus(e.target.value); setPage(0); }}
-          className="border p-2 rounded"
-        />
-        
-        <input 
-          type="text" 
-          placeholder="Filter by Assignee ID" 
-          value={assigneeId}
-          onChange={e => { setAssigneeId(e.target.value); setPage(0); }}
+        <input
+          type="text"
+          placeholder="Search by ID or Requester"
+          value={filters.search}
+          onChange={(e) => setFilter('search', e.target.value)}
           className="border p-2 rounded"
         />
 
-        <select 
-          value={mappedState} 
-          onChange={e => { setMappedState(e.target.value); setPage(0); }}
+        <input
+          type="text"
+          placeholder="Filter by Status ID"
+          value={filters.status}
+          onChange={(e) => setFilter('status', e.target.value)}
+          className="border p-2 rounded"
+        />
+
+        <input
+          type="text"
+          placeholder="Filter by Assignee ID"
+          value={filters.assigneeId}
+          onChange={(e) => setFilter('assigneeId', e.target.value)}
+          className="border p-2 rounded"
+        />
+
+        <select
+          value={filters.mappedState}
+          onChange={(e) => setFilter('mappedState', e.target.value)}
           className="border p-2 rounded"
         >
-          <option value="">All States</option>
-          <option value="OPEN">Open</option>
-          <option value="CLOSED">Closed</option>
+          {APP_CONFIG.TICKETS.STATE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
 
-        <select 
-          value={priority} 
-          onChange={e => { setPriority(e.target.value); setPage(0); }}
+        <select
+          value={filters.priority}
+          onChange={(e) => setFilter('priority', e.target.value)}
           className="border p-2 rounded"
         >
-          <option value="">All Priorities</option>
-          <option value="1">1 - Critical</option>
-          <option value="2">2 - High</option>
-          <option value="3">3 - Medium</option>
-          <option value="4">4 - Low</option>
+          {APP_CONFIG.TICKETS.PRIORITY_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
 
-        <select 
-          value={size} 
-          onChange={e => { setSize(Number(e.target.value)); setPage(0); }}
+        <select
+          value={pagination.size}
+          onChange={(e) => pagination.setSize(Number(e.target.value))}
           className="border p-2 rounded"
         >
-          <option value="10">10 per page</option>
-          <option value="20">20 per page</option>
-          <option value="50">50 per page</option>
+          {APP_CONFIG.TICKETS.PAGE_SIZE_OPTIONS.map((sz) => (
+            <option key={sz} value={sz}>
+              {sz} per page
+            </option>
+          ))}
         </select>
       </div>
 
@@ -196,30 +123,47 @@ export const TicketListPage = () => {
               <th className="py-2 px-4 border text-left">Requester</th>
               <th className="py-2 px-4 border text-left">Assignee</th>
               <th className="py-2 px-4 border text-left">Status</th>
-              <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('priority')}>
+              <th
+                className="py-2 px-4 border text-left cursor-pointer"
+                onClick={() => handleSort('priority')}
+              >
                 Priority {renderSortIcon('priority')}
               </th>
-              <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('slaDueAt')}>
+              <th
+                className="py-2 px-4 border text-left cursor-pointer"
+                onClick={() => handleSort('slaDueAt')}
+              >
                 SLA {renderSortIcon('slaDueAt')}
               </th>
-              <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('createdAt')}>
+              <th
+                className="py-2 px-4 border text-left cursor-pointer"
+                onClick={() => handleSort('createdAt')}
+              >
                 Created {renderSortIcon('createdAt')}
               </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="text-center py-4">Loading...</td></tr>
+              <tr>
+                <td colSpan={8} className="text-center py-4">
+                  Loading...
+                </td>
+              </tr>
             ) : tickets.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-4">No tickets found.</td></tr>
+              <tr>
+                <td colSpan={8} className="text-center py-4">
+                  No tickets found.
+                </td>
+              </tr>
             ) : (
-              tickets.map(t => (
-                <tr 
-                  key={t.id} 
+              tickets.map((t) => (
+                <tr
+                  key={t.id}
                   onClick={() => navigate(`/tickets/${t.id}`)}
                   className="hover:bg-gray-50 cursor-pointer"
                   tabIndex={0}
-                  onKeyDown={e => e.key === 'Enter' && navigate(`/tickets/${t.id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/tickets/${t.id}`)}
                 >
                   <td className="py-2 px-4 border">{t.id.substring(0, 8)}...</td>
                   <td className="py-2 px-4 border">
@@ -227,7 +171,11 @@ export const TicketListPage = () => {
                   </td>
                   <td className="py-2 px-4 border">{t.requesterName}</td>
                   <td className="py-2 px-4 border">
-                    {t.assigneeName || <span className="bg-gray-200 text-xs px-2 py-1 rounded-full">Unassigned</span>}
+                    {t.assigneeName || (
+                      <span className="bg-gray-200 text-xs px-2 py-1 rounded-full">
+                        Unassigned
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 px-4 border">
                     <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
@@ -235,14 +183,32 @@ export const TicketListPage = () => {
                     </span>
                   </td>
                   <td className="py-2 px-4 border">
-                    {t.priority === 1 && <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">1 - Critical</span>}
-                    {t.priority === 2 && <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">2 - High</span>}
-                    {t.priority === 3 && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">3 - Medium</span>}
-                    {t.priority === 4 && <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">4 - Low</span>}
+                    {t.priority === 1 && (
+                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                        1 - Critical
+                      </span>
+                    )}
+                    {t.priority === 2 && (
+                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">
+                        2 - High
+                      </span>
+                    )}
+                    {t.priority === 3 && (
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                        3 - Medium
+                      </span>
+                    )}
+                    {t.priority === 4 && (
+                      <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                        4 - Low
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 px-4 border">
                     {t.slaBreached ? (
-                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">Breached</span>
+                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">
+                        Breached
+                      </span>
                     ) : (
                       <span>{t.slaDueAt ? new Date(t.slaDueAt).toLocaleString() : ''}</span>
                     )}
@@ -257,20 +223,24 @@ export const TicketListPage = () => {
 
       <div className="flex justify-between items-center mt-4">
         <div>
-          Showing {totalElements === 0 ? 0 : page * size + 1}-{Math.min((page + 1) * size, totalElements)} of {totalElements} tickets
+          Showing {pagination.totalElements === 0 ? 0 : pagination.page * pagination.size + 1}-
+          {Math.min((pagination.page + 1) * pagination.size, pagination.totalElements)} of{' '}
+          {pagination.totalElements} tickets
         </div>
         <div className="flex space-x-2">
-          <button 
-            disabled={page === 0} 
-            onClick={() => setPage(p => p - 1)}
+          <button
+            disabled={pagination.page === 0}
+            onClick={pagination.prevPage}
             className="px-4 py-2 border rounded disabled:opacity-50 cursor-pointer"
           >
             Previous
           </button>
-          <span className="px-4 py-2">Page {totalPages > 0 ? page + 1 : 0} of {totalPages}</span>
-          <button 
-            disabled={page >= totalPages - 1} 
-            onClick={() => setPage(p => p + 1)}
+          <span className="px-4 py-2">
+            Page {pagination.totalPages > 0 ? pagination.page + 1 : 0} of {pagination.totalPages}
+          </span>
+          <button
+            disabled={pagination.page >= pagination.totalPages - 1}
+            onClick={pagination.nextPage}
             className="px-4 py-2 border rounded disabled:opacity-50 cursor-pointer"
           >
             Next
