@@ -1,63 +1,43 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
-import { departmentApi } from '../../api/departmentApi';
-import type { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../../types/department';
+import { useDepartments } from '../../hooks/useDepartments';
+import type { DepartmentDTO } from '../../types/department';
 
 export const DepartmentAdminPage: React.FC = () => {
-  const [departments, setDepartments] = useState<DepartmentDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDept, setEditingDept] = useState<DepartmentDTO | null>(null);
-  const [formData, setFormData] = useState<{ name: string; description: string }>({ name: '', description: '' });
-  
-  const loadDepartments = async () => {
-    try {
-      setLoading(true);
-      const data = await departmentApi.getAllDepartments();
-      setDepartments(data);
-    } catch (error) {
-      console.error('Failed to load departments', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    departments,
+    loading,
+    formState,
+    setFormField,
+    isEditing,
+    startEdit,
+    cancelEdit,
+    save,
+    remove,
+  } = useDepartments();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadDepartments();
-  }, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openCreateModal = () => {
-    setEditingDept(null);
-    setFormData({ name: '', description: '' });
+    startEdit();
     setIsModalOpen(true);
   };
 
   const openEditModal = (dept: DepartmentDTO) => {
-    setEditingDept(dept);
-    setFormData({ name: dept.name, description: dept.description || '' });
+    startEdit(dept);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    cancelEdit();
     setIsModalOpen(false);
-    setEditingDept(null);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingDept) {
-        const updateData: UpdateDepartmentRequest = { name: formData.name, description: formData.description };
-        await departmentApi.updateDepartment(editingDept.id, updateData);
-      } else {
-        const createData: CreateDepartmentRequest = { name: formData.name, description: formData.description };
-        await departmentApi.createDepartment(createData);
-      }
+      await save();
       closeModal();
-      loadDepartments();
     } catch (error) {
       console.error('Failed to save department', error);
       alert('Failed to save department. Check console for details.');
@@ -67,8 +47,7 @@ export const DepartmentAdminPage: React.FC = () => {
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete the department "${name}"?`)) {
       try {
-        await departmentApi.deleteDepartment(id);
-        loadDepartments();
+        await remove(id);
       } catch (error) {
         console.error('Failed to delete department', error);
         alert('Failed to delete department. Check console for details.');
@@ -138,7 +117,7 @@ export const DepartmentAdminPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded p-6 w-full max-w-md">
               <h2 className="text-xl font-bold mb-4">
-                {editingDept ? 'Edit Department' : 'Create Department'}
+                {isEditing ? 'Edit Department' : 'Create Department'}
               </h2>
               <form onSubmit={handleSave}>
                 <div className="mb-4">
@@ -148,8 +127,8 @@ export const DepartmentAdminPage: React.FC = () => {
                   <input
                     id="dept-name"
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formState.name}
+                    onChange={(e) => setFormField('name', e.target.value)}
                     className="w-full border p-2 rounded"
                     required
                   />
@@ -160,8 +139,8 @@ export const DepartmentAdminPage: React.FC = () => {
                   </label>
                   <textarea
                     id="dept-desc"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    value={formState.description}
+                    onChange={(e) => setFormField('description', e.target.value)}
                     className="w-full border p-2 rounded h-24"
                   />
                 </div>

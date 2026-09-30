@@ -1,105 +1,99 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { departmentApi } from '../api/departmentApi';
-import type {
-  DepartmentDTO,
-  CreateDepartmentRequest,
-  UpdateDepartmentRequest,
-} from '../types/department';
+import type { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../types/department';
+import { DEFAULT_DEPARTMENT_FORM_VALUES } from '../constants/departmentConstants';
 
 export function useDepartments() {
-  const [data, setData] = useState<DepartmentDTO[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [departments, setDepartments] = useState<DepartmentDTO[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDepartments = useCallback(async (): Promise<DepartmentDTO[]> => {
-    setLoading(true);
-    setError(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formState, setFormState] = useState(DEFAULT_DEPARTMENT_FORM_VALUES);
+
+  const refetch = useCallback(async () => {
     try {
-      const response = await departmentApi.getAllDepartments();
-      setData(response);
-      return response;
+      setLoading(true);
+      setError(null);
+      const data = await departmentApi.getAllDepartments();
+      setDepartments(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch departments';
+      const message = err instanceof Error ? err.message : 'Failed to load departments';
       setError(message);
-      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const getDepartment = useCallback(async (id: string): Promise<DepartmentDTO> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await departmentApi.getDepartmentById(id);
-      return response;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch department';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
+
+  const setFormField = useCallback((field: keyof typeof DEFAULT_DEPARTMENT_FORM_VALUES, value: string) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  const startEdit = useCallback((dept?: DepartmentDTO) => {
+    if (dept) {
+      setEditingId(dept.id);
+      setFormState({
+        name: dept.name,
+        description: dept.description || '',
+        managerId: '', 
+      });
+    } else {
+      setEditingId(null);
+      setFormState(DEFAULT_DEPARTMENT_FORM_VALUES);
     }
   }, []);
 
-  const createDepartment = useCallback(
-    async (req: CreateDepartmentRequest): Promise<DepartmentDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await departmentApi.createDepartment(req);
-        return response;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create department';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setFormState(DEFAULT_DEPARTMENT_FORM_VALUES);
+  }, []);
 
-  const updateDepartment = useCallback(
-    async (id: string, req: UpdateDepartmentRequest): Promise<DepartmentDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await departmentApi.updateDepartment(id, req);
-        return response;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to update department';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
+  const save = useCallback(async () => {
+    try {
+      if (editingId) {
+        const updateData: UpdateDepartmentRequest = { 
+          name: formState.name, 
+          description: formState.description 
+        };
+        await departmentApi.updateDepartment(editingId, updateData);
+      } else {
+        const createData: CreateDepartmentRequest = { 
+          name: formState.name, 
+          description: formState.description 
+        };
+        await departmentApi.createDepartment(createData);
       }
-    },
-    []
-  );
+      cancelEdit();
+      await refetch();
+    } catch (err: unknown) {
+      throw err;
+    }
+  }, [editingId, formState, refetch, cancelEdit]);
 
-  const deleteDepartment = useCallback(async (id: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
+  const remove = useCallback(async (id: string) => {
     try {
       await departmentApi.deleteDepartment(id);
+      await refetch();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete department';
-      setError(message);
       throw err;
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [refetch]);
 
   return {
-    data,
+    departments,
     loading,
     error,
-    fetchDepartments,
-    getDepartment,
-    createDepartment,
-    updateDepartment,
-    deleteDepartment,
+    formState,
+    setFormField,
+    isEditing: !!editingId,
+    startEdit,
+    cancelEdit,
+    save,
+    remove,
+    refetch,
   };
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDepartments } from '../useDepartments';
 import { departmentApi } from '../../api/departmentApi';
+import { DEFAULT_DEPARTMENT_FORM_VALUES } from '../../constants/departmentConstants';
 
 vi.mock('../../api/departmentApi', () => ({
   departmentApi: {
@@ -18,59 +19,102 @@ describe('useDepartments hook', () => {
     vi.clearAllMocks();
   });
 
-  it('fetches departments successfully', async () => {
+  it('fetches departments on mount', async () => {
     const mockDepts = [{ id: 'd1', name: 'IT', createdAt: '', updatedAt: '' }];
     vi.mocked(departmentApi.getAllDepartments).mockResolvedValueOnce(mockDepts);
 
     const { result } = renderHook(() => useDepartments());
 
-    await act(async () => {
-      const res = await result.current.fetchDepartments();
-      expect(res).toEqual(mockDepts);
+    // Wait for the initial effect to complete
+    await vi.waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.data).toEqual(mockDepts);
-    expect(result.current.loading).toBe(false);
+    expect(result.current.departments).toEqual(mockDepts);
+    expect(result.current.error).toBeNull();
   });
 
-  it('handles get, create, update, and delete department', async () => {
-    const mockDept = { id: 'd1', name: 'IT', description: 'Tech', createdAt: '', updatedAt: '' };
-    vi.mocked(departmentApi.getDepartmentById).mockResolvedValueOnce(mockDept);
-    vi.mocked(departmentApi.createDepartment).mockResolvedValueOnce(mockDept);
-    vi.mocked(departmentApi.updateDepartment).mockResolvedValueOnce(mockDept);
-    vi.mocked(departmentApi.deleteDepartment).mockResolvedValueOnce(undefined);
-
+  it('handles form state and edit mode', () => {
     const { result } = renderHook(() => useDepartments());
 
+    act(() => {
+      result.current.setFormField('name', 'HR');
+    });
+
+    expect(result.current.formState.name).toBe('HR');
+    expect(result.current.isEditing).toBe(false);
+
+    const mockDept = { id: 'd1', name: 'Finance', description: 'Money stuff', createdAt: '', updatedAt: '' };
+    
+    act(() => {
+      result.current.startEdit(mockDept);
+    });
+
+    expect(result.current.isEditing).toBe(true);
+    expect(result.current.formState.name).toBe('Finance');
+    expect(result.current.formState.description).toBe('Money stuff');
+
+    act(() => {
+      result.current.cancelEdit();
+    });
+
+    expect(result.current.isEditing).toBe(false);
+    expect(result.current.formState).toEqual(DEFAULT_DEPARTMENT_FORM_VALUES);
+  });
+
+  it('handles create and update operations', async () => {
+    vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([]);
+    const { result } = renderHook(() => useDepartments());
+
+    await vi.waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    // Create
+    act(() => {
+      result.current.startEdit();
+      result.current.setFormField('name', 'IT');
+      result.current.setFormField('description', 'Tech');
+    });
+
+    vi.mocked(departmentApi.createDepartment).mockResolvedValueOnce({ id: 'new', name: 'IT', createdAt: '', updatedAt: '' });
+    
     await act(async () => {
-      const dept = await result.current.getDepartment('d1');
-      expect(dept).toEqual(mockDept);
+      await result.current.save();
+    });
 
-      const created = await result.current.createDepartment({ name: 'IT', description: 'Tech' });
-      expect(created).toEqual(mockDept);
+    expect(departmentApi.createDepartment).toHaveBeenCalledWith({ name: 'IT', description: 'Tech' });
+    expect(result.current.isEditing).toBe(false);
 
-      const updated = await result.current.updateDepartment('d1', { name: 'IT Ops' });
-      expect(updated).toEqual(mockDept);
+    // Update
+    act(() => {
+      result.current.startEdit({ id: 'd1', name: 'HR', description: '', createdAt: '', updatedAt: '' });
+      result.current.setFormField('name', 'HR updated');
+    });
 
-      await result.current.deleteDepartment('d1');
+    vi.mocked(departmentApi.updateDepartment).mockResolvedValueOnce({ id: 'd1', name: 'HR updated', createdAt: '', updatedAt: '' });
+    
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(departmentApi.updateDepartment).toHaveBeenCalledWith('d1', { name: 'HR updated', description: '' });
+  });
+
+  it('handles delete operation', async () => {
+    vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([]);
+    const { result } = renderHook(() => useDepartments());
+
+    await vi.waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    vi.mocked(departmentApi.deleteDepartment).mockResolvedValueOnce(undefined);
+    
+    await act(async () => {
+      await result.current.remove('d1');
     });
 
     expect(departmentApi.deleteDepartment).toHaveBeenCalledWith('d1');
-  });
-
-  it('handles errors', async () => {
-    vi.mocked(departmentApi.getAllDepartments).mockRejectedValueOnce(new Error('Depts error'));
-
-    const { result } = renderHook(() => useDepartments());
-
-    await act(async () => {
-      try {
-        await result.current.fetchDepartments();
-      } catch (err) {
-        expect(err).toBeDefined();
-      }
-    });
-
-    expect(result.current.error).toBe('Depts error');
   });
 });
