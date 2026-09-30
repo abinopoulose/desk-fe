@@ -1,6 +1,7 @@
 import { ROUTES } from '../constants';
 import { create } from 'zustand';
 import type { UserDTO } from '../types/auth';
+import { tokenStorage } from '../utils/tokenStorage';
 
 export interface AuthState {
   user: UserDTO | null;
@@ -83,41 +84,30 @@ export const useAuthStore = create<AuthState>((set) => ({
   privileges: [],
   login: (token, user, privileges = []) => {
     const resolvedPrivileges = resolvePrivileges(user?.roles || [], privileges);
-    localStorage.setItem('desk_token', token);
-    localStorage.setItem('desk_user', JSON.stringify(user));
-    localStorage.setItem('desk_privileges', JSON.stringify(resolvedPrivileges));
+    tokenStorage.setToken(token);
+    tokenStorage.setUser(user);
+    tokenStorage.setPrivileges(resolvedPrivileges);
     set({ user, token, isAuthenticated: true, privileges: resolvedPrivileges });
   },
   logout: () => {
-    localStorage.removeItem('desk_token');
-    localStorage.removeItem('desk_user');
-    localStorage.removeItem('desk_privileges');
+    tokenStorage.clearAll();
     set({ user: null, token: null, isAuthenticated: false, privileges: [] });
     // redirect to login
     window.location.href = ROUTES.AUTH.LOGIN;
   },
   initialize: () => {
-    const token = localStorage.getItem('desk_token');
+    const token = tokenStorage.getToken();
     if (token) {
       if (isTokenValid(token)) {
-        let user = null;
-        let privileges: string[] = [];
-        try {
-          const userStr = localStorage.getItem('desk_user');
-          if (userStr) user = JSON.parse(userStr);
-          const privStr = localStorage.getItem('desk_privileges');
-          if (privStr) privileges = JSON.parse(privStr);
-        } catch {
-          // ignore parsing errors
-        }
+        const user = tokenStorage.getUser();
+        let privileges = tokenStorage.getPrivileges() || [];
+        
         if (user && privileges.length === 0) {
           privileges = resolvePrivileges(user.roles || [], []);
         }
         set({ token, user, isAuthenticated: true, privileges });
       } else {
-        localStorage.removeItem('desk_token');
-        localStorage.removeItem('desk_user');
-        localStorage.removeItem('desk_privileges');
+        tokenStorage.clearAll();
         set({ user: null, token: null, isAuthenticated: false, privileges: [] });
       }
     }
