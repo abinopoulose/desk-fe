@@ -1,26 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { folderApi } from '../../api/folderApi';
 import type { FolderContentsDTO } from '../../types/folder';
-import { useAuth } from '../../store/authStore';
-import { ROUTES } from '../../constants';
 
 interface FolderContentsProps {
   folderId: string;
   onSelectFolder: (folderId: string) => void;
-  contents: FolderContentsDTO | null;
-  isLoading: boolean;
-  error: string | null;
 }
 
-export const FolderContents: React.FC<FolderContentsProps> = ({ 
-  folderId, 
-  onSelectFolder,
-  contents,
-  isLoading,
-  error
-}) => {
+export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSelectFolder }) => {
+  const [contents, setContents] = useState<FolderContentsDTO | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { hasPrivilege } = useAuth();
+
+  useEffect(() => {
+    const fetchContents = async () => {
+      if (!folderId) return;
+      try {
+        setIsLoading(true);
+        const data = await folderApi.getFolderContents(folderId);
+        setContents(data);
+        setError(null);
+      } catch {
+        setError('Failed to load folder contents');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContents();
+  }, [folderId]);
 
   if (isLoading) {
     return <div className="p-6 text-gray-500">Loading contents...</div>;
@@ -40,7 +49,7 @@ export const FolderContents: React.FC<FolderContentsProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-800">
           {breadcrumbPath.split('/').map((part, index, arr) => (
             <React.Fragment key={index}>
@@ -49,29 +58,11 @@ export const FolderContents: React.FC<FolderContentsProps> = ({
             </React.Fragment>
           ))}
         </h2>
-        {hasPrivilege('TICKET_TYPE_WRITE') && (
-          <button
-            onClick={() => navigate(`${ROUTES.ADMIN.TICKET_TYPE_NEW}?folderId=${folderId}`)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            + Add Ticket Type
-          </button>
-        )}
       </div>
 
       <div className="p-6 overflow-y-auto flex-1">
         {contents.subfolders.length === 0 && contents.ticketTypes.length === 0 && (
-          <div className="text-gray-500 text-center py-8">
-            <p className="mb-4">This folder is empty</p>
-            {hasPrivilege('TICKET_TYPE_WRITE') && (
-              <button
-                onClick={() => navigate(`${ROUTES.ADMIN.TICKET_TYPE_NEW}?folderId=${folderId}`)}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                + Add Ticket Type
-              </button>
-            )}
-          </div>
+          <div className="text-gray-500 text-center py-8">This folder is empty</div>
         )}
 
         {contents.subfolders.length > 0 && (
@@ -94,17 +85,7 @@ export const FolderContents: React.FC<FolderContentsProps> = ({
 
         {contents.ticketTypes.length > 0 && (
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Ticket Types</h3>
-              {hasPrivilege('TICKET_TYPE_WRITE') && (
-                <button
-                  onClick={() => navigate(`${ROUTES.ADMIN.TICKET_TYPE_NEW}?folderId=${folderId}`)}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  + Add Ticket Type
-                </button>
-              )}
-            </div>
+            <h3 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wider">Ticket Types</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {contents.ticketTypes.map(type => (
                 <div 

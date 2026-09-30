@@ -18,7 +18,7 @@ export const ticketTypeApi = {
   },
 
   getTicketTypeById: async (id: string): Promise<TicketTypeDTO> => {
-    const response = await axiosInstance.get(`/ticket-types/${id}`);
+    const response = await axiosInstance.get(API_PATHS.TICKET_TYPES.BY_ID(id));
     return response.data;
   },
 
@@ -28,30 +28,30 @@ export const ticketTypeApi = {
   },
 
   updateTicketType: async (id: string, data: UpdateTicketTypeRequest): Promise<TicketTypeDTO> => {
-    const response = await axiosInstance.put(`/ticket-types/${id}`, data);
+    const response = await axiosInstance.put(API_PATHS.TICKET_TYPES.BY_ID(id), data);
     return response.data;
   },
 
   deleteTicketType: async (id: string): Promise<void> => {
-    await axiosInstance.delete(`/ticket-types/${id}`);
+    await axiosInstance.delete(API_PATHS.TICKET_TYPES.BY_ID(id));
   },
 
   getTicketStatuses: async (typeId: string): Promise<TicketStatusDTO[]> => {
-    const response = await axiosInstance.get(`/ticket-types/${typeId}/statuses`);
+    const response = await axiosInstance.get(API_PATHS.TICKET_TYPES.STATUSES(typeId));
     return response.data;
   },
 
   createTicketStatus: async (typeId: string, data: CreateStatusRequest): Promise<TicketStatusDTO> => {
-    const response = await axiosInstance.post(`/ticket-types/${typeId}/statuses`, data);
+    const response = await axiosInstance.post(API_PATHS.TICKET_TYPES.STATUSES(typeId), data);
     return response.data;
   },
 
   updateTicketStatus: async (statusId: string, data: UpdateStatusRequest): Promise<TicketStatusDTO> => {
-    const response = await axiosInstance.put(`/ticket-statuses/${statusId}`, data);
+    const response = await axiosInstance.put(API_PATHS.TICKET_STATUSES.BY_ID(statusId), data);
     return response.data;
   },
 
   deleteTicketStatus: async (statusId: string): Promise<void> => {
-    await axiosInstance.delete(`/ticket-statuses/${statusId}`);
+    await axiosInstance.delete(API_PATHS.TICKET_STATUSES.BY_ID(statusId));
   },
 };

@@ -14,20 +14,20 @@ export const roleApi = {
   },
 
   updateRole: async (roleName: string, data: CreateRoleRequest): Promise<RoleDTO> => {
-    const response = await axiosInstance.put(`${API_PATHS.ROLES.BASE}/${roleName}`, data);
+    const response = await axiosInstance.put(API_PATHS.ROLES.BY_NAME(roleName), data);
     return response.data;
   },
 
   deleteRole: async (roleName: string): Promise<void> => {
-    await axiosInstance.delete(`${API_PATHS.ROLES.BASE}/${roleName}`);
+    await axiosInstance.delete(API_PATHS.ROLES.BY_NAME(roleName));
   },
 
   assignRoles: async (userId: string, data: AssignRolesRequest): Promise<void> => {
-    await axiosInstance.put(`/users/${userId}/roles`, data);
+    await axiosInstance.put(API_PATHS.USERS.ROLES(userId), data);
   },
 
   getUserRoles: async (userId: string): Promise<UserRolesResponse> => {
-    const response = await axiosInstance.get(`/users/${userId}/roles`);
+    const response = await axiosInstance.get(API_PATHS.USERS.ROLES(userId));
     return response.data;
   },
 };

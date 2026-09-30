@@ -11,7 +11,7 @@ export const departmentApi = {
   },
 
   getDepartmentById: async (id: string): Promise<DepartmentDTO> => {
-    const response = await axiosInstance.get(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get(API_PATHS.DEPARTMENTS.BY_ID(id));
     return response.data;
   },
 
@@ -21,11 +21,11 @@ export const departmentApi = {
   },
 
   updateDepartment: async (id: string, data: UpdateDepartmentRequest): Promise<DepartmentDTO> => {
-    const response = await axiosInstance.put(`${BASE_URL}/${id}`, data);
+    const response = await axiosInstance.put(API_PATHS.DEPARTMENTS.BY_ID(id), data);
     return response.data;
   },
 
   deleteDepartment: async (id: string): Promise<void> => {
-    await axiosInstance.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(API_PATHS.DEPARTMENTS.BY_ID(id));
   }
 };

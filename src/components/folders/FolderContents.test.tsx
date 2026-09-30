@@ -98,23 +98,4 @@ describe('FolderContents', () => {
     fireEvent.click(screen.getByText('Request Laptop'));
     expect(mockNavigate).toHaveBeenCalledWith('/tickets/new?typeId=10');
   });
-
-  it('renders Add Ticket Type button when user has privilege and navigates with folderId', async () => {
-    const { useAuthStore } = await import('../../store/authStore');
-    useAuthStore.setState({ privileges: ['TICKET_TYPE_WRITE'] });
-    vi.mocked(folderApi.getFolderContents).mockResolvedValue(mockContents);
-
-    render(
-      <BrowserRouter>
-        <FolderContents folderId="1" onSelectFolder={vi.fn()} />
-      </BrowserRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getAllByText('+ Add Ticket Type').length).toBeGreaterThan(0);
-    });
-
-    fireEvent.click(screen.getAllByText('+ Add Ticket Type')[0]);
-    expect(mockNavigate).toHaveBeenCalledWith('/admin/ticket-types/new?folderId=1');
-  });
 });

@@ -22,32 +22,32 @@ export const ticketApi = {
   },
 
   getTicketSchema: async (typeId: string): Promise<FormSchemaResponse> => {
-    const response = await axiosInstance.get<FormSchemaResponse>(`/ticket-types/${typeId}/schema`);
+    const response = await axiosInstance.get<FormSchemaResponse>(API_PATHS.TICKETS.SCHEMA(typeId));
     return response.data;
   },
 
   getTicketDetails: async (ticketId: string): Promise<TicketDetailResponse> => {
-    const response = await axiosInstance.get<TicketDetailResponse>(`/tickets/${ticketId}`);
+    const response = await axiosInstance.get<TicketDetailResponse>(API_PATHS.TICKETS.BY_ID(ticketId));
     return response.data;
   },
 
   updateTicketStatus: async (ticketId: string, statusId: string): Promise<TicketDTO> => {
-    const response = await axiosInstance.patch<TicketDTO>(`/tickets/${ticketId}/status`, { statusId });
+    const response = await axiosInstance.patch<TicketDTO>(API_PATHS.TICKETS.STATUS(ticketId), { statusId });
     return response.data;
   },
 
   assignTicket: async (ticketId: string, assigneeId: string | null): Promise<TicketDTO> => {
-    const response = await axiosInstance.patch<TicketDTO>(`/tickets/${ticketId}/assign`, { assigneeId });
+    const response = await axiosInstance.patch<TicketDTO>(API_PATHS.TICKETS.ASSIGN(ticketId), { assigneeId });
     return response.data;
   },
 
   addComment: async (ticketId: string, content: string): Promise<CommentDTO> => {
-    const response = await axiosInstance.post<CommentDTO>(`/tickets/${ticketId}/comments`, { content });
+    const response = await axiosInstance.post<CommentDTO>(API_PATHS.TICKETS.COMMENTS(ticketId), { content });
     return response.data;
   },
 
   getComments: async (ticketId: string): Promise<CommentDTO[]> => {
-    const response = await axiosInstance.get<CommentDTO[]>(`/tickets/${ticketId}/comments`);
+    const response = await axiosInstance.get<CommentDTO[]>(API_PATHS.TICKETS.COMMENTS(ticketId));
     return response.data;
   },
 };
