@@ -6,6 +6,11 @@ export const getUserProfile = async (userId: string): Promise<UserProfileRespons
   return response.data;
 };
 
+export const updateUserProfile = async (userId: string, data: Partial<UserProfileResponse>): Promise<UserProfileResponse> => {
+  const response = await axiosInstance.put(`/users/${userId}/profile`, data);
+  return response.data;
+};
+
 export const getOrgHierarchy = async (rootUserId?: string): Promise<OrgNode[]> => {
   const params = rootUserId ? { rootUserId } : {};
   const response = await axiosInstance.get('/users/hierarchy', { params });

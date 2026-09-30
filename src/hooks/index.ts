@@ -18,4 +18,4 @@ export * from './useTenantConfig';
 export * from './useCreateTicket';
 export * from './useTicketTypeForm';
 export * from './useSlaConfigs';
-
+export * from './useUserProfile';

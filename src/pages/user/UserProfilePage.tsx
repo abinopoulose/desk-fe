@@ -1,41 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
-import { getUserProfile } from '../../api/userApi';
-import type { UserProfileResponse } from '../../types/user';
+import { useUserProfile } from '../../hooks/useUserProfile';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfileResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProfile = async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getUserProfile(id);
-      setProfile(data);
-    } catch (err: unknown) {
-      const errorObj = err as { response?: { status: number } };
-      if (errorObj.response?.status === 404) {
-        setError('404');
-      } else {
-        setError('Network failure or generic error');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (userId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchProfile(userId);
-    }
-  }, [userId]);
-
-
+  const {
+    profile,
+    loading,
+    error,
+    isEditing,
+    refetch,
+  } = useUserProfile(userId);
 
   if (loading) {
     return (
@@ -63,13 +39,13 @@ const UserProfilePage: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isEditing) {
     return (
       <div className="p-6 text-center text-red-600">
         <h2 className="text-xl font-bold mb-4">Error Loading Profile</h2>
         <p>{error}</p>
         <button
-          onClick={() => userId && fetchProfile(userId)}
+          onClick={() => refetch()}
           className="mt-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
         >
           Retry
