@@ -19,11 +19,13 @@ vi.mock('../../components/folders/FolderContents', () => ({
 }));
 
 const mockSetSearchParams = vi.fn();
+const mockNavigate = vi.fn();
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
     ...actual as object,
     useSearchParams: () => [new URLSearchParams('?folderId=123'), mockSetSearchParams],
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -63,5 +65,21 @@ describe('BrowseFoldersPage', () => {
     
     // Close sidebar
     fireEvent.click(closeBtn);
+  });
+
+  it('renders Add Ticket Type button when authorized and navigates to new ticket type page', async () => {
+    const { useAuthStore } = await import('../../store/authStore');
+    useAuthStore.setState({ privileges: ['TICKET_TYPE_WRITE'] });
+
+    render(
+      <BrowserRouter>
+        <BrowseFoldersPage />
+      </BrowserRouter>
+    );
+
+    const addBtn = screen.getByText('+ Add Ticket Type');
+    expect(addBtn).toBeTruthy();
+    fireEvent.click(addBtn);
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/ticket-types/new?folderId=123');
   });
 });

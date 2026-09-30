@@ -1,43 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router';
-import { ticketApi } from '../../api/ticketApi';
-import type { FormSchemaResponse } from '../../types/ticket';
+import React from 'react';
+import { Link } from 'react-router';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
 import type { FormSchema } from '../../types/formSchema';
+import { useCreateTicket } from '../../hooks';
+import { TICKET_PRIORITY_ITEMS, ROUTES } from '../../constants';
 
 export const CreateTicketPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const typeId = searchParams.get('typeId');
-
-  const [schemaResponse, setSchemaResponse] = useState<FormSchemaResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [priority, setPriority] = useState<number>(3);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [stagedFormData, setStagedFormData] = useState<Record<string, unknown>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (typeId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(true);
-      ticketApi.getTicketSchema(typeId)
-        .then((res) => {
-          setSchemaResponse(res);
-          setError(null);
-        })
-        .catch((err) => {
-          setError(err.message || 'Failed to load ticket schema');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [typeId]);
+  const {
+    typeId,
+    schemaResponse,
+    loadingSchema,
+    error,
+    fieldErrors,
+    priority,
+    setPriority,
+    isSubmitting,
+    showConfirmModal,
+    setShowConfirmModal,
+    stagedFormData,
+    handleFormSubmit,
+    confirmSubmission,
+  } = useCreateTicket();
 
   if (!typeId) {
     return (
@@ -45,7 +28,7 @@ export const CreateTicketPage: React.FC = () => {
         <div className="bg-blue-50 border border-blue-200 rounded p-6 text-center">
           <h2 className="text-xl font-bold text-blue-800 mb-4">Select a Service Request Type</h2>
           <p className="mb-4">Please choose what kind of ticket you'd like to create.</p>
-          <Link to="/browse" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <Link to={ROUTES.BROWSE} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Browse Folders
           </Link>
         </div>
@@ -53,7 +36,7 @@ export const CreateTicketPage: React.FC = () => {
     );
   }
 
-  if (loading) {
+  if (loadingSchema) {
     return <div className="p-8" data-testid="loading">Loading schema...</div>;
   }
 
@@ -70,34 +53,6 @@ export const CreateTicketPage: React.FC = () => {
   if (!schemaResponse) {
     return null;
   }
-
-  const handleFormSubmit = (data: Record<string, unknown>) => {
-    setStagedFormData(data);
-    setShowConfirmModal(true);
-  };
-
-  const confirmSubmission = async () => {
-    setIsSubmitting(true);
-    setFieldErrors({});
-    setError(null);
-    try {
-      const result = await ticketApi.createTicket({
-        ticketTypeId: typeId,
-        priority,
-        formData: stagedFormData,
-      });
-      navigate(`/tickets/${result.id}`);
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setShowConfirmModal(false);
-      if (err.response && err.response.status === 400 && err.response.data && err.response.data.errors) {
-        setFieldErrors(err.response.data.errors);
-      } else {
-        setError(err.message || 'An error occurred during submission');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -117,12 +72,7 @@ export const CreateTicketPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Priority</h2>
         <div className="flex gap-4">
-          {[
-            { value: 1, label: 'Critical', colorClass: 'bg-red-100 text-red-800 border-red-200' },
-            { value: 2, label: 'High', colorClass: 'bg-orange-100 text-orange-800 border-orange-200' },
-            { value: 3, label: 'Medium', colorClass: 'bg-blue-100 text-blue-800 border-blue-200' },
-            { value: 4, label: 'Low', colorClass: 'bg-gray-100 text-gray-800 border-gray-200' },
-          ].map((p) => (
+          {TICKET_PRIORITY_ITEMS.map((p) => (
             <button
               key={p.value}
               type="button"

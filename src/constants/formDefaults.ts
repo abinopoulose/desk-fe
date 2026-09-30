@@ -27,3 +27,20 @@ export const FORM_DEFAULTS = {
     { label: 'Days', value: 'days' },
   ]
 } as const;
+
+export const DEFAULT_STATUS_VALUES = {
+  name: '',
+  mappedState: 'OPEN' as const,
+  color: 'gray',
+  description: '',
+  isDefault: false,
+};
+
+export const DEFAULT_TICKET_TYPE_VALUES = {
+  title: '',
+  description: '',
+  folderId: '',
+  departmentId: '',
+  formSchema: { fields: [] },
+  isActive: true,
+};

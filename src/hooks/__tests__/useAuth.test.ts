@@ -112,4 +112,21 @@ describe('useAuth hook', () => {
     });
     expect(result.current.data.isAuthenticated).toBe(false);
   });
+
+  it('grants all privileges to SUPER_ADMIN', () => {
+    useAuthStore.setState({
+      user: { id: 'admin-id', email: 'admin@test.com', fullName: 'Super Admin', roles: ['SUPER_ADMIN'] },
+      isAuthenticated: true,
+      privileges: ['SUPER_ADMIN']
+    });
+
+    const { result } = renderHook(() => useAuth());
+
+    expect(result.current.hasPrivilege('TICKET_TYPE_WRITE')).toBe(true);
+    expect(result.current.hasPrivilege('DEPARTMENT_WRITE')).toBe(true);
+    expect(result.current.hasPrivilege('ROLE_WRITE')).toBe(true);
+    expect(result.current.hasPrivilege('SLA_WRITE')).toBe(true);
+    expect(result.current.hasPrivilege('TENANT_MANAGE')).toBe(true);
+    expect(result.current.hasPrivilege('ANY_ARBITRARY_PRIVILEGE')).toBe(true);
+  });
 });

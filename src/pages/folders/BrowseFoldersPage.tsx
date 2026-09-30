@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import { FolderTreeNav } from '../../components/folders/FolderTreeNav';
 import { FolderContents } from '../../components/folders/FolderContents';
+import { useAuth } from '../../store/authStore';
+import { ROUTES } from '../../constants';
+import { useFolderTree } from '../../hooks/useFolderTree';
+import { useFolderContents } from '../../hooks/useFolderContents';
 
 export const BrowseFoldersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const folderId = searchParams.get('folderId');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const { hasPrivilege } = useAuth();
+
+  const folderTree = useFolderTree();
+  const folderContents = useFolderContents(folderId);
 
   const handleSelectFolder = (id: string) => {
     setSearchParams({ folderId: id });
@@ -46,28 +55,46 @@ export const BrowseFoldersPage: React.FC = () => {
         <div className="p-2 h-[calc(100%-3.5rem)] overflow-y-auto">
           <FolderTreeNav 
             activeFolderId={folderId} 
-            onSelectFolder={handleSelectFolder} 
+            onSelectFolder={handleSelectFolder}
+            treeData={folderTree.treeData}
+            isLoading={folderTree.isLoading}
+            error={folderTree.error}
+            expandedNodes={folderTree.expandedNodes}
+            toggleNode={folderTree.toggleNode}
           />
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="md:hidden p-4 border-b border-gray-200 bg-white flex items-center">
-          <button 
-            onClick={toggleSidebar}
-            className="mr-3 text-gray-600 hover:text-gray-900"
-          >
-            ☰
-          </button>
-          <h1 className="font-semibold">Browse</h1>
+        <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
+          <div className="flex items-center">
+            <button 
+              onClick={toggleSidebar}
+              className="md:hidden mr-3 text-gray-600 hover:text-gray-900"
+            >
+              ☰
+            </button>
+            <h1 className="font-semibold text-gray-800">Browse Folders</h1>
+          </div>
+          {hasPrivilege('TICKET_TYPE_WRITE') && (
+            <button
+              onClick={() => navigate(folderId ? `${ROUTES.ADMIN.TICKET_TYPE_NEW}?folderId=${folderId}` : ROUTES.ADMIN.TICKET_TYPE_NEW)}
+              className="px-3.5 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              + Add Ticket Type
+            </button>
+          )}
         </div>
         
         <div className="flex-1 overflow-hidden">
           {folderId ? (
             <FolderContents 
               folderId={folderId} 
-              onSelectFolder={handleSelectFolder} 
+              onSelectFolder={handleSelectFolder}
+              contents={folderContents.contents}
+              isLoading={folderContents.isLoading}
+              error={folderContents.error}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-500">

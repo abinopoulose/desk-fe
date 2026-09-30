@@ -13,6 +13,15 @@ export const roleApi = {
     return response.data;
   },
 
+  updateRole: async (roleName: string, data: CreateRoleRequest): Promise<RoleDTO> => {
+    const response = await axiosInstance.put(`${API_PATHS.ROLES.BASE}/${roleName}`, data);
+    return response.data;
+  },
+
+  deleteRole: async (roleName: string): Promise<void> => {
+    await axiosInstance.delete(`${API_PATHS.ROLES.BASE}/${roleName}`);
+  },
+
   assignRoles: async (userId: string, data: AssignRolesRequest): Promise<void> => {
     await axiosInstance.put(`/users/${userId}/roles`, data);
   },

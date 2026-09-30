@@ -69,8 +69,15 @@ export function useAuth() {
   }, [storeInitialize]);
 
   const hasPrivilege = useCallback(
-    (privilege: string) => privileges.includes(privilege),
-    [privileges]
+    (privilege: string) => {
+      const isSuperAdmin = Boolean(
+        user?.roles?.includes('SUPER_ADMIN') ||
+        privileges.includes('SUPER_ADMIN') ||
+        privileges.includes('ADMIN_FULL_ACCESS')
+      );
+      return isSuperAdmin || privileges.includes(privilege);
+    },
+    [privileges, user]
   );
 
   return {

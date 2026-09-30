@@ -12,6 +12,13 @@ export const TICKET_PRIORITY_COLORS: Record<number, string> = {
   4: 'bg-gray-100 text-gray-800',
 };
 
+export const TICKET_PRIORITY_ITEMS = [
+  { value: 1, label: 'Critical', colorClass: 'bg-red-100 text-red-800 border-red-200' },
+  { value: 2, label: 'High', colorClass: 'bg-orange-100 text-orange-800 border-orange-200' },
+  { value: 3, label: 'Medium', colorClass: 'bg-blue-100 text-blue-800 border-blue-200' },
+  { value: 4, label: 'Low', colorClass: 'bg-gray-100 text-gray-800 border-gray-200' },
+];
+
 export const TICKET_STATUS_LABELS: Record<string, string> = {
   OPEN: 'Open',
   CLOSED: 'Closed',
@@ -29,3 +36,4 @@ export function getPriorityLabel(priority: number): string {
 export function getPriorityColor(priority: number): string {
   return TICKET_PRIORITY_COLORS[priority] ?? 'bg-gray-100 text-gray-800';
 }
+

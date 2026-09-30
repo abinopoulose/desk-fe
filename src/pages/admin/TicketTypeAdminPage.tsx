@@ -1,50 +1,26 @@
 import { ROUTES } from '../../constants';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router';
-import type { TicketTypeSummaryDTO } from '../../types/ticket';
-import { ticketTypeApi } from '../../api/ticketTypeApi';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
+import { useTicketTypes } from '../../hooks';
 
 export const TicketTypeAdminPage: React.FC = () => {
-  const [ticketTypes, setTicketTypes] = useState<TicketTypeSummaryDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const navigate = useNavigate();
-
-  const loadTicketTypes = async () => {
-    try {
-      setLoading(true);
-      const data = await ticketTypeApi.getTicketTypes(true);
-      setTicketTypes(data);
-    } catch (error) {
-      console.error('Failed to load ticket types', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadTicketTypes();
-  }, []);
-
-  const handleToggleActive = async (id: string, currentStatus: boolean, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const type = await ticketTypeApi.getTicketTypeById(id);
-      await ticketTypeApi.updateTicketType(id, { ...type, isActive: !currentStatus });
-      loadTicketTypes();
-    } catch (error) {
-      console.error('Failed to toggle active status', error);
-    }
-  };
-
-  const filteredTypes = ticketTypes.filter((type) => {
-    const matchesSearch = type.title.toLowerCase().includes(search.toLowerCase());
-    const matchesActive = activeFilter === 'all' ? true : activeFilter === 'active' ? type.isActive : !type.isActive;
-    return matchesSearch && matchesActive;
-  });
+  const {
+    filteredTypes,
+    loading,
+    error,
+    search,
+    setSearch,
+    activeFilter,
+    setActiveFilter,
+    handleToggleActive,
+    deleteConfirmId,
+    deleting,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+  } = useTicketTypes({ autoFetch: true, includeInactive: true });
 
   return (
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
@@ -58,6 +34,12 @@ export const TicketTypeAdminPage: React.FC = () => {
             Create New Type
           </button>
         </div>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
         <div className="flex gap-4 mb-6">
           <input
@@ -122,6 +104,12 @@ export const TicketTypeAdminPage: React.FC = () => {
                       >
                         {type.isActive ? 'Deactivate' : 'Activate'}
                       </button>
+                      <button
+                        onClick={() => requestDelete(type.id)}
+                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -134,6 +122,35 @@ export const TicketTypeAdminPage: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {deleteConfirmId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+              <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this ticket type? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={cancelDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 border rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -1,73 +1,31 @@
 import { ROUTES } from '../../constants';
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { ticketTypeApi } from '../../api/ticketTypeApi';
-import type { FormSchema } from '../../types/formSchema';
+import React from 'react';
+import { useNavigate } from 'react-router';
 import { SchemaBuilder } from '../../components/admin/SchemaBuilder';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
+import { useTicketTypeForm } from '../../hooks';
 
 export const TicketTypeFormPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isEditMode = Boolean(id);
-
-  const [loading, setLoading] = useState(isEditMode);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [folderId, setFolderId] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [formSchema, setFormSchema] = useState<FormSchema>({ fields: [] });
-  const [isActive, setIsActive] = useState(true);
-
-  useEffect(() => {
-    if (isEditMode && id) {
-      ticketTypeApi.getTicketTypeById(id)
-        .then(data => {
-          setTitle(data.title);
-          setDescription(data.description || '');
-          setFolderId(data.folderId);
-          setDepartmentId(data.departmentId);
-          setFormSchema((data.formSchema as unknown as FormSchema) || { fields: [] });
-          setIsActive(data.isActive);
-        })
-        .catch(err => {
-          console.error('Error fetching ticket type', err);
-          setError('Failed to load ticket type.');
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [id, isEditMode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const payload = {
-        title,
-        description,
-        folderId,
-        departmentId,
-        formSchema: formSchema as unknown as Record<string, unknown>,
-        isActive
-      };
-      
-      if (isEditMode && id) {
-        await ticketTypeApi.updateTicketType(id, payload);
-      } else {
-        await ticketTypeApi.createTicketType(payload);
-      }
-      navigate(ROUTES.ADMIN.TICKET_TYPES);
-    } catch (err) {
-      console.error('Error saving ticket type', err);
-      setError('Failed to save ticket type. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const {
+    isEditMode,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    folderId,
+    setFolderId,
+    departmentId,
+    setDepartmentId,
+    formSchema,
+    setFormSchema,
+    isActive,
+    setIsActive,
+    loading,
+    submitting,
+    error,
+    handleSubmit,
+  } = useTicketTypeForm();
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -101,7 +59,7 @@ export const TicketTypeFormPage: React.FC = () => {
                 type="text"
                 required
                 value={title}
-                onChange={e => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full border rounded p-2"
               />
             </div>
@@ -112,7 +70,7 @@ export const TicketTypeFormPage: React.FC = () => {
                 type="text"
                 required
                 value={departmentId}
-                onChange={e => setDepartmentId(e.target.value)}
+                onChange={(e) => setDepartmentId(e.target.value)}
                 className="w-full border rounded p-2"
               />
             </div>
@@ -121,7 +79,7 @@ export const TicketTypeFormPage: React.FC = () => {
               <textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full border rounded p-2 h-20"
               />
             </div>
@@ -132,7 +90,7 @@ export const TicketTypeFormPage: React.FC = () => {
                 type="text"
                 required
                 value={folderId}
-                onChange={e => setFolderId(e.target.value)}
+                onChange={(e) => setFolderId(e.target.value)}
                 className="w-full border rounded p-2"
                 placeholder="e.g. IT/Hardware"
               />
@@ -142,7 +100,7 @@ export const TicketTypeFormPage: React.FC = () => {
                 type="checkbox"
                 id="isActive"
                 checked={isActive}
-                onChange={e => setIsActive(e.target.checked)}
+                onChange={(e) => setIsActive(e.target.checked)}
                 className="w-4 h-4 mr-2"
               />
               <label htmlFor="isActive" className="font-medium">Active (Available for users)</label>

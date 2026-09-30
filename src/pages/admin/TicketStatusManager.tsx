@@ -1,142 +1,26 @@
 import { ROUTES } from '../../constants';
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { ticketTypeApi } from '../../api/ticketTypeApi';
-import type { TicketStatusDTO, TicketTypeDTO } from '../../types/ticket';
+import React from 'react';
+import { useNavigate } from 'react-router';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
+import { useTicketStatuses } from '../../hooks';
 
 export const TicketStatusManager: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const typeId = id as string;
-
-  const [ticketType, setTicketType] = useState<TicketTypeDTO | null>(null);
-  const [statuses, setStatuses] = useState<TicketStatusDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStatus, setEditingStatus] = useState<TicketStatusDTO | null>(null);
-  const [statusName, setStatusName] = useState('');
-  const [mappedState, setMappedState] = useState<'OPEN' | 'CLOSED'>('OPEN');
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [typeData, statusesData] = await Promise.all([
-        ticketTypeApi.getTicketTypeById(typeId),
-        ticketTypeApi.getTicketStatuses(typeId)
-      ]);
-      setTicketType(typeData);
-      
-      // Sort by display order
-      const sorted = [...statusesData].sort((a, b) => a.displayOrder - b.displayOrder);
-      setStatuses(sorted);
-    } catch (err) {
-      console.error('Error loading data', err);
-      setError('Failed to load statuses.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (typeId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      void loadData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeId]);
-
-  const openModal = (status?: TicketStatusDTO) => {
-    if (status) {
-      setEditingStatus(status);
-      setStatusName(status.name);
-      setMappedState(status.mappedState);
-    } else {
-      setEditingStatus(null);
-      setStatusName('');
-      setMappedState('OPEN');
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingStatus(null);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingStatus) {
-        await ticketTypeApi.updateTicketStatus(editingStatus.id, {
-          name: statusName,
-          mappedState,
-          displayOrder: editingStatus.displayOrder
-        });
-      } else {
-        await ticketTypeApi.createTicketStatus(typeId, {
-          name: statusName,
-          mappedState,
-          displayOrder: statuses.length
-        });
-      }
-      closeModal();
-      loadData();
-    } catch (err) {
-      console.error('Failed to save status', err);
-      setError('Failed to save status.');
-    }
-  };
-
-  const handleDelete = async (statusId: string) => {
-    if (!window.confirm('Are you sure you want to delete this status?')) return;
-    try {
-      await ticketTypeApi.deleteTicketStatus(statusId);
-      loadData();
-    } catch (err) {
-      console.error('Failed to delete status', err);
-      setError('Failed to delete status.');
-    }
-  };
-
-  const handleMove = async (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === statuses.length - 1) return;
-
-    const newStatuses = [...statuses];
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-
-    // Swap locally
-    [newStatuses[index], newStatuses[swapIndex]] = [newStatuses[swapIndex], newStatuses[index]];
-    
-    // Update display orders
-    newStatuses[index].displayOrder = index;
-    newStatuses[swapIndex].displayOrder = swapIndex;
-    setStatuses(newStatuses);
-
-    // Save to backend
-    try {
-      await Promise.all([
-        ticketTypeApi.updateTicketStatus(newStatuses[index].id, {
-          name: newStatuses[index].name,
-          mappedState: newStatuses[index].mappedState,
-          displayOrder: newStatuses[index].displayOrder
-        }),
-        ticketTypeApi.updateTicketStatus(newStatuses[swapIndex].id, {
-          name: newStatuses[swapIndex].name,
-          mappedState: newStatuses[swapIndex].mappedState,
-          displayOrder: newStatuses[swapIndex].displayOrder
-        })
-      ]);
-    } catch (err) {
-      console.error('Failed to update orders', err);
-      setError('Failed to update orders.');
-      loadData(); // Revert on failure
-    }
-  };
+  const {
+    ticketType,
+    statuses,
+    loading,
+    error,
+    formState,
+    setFormField,
+    isModalOpen,
+    editingStatus,
+    startEdit,
+    cancelEdit,
+    save,
+    remove,
+    handleMove,
+  } = useTicketStatuses();
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -166,7 +50,7 @@ export const TicketStatusManager: React.FC = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-medium">Status Workflow</h2>
             <button
-              onClick={() => openModal()}
+              onClick={() => startEdit()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
             >
               + Add Status
@@ -200,13 +84,13 @@ export const TicketStatusManager: React.FC = () => {
                     ↓
                   </button>
                   <button
-                    onClick={() => openModal(status)}
+                    onClick={() => startEdit(status)}
                     className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm mx-2"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(status.id)}
+                    onClick={() => remove(status.id)}
                     className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
                   >
                     Delete
@@ -227,14 +111,14 @@ export const TicketStatusManager: React.FC = () => {
               <h3 className="text-lg font-bold mb-4">
                 {editingStatus ? 'Edit Status' : 'Add Status'}
               </h3>
-              <form onSubmit={handleSave}>
+              <form onSubmit={save}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1">Status Name *</label>
                   <input
                     type="text"
                     required
-                    value={statusName}
-                    onChange={(e) => setStatusName(e.target.value)}
+                    value={formState.name}
+                    onChange={(e) => setFormField('name', e.target.value)}
                     className="w-full border rounded p-2"
                     placeholder="e.g. In Progress"
                   />
@@ -242,8 +126,8 @@ export const TicketStatusManager: React.FC = () => {
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Mapped State</label>
                   <select
-                    value={mappedState}
-                    onChange={(e) => setMappedState(e.target.value as 'OPEN' | 'CLOSED')}
+                    value={formState.mappedState}
+                    onChange={(e) => setFormField('mappedState', e.target.value as 'OPEN' | 'CLOSED')}
                     className="w-full border rounded p-2"
                   >
                     <option value="OPEN">OPEN (Active Ticket)</option>
@@ -253,7 +137,7 @@ export const TicketStatusManager: React.FC = () => {
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
-                    onClick={closeModal}
+                    onClick={cancelEdit}
                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                   >
                     Cancel

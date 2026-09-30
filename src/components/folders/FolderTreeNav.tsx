@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { folderApi } from '../../api/folderApi';
+import React from 'react';
 import type { FolderNodeDTO } from '../../types/folder';
 
 interface FolderTreeNavProps {
   onSelectFolder: (folderId: string) => void;
   activeFolderId: string | null;
+  treeData: FolderNodeDTO[];
+  isLoading: boolean;
+  error: string | null;
+  expandedNodes: Set<string>;
+  toggleNode: (nodeId: string) => void;
 }
 
 interface TreeNodeProps {
@@ -12,16 +16,25 @@ interface TreeNodeProps {
   activeFolderId: string | null;
   onSelectFolder: (folderId: string) => void;
   level: number;
+  expandedNodes: Set<string>;
+  toggleNode: (nodeId: string) => void;
 }
 
-const TreeNode: React.FC<TreeNodeProps> = ({ node, activeFolderId, onSelectFolder, level }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const TreeNode: React.FC<TreeNodeProps> = ({ 
+  node, 
+  activeFolderId, 
+  onSelectFolder, 
+  level,
+  expandedNodes,
+  toggleNode 
+}) => {
+  const isExpanded = expandedNodes.has(node.id);
   const isActive = activeFolderId === node.id;
   const hasChildren = node.children && node.children.length > 0;
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsExpanded(!isExpanded);
+    toggleNode(node.id);
   };
 
   const handleSelect = () => {
@@ -54,7 +67,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, activeFolderId, onSelectFolde
               node={child} 
               activeFolderId={activeFolderId} 
               onSelectFolder={onSelectFolder}
-              level={level + 1} 
+              level={level + 1}
+              expandedNodes={expandedNodes}
+              toggleNode={toggleNode}
             />
           ))}
         </div>
@@ -63,27 +78,15 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, activeFolderId, onSelectFolde
   );
 };
 
-export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({ onSelectFolder, activeFolderId }) => {
-  const [treeData, setTreeData] = useState<FolderNodeDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchTree = async () => {
-      try {
-        setIsLoading(true);
-        const data = await folderApi.getFolderTree();
-        setTreeData(data);
-        setError(null);
-      } catch {
-        setError('Failed to load folder tree');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchTree();
-  }, []);
-
+export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({ 
+  onSelectFolder, 
+  activeFolderId,
+  treeData,
+  isLoading,
+  error,
+  expandedNodes,
+  toggleNode
+}) => {
   if (isLoading) {
     return <div className="p-4 text-sm text-gray-500">Loading folders...</div>;
   }
@@ -100,7 +103,9 @@ export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({ onSelectFolder, ac
           node={node} 
           activeFolderId={activeFolderId} 
           onSelectFolder={onSelectFolder}
-          level={0} 
+          level={0}
+          expandedNodes={expandedNodes}
+          toggleNode={toggleNode}
         />
       ))}
     </div>
