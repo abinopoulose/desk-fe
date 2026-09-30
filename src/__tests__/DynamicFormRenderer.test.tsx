@@ -57,7 +57,7 @@ describe('DynamicFormRenderer', () => {
     fireEvent.change(screen.getByLabelText(/Username/i), { target: { value: 'ab' } });
     fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
     
-    expect(await screen.findByText('Minimum length is 3')).toBeInTheDocument();
+    expect(await screen.findByText('Must be at least 3 characters')).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

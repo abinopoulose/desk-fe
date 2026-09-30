@@ -4,6 +4,7 @@ import { ticketTypeApi } from '../../api/ticketTypeApi';
 import { slaApi } from '../../api/slaApi';
 import type { TicketTypeSummaryDTO } from '../../types/ticket';
 import type { SlaConfigDTO, CreateSlaConfigRequest } from '../../types/sla';
+import { positiveInteger } from '../../utils/validation';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Monday' },
@@ -96,6 +97,13 @@ export const SlaConfigPage: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTicketTypeId) return;
+
+    const resolutionError = positiveInteger(formData.resolutionMinutes);
+    if (resolutionError) {
+      alert(resolutionError);
+      return;
+    }
+
     try {
       let parsedHooks = null;
       if (hooksJson && hooksJson.trim() !== '') {

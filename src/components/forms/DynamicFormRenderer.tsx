@@ -7,7 +7,7 @@ import { SelectField } from './fields/SelectField';
 import { CheckboxField } from './fields/CheckboxField';
 import { NumberField } from './fields/NumberField';
 import { DateField } from './fields/DateField';
-
+import { Validator, required, minLength, maxLength, minValue, maxValue, composeValidators } from '../../utils/validation';
 export interface DynamicFormRendererProps {
   schema: FormSchema;
   onSubmit: (data: Record<string, unknown>) => void;
@@ -33,32 +33,33 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     setErrors({});
   }, [initialData, schema]);
 
-    const validateField = (field: FormField, value: any): string | null => {
-    if (field.required && (value === undefined || value === null || value === '')) {
-      return 'This field is required';
+  const validateField = (field: FormField, value: any): string | null => {
+    const validators: Validator[] = [];
+    
+    if (field.required) {
+      validators.push(required);
     }
     
-    if (value !== undefined && value !== null && value !== '') {
-      if (typeof value === 'string') {
-        if (field.minLength !== undefined && value.length < field.minLength) {
-          return `Minimum length is ${field.minLength}`;
-        }
-        if (field.maxLength !== undefined && value.length > field.maxLength) {
-          return `Maximum length is ${field.maxLength}`;
-        }
-      }
-      
-      if (typeof value === 'number') {
-        if (field.min !== undefined && value < field.min) {
-          return `Minimum value is ${field.min}`;
-        }
-        if (field.max !== undefined && value > field.max) {
-          return `Maximum value is ${field.max}`;
-        }
-      }
+    if (field.minLength !== undefined) {
+      // Create a custom validator here to match exactly what it previously returned 
+      // or just use the new minLength if tests are updated. But the new minLength returns `Must be at least ${min} characters`.
+      // Let's use the new minLength.
+      validators.push(minLength(field.minLength));
     }
     
-    return null;
+    if (field.maxLength !== undefined) {
+      validators.push(maxLength(field.maxLength));
+    }
+    
+    if (field.min !== undefined) {
+      validators.push(minValue(field.min));
+    }
+    
+    if (field.max !== undefined) {
+      validators.push(maxValue(field.max));
+    }
+    
+    return composeValidators(...validators)(value);
   };
 
   const isFieldVisible = (field: FormField): boolean => {

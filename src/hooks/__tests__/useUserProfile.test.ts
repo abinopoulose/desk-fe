@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useUserProfile, USER_PROFILE_VALIDATION } from '../useUserProfile';
+import { useUserProfile } from '../useUserProfile';
 import { getUserProfile, updateUserProfile } from '../../api/userApi';
+import { VALIDATION_MESSAGES } from '../../constants';
 import type { UserProfileResponse } from '../../types/user';
 
 vi.mock('../../api/userApi', () => ({
@@ -101,7 +102,7 @@ describe('useUserProfile hook', () => {
       await result.current.save();
     });
 
-    expect(result.current.error).toBe(USER_PROFILE_VALIDATION.REQUIRED_FULL_NAME);
+    expect(result.current.error).toBe(VALIDATION_MESSAGES.REQUIRED);
     expect(updateUserProfile).not.toHaveBeenCalled();
 
     act(() => {
@@ -113,7 +114,7 @@ describe('useUserProfile hook', () => {
       await result.current.save();
     });
 
-    expect(result.current.error).toBe(USER_PROFILE_VALIDATION.INVALID_EMAIL);
+    expect(result.current.error).toBe(VALIDATION_MESSAGES.EMAIL_INVALID);
   });
 
   it('saves profile successfully', async () => {

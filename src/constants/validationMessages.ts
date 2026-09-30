@@ -10,6 +10,10 @@ export const VALIDATION_MESSAGES = {
   POSITIVE_NUMBER_REQUIRED: 'Value must be greater than 0',
 } as const;
 
+export const VALIDATION_RULES = {
+  PASSWORD_MIN_LENGTH: 8,
+} as const;
+
 export const NOTIFICATION_MESSAGES = {
   SUCCESS_SAVE: 'Changes saved successfully',
   SUCCESS_CREATE: 'Created successfully',

@@ -2,17 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { getUserProfile, updateUserProfile } from '../api/userApi';
 import type { UserProfileResponse } from '../types/user';
 
-export const USER_PROFILE_VALIDATION = {
-  REQUIRED_FULL_NAME: 'Full name is required',
-  INVALID_EMAIL: 'Invalid email format',
-};
+import { required, email } from '../utils/validation';
 
 export const validateProfile = (profile: Partial<UserProfileResponse>): string | null => {
-  if (profile.fullName !== undefined && profile.fullName.trim() === '') {
-    return USER_PROFILE_VALIDATION.REQUIRED_FULL_NAME;
+  if (profile.fullName !== undefined) {
+    const nameError = required(profile.fullName);
+    if (nameError) return nameError;
   }
-  if (profile.email !== undefined && !/^\S+@\S+\.\S+$/.test(profile.email)) {
-    return USER_PROFILE_VALIDATION.INVALID_EMAIL;
+  if (profile.email !== undefined) {
+    const emailError = email(profile.email);
+    if (emailError) return emailError;
   }
   return null;
 };

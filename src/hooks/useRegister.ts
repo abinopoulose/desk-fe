@@ -4,6 +4,7 @@ import { AxiosError } from 'axios';
 import { register as registerApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ROUTES, APP_CONFIG, VALIDATION_MESSAGES } from '../constants';
+import { matchesField, password as passwordValidator } from '../utils/validation';
 
 export interface RegisterFormState {
   email: string;
@@ -43,13 +44,15 @@ export function useRegister() {
         return false;
       }
 
-      if (password !== confirmPassword) {
-        setError(VALIDATION_MESSAGES.PASSWORD_MISMATCH);
+      const matchError = matchesField(password)(confirmPassword);
+      if (matchError) {
+        setError(matchError);
         return false;
       }
 
-      if (password.length < APP_CONFIG.AUTH.MIN_PASSWORD_LENGTH) {
-        setError(VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH);
+      const passwordError = passwordValidator({ minLength: APP_CONFIG.AUTH.MIN_PASSWORD_LENGTH })(password);
+      if (passwordError) {
+        setError(passwordError);
         return false;
       }
 
