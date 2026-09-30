@@ -8,6 +8,7 @@ import type {
   UserRolesResponse,
 } from '../types/role';
 import { DEFAULT_ROLE_VALUES } from '../constants';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface RoleFormState {
   name: string;
@@ -70,7 +71,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
       setData(response);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch roles';
+      const message = (err as ApiError)?.message || 'Failed to fetch roles';
       setError(message);
       throw err;
     } finally {
@@ -147,7 +148,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
       const response = await roleApi.createRole(req);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create role';
+      const message = (err as ApiError)?.message || 'Failed to create role';
       setError(message);
       throw err;
     } finally {
@@ -162,7 +163,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
       const response = await roleApi.updateRole(roleName, req);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update role';
+      const message = (err as ApiError)?.message || 'Failed to update role';
       setError(message);
       throw err;
     } finally {
@@ -176,7 +177,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
     try {
       await roleApi.deleteRole(roleName);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete role';
+      const message = (err as ApiError)?.message || 'Failed to delete role';
       setError(message);
       throw err;
     } finally {
@@ -205,7 +206,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
         await fetchRoles();
         return result;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to save role';
+        const message = (err as ApiError)?.message || 'Failed to save role';
         setError(message);
         return null;
       } finally {
@@ -228,7 +229,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
         await roleApi.deleteRole(roleNameOrId);
         await fetchRoles();
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to delete role';
+        const message = (err as ApiError)?.message || 'Failed to delete role';
         setError(message);
       } finally {
         setLoading(false);
@@ -244,7 +245,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
       try {
         await roleApi.assignRoles(userId, req);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to assign roles';
+        const message = (err as ApiError)?.message || 'Failed to assign roles';
         setError(message);
         throw err;
       } finally {
@@ -261,7 +262,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
       const response = await roleApi.getUserRoles(userId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch user roles';
+      const message = (err as ApiError)?.message || 'Failed to fetch user roles';
       setError(message);
       throw err;
     } finally {

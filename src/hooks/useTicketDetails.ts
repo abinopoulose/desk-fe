@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketApi } from '../api/ticketApi';
 import type { TicketDetailResponse } from '../types/ticket';
 import { DEFAULT_CLOSED_STATUS_ID, TICKET_STATUS_LABELS } from '../constants';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface UseTicketDetailsReturn {
   ticket: TicketDetailResponse | null;
@@ -59,7 +60,7 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
         return data;
       } catch (err: unknown) {
         if (isMountedRef.current) {
-          const message = err instanceof Error ? err.message : 'Failed to load ticket details';
+          const message = (err as ApiError)?.message || 'Failed to load ticket details';
           setError(message);
         }
         throw err;
@@ -130,7 +131,7 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
       } catch (err: unknown) {
         if (isMountedRef.current) {
           setTicket(prevTicket);
-          const msg = err instanceof Error ? err.message : 'Failed to update status';
+          const msg = (err as ApiError)?.message || 'Failed to update status';
           setError(msg);
         }
         throw err;
@@ -166,7 +167,7 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
       } catch (err: unknown) {
         if (isMountedRef.current) {
           setTicket(prevTicket);
-          const msg = err instanceof Error ? err.message : 'Failed to reassign ticket';
+          const msg = (err as ApiError)?.message || 'Failed to reassign ticket';
           setError(msg);
         }
         throw err;

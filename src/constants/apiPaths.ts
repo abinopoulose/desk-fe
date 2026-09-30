@@ -18,22 +18,20 @@ export const API_PATHS = {
   TICKET_TYPES: {
     BASE: '/ticket-types',
     BY_ID: (id: string) => `/ticket-types/${id}`,
-    STATUSES: (typeId: string) => `/ticket-types/${typeId}/statuses`,
-    SLA_CONFIGS: (typeId: string) => `/ticket-types/${typeId}/sla-configs`,
+    SLA_CONFIGS: (id: string) => `/ticket-types/${id}/sla-configs`,
+    STATUSES: (id: string) => `/ticket-types/${id}/statuses`,
   },
   TICKET_STATUSES: {
-    BY_ID: (statusId: string) => `/ticket-statuses/${statusId}`,
-  },
-  SLA_CONFIGS: {
-    BY_ID: (id: string) => `/sla-configs/${id}`,
+    BY_ID: (id: string) => `/ticket-statuses/${id}`,
   },
   METRICS: {
     BASE: '/metrics',
-    PERFORMANCE: '/metrics/performance',
   },
   ROLES: {
     BASE: '/roles',
-    BY_NAME: (roleName: string) => `/roles/${roleName}`,
+  },
+  SLA_CONFIGS: {
+    BY_ID: (id: string) => `/sla-configs/${id}`,
   },
   SLA: {
     BASE: '/slas',
@@ -44,13 +42,12 @@ export const API_PATHS = {
   },
   USERS: {
     BASE: '/users',
-    ROLES: (userId: string) => `/users/${userId}/roles`,
-    PROFILE: (userId: string) => `/users/${userId}/profile`,
+    PROFILE: (id: string) => `/users/${id}/profile`,
     HIERARCHY: '/users/hierarchy',
   },
   FOLDERS: {
     BASE: '/folders',
     TREE: '/folders/tree',
-    CONTENTS: (folderId: string) => `/folders/${folderId}/contents`,
+    CONTENTS: (id: string) => `/folders/${id}/contents`,
   }
 } as const;

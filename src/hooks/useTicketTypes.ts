@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ticketTypeApi } from '../api/ticketTypeApi';
+import type { ApiError } from '../utils/apiErrorHandler';
 import type {
   TicketTypeSummaryDTO,
   TicketTypeDTO,
@@ -31,7 +32,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       setData(response);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch ticket types';
+      const message = (err as ApiError)?.message || 'Failed to fetch ticket types';
       setError(message);
       throw err;
     } finally {
@@ -67,7 +68,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       setData((prev) => (prev ? prev.filter((item) => item.id !== deleteConfirmId) : null));
       setDeleteConfirmId(null);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete ticket type';
+      const message = (err as ApiError)?.message || 'Failed to delete ticket type';
       setError(message);
       throw err;
     } finally {
@@ -82,7 +83,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       const response = await ticketTypeApi.getTicketTypeById(id);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch ticket type';
+      const message = (err as ApiError)?.message || 'Failed to fetch ticket type';
       setError(message);
       throw err;
     } finally {
@@ -97,7 +98,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       const response = await ticketTypeApi.createTicketType(req);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create ticket type';
+      const message = (err as ApiError)?.message || 'Failed to create ticket type';
       setError(message);
       throw err;
     } finally {
@@ -112,7 +113,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       const response = await ticketTypeApi.updateTicketType(id, req);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update ticket type';
+      const message = (err as ApiError)?.message || 'Failed to update ticket type';
       setError(message);
       throw err;
     } finally {
@@ -131,7 +132,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
       await ticketTypeApi.deleteTicketType(id);
       setData((prev) => (prev ? prev.filter((item) => item.id !== id) : null));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete ticket type';
+      const message = (err as ApiError)?.message || 'Failed to delete ticket type';
       setError(message);
       throw err;
     } finally {
@@ -148,7 +149,7 @@ export function useTicketTypes(options?: UseTicketTypesOptions) {
         await fetchTicketTypes(includeInactive);
       } catch (error: unknown) {
         console.error('Failed to toggle active status', error);
-        const message = error instanceof Error ? error.message : 'Failed to toggle active status';
+        const message = (error as ApiError)?.message || 'Failed to toggle active status';
         setError(message);
       }
     },

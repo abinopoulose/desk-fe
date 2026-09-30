@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketApi } from '../api/ticketApi';
 import type { CommentDTO } from '../types/ticket';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface UseTicketCommentsOptions {
   ticketId?: string;
@@ -109,7 +110,7 @@ export function useTicketComments(
         return data;
       } catch (err: unknown) {
         if (isMountedRef.current) {
-          const message = err instanceof Error ? err.message : 'Failed to fetch comments';
+          const message = (err as ApiError)?.message || 'Failed to fetch comments';
           setCommentsError(message);
         }
         throw err;
@@ -155,7 +156,7 @@ export function useTicketComments(
         return newComment;
       } catch (err: unknown) {
         if (isMountedRef.current) {
-          const message = err instanceof Error ? err.message : 'Failed to add comment';
+          const message = (err as ApiError)?.message || 'Failed to add comment';
           setSubmitError(message);
         }
         throw err;

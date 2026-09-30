@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { metricsApi } from '../api/metricsApi';
 import type { MetricsFilterParams, PerformanceMetricsResponse } from '../types/metrics';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export function useMetrics(initialFilters: MetricsFilterParams = {}) {
   const [metrics, setMetrics] = useState<PerformanceMetricsResponse | null>(null);
@@ -15,7 +16,7 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
       const data = await metricsApi.getPerformanceMetrics(currentFilters);
       setMetrics(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      setError((err as ApiError)?.message || 'Failed to fetch metrics');
     } finally {
       setLoading(false);
     }

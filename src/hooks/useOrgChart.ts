@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getOrgHierarchy } from '../api/userApi';
 import type { OrgNode } from '../types/user';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export const useOrgChart = () => {
   const [orgData, setOrgData] = useState<OrgNode[]>([]);
@@ -14,7 +15,7 @@ export const useOrgChart = () => {
       const hierarchy = await getOrgHierarchy();
       setOrgData(hierarchy);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to fetch org hierarchy';
+      const errorMsg = (err as ApiError)?.message || 'Failed to fetch org hierarchy';
       setError(errorMsg);
     } finally {
       setLoading(false);

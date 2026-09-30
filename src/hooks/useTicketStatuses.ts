@@ -8,6 +8,7 @@ import type {
   UpdateStatusRequest,
 } from '../types/ticket';
 import { DEFAULT_STATUS_VALUES } from '../constants';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface StatusFormState {
   name: string;
@@ -141,7 +142,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
 
         return sorted;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch ticket statuses';
+        const message = (err as ApiError)?.message || 'Failed to fetch ticket statuses';
         setError(message);
         throw err;
       } finally {
@@ -168,7 +169,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
         const response = await ticketTypeApi.createTicketStatus(targetTypeId, req);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create ticket status';
+        const message = (err as ApiError)?.message || 'Failed to create ticket status';
         setError(message);
         throw err;
       } finally {
@@ -186,7 +187,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
         const response = await ticketTypeApi.updateTicketStatus(statusId, req);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to update ticket status';
+        const message = (err as ApiError)?.message || 'Failed to update ticket status';
         setError(message);
         throw err;
       } finally {
@@ -202,7 +203,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
     try {
       await ticketTypeApi.deleteTicketStatus(statusId);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete ticket status';
+      const message = (err as ApiError)?.message || 'Failed to delete ticket status';
       setError(message);
       throw err;
     } finally {

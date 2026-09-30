@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { slaApi } from '../api/slaApi';
+import type { ApiError } from '../utils/apiErrorHandler';
 import type {
   SlaConfigDTO,
   CreateSlaConfigRequest,
@@ -19,7 +20,7 @@ export function useSla() {
       setData(response);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch SLA configs';
+      const message = (err as ApiError)?.message || 'Failed to fetch SLA configs';
       setError(message);
       throw err;
     } finally {
@@ -35,7 +36,7 @@ export function useSla() {
         const response = await slaApi.createSlaConfig(ticketTypeId, req);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create SLA config';
+        const message = (err as ApiError)?.message || 'Failed to create SLA config';
         setError(message);
         throw err;
       } finally {
@@ -53,7 +54,7 @@ export function useSla() {
         const response = await slaApi.updateSlaConfig(id, req);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to update SLA config';
+        const message = (err as ApiError)?.message || 'Failed to update SLA config';
         setError(message);
         throw err;
       } finally {
@@ -69,7 +70,7 @@ export function useSla() {
     try {
       await slaApi.deleteSlaConfig(id);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete SLA config';
+      const message = (err as ApiError)?.message || 'Failed to delete SLA config';
       setError(message);
       throw err;
     } finally {

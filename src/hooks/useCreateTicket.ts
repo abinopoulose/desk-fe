@@ -1,3 +1,4 @@
+import type { ApiError } from '../utils/apiErrorHandler';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
 import { ticketApi } from '../api/ticketApi';
@@ -55,12 +56,13 @@ export function useCreateTicket() {
         formData: stagedFormData,
       });
       navigate(`/tickets/${result.id}`);
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
       setShowConfirmModal(false);
-      if (err.response && err.response.status === 400 && err.response.data && err.response.data.errors) {
-        setFieldErrors(err.response.data.errors);
+      if (apiErr.statusCode === 400 && apiErr.details) {
+        setFieldErrors(apiErr.details as Record<string, string>);
       } else {
-        setError(err.message || 'An error occurred during submission');
+        setError(apiErr.message || 'An error occurred during submission');
       }
     } finally {
       setIsSubmitting(false);

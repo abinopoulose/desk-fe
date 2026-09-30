@@ -3,6 +3,7 @@ import { ticketApi } from '../api/ticketApi';
 import type { TicketDTO, TicketFilterParams } from '../types/ticket';
 import { useAuth } from '../store/authStore';
 import { APP_CONFIG } from '../constants';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface TicketListFilters {
   tab: 'my' | 'assigned' | 'all';
@@ -129,7 +130,7 @@ export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
         }
       } catch (err: unknown) {
         if (isMountedRef.current) {
-          const message = err instanceof Error ? err.message : 'Failed to fetch tickets';
+          const message = (err as ApiError)?.message || 'Failed to fetch tickets';
           setError(message);
           console.error('Failed to fetch tickets:', err);
         }

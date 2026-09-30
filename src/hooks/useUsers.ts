@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { getUserProfile, getOrgHierarchy } from '../api/userApi';
 import type { UserProfileResponse, OrgNode } from '../types/user';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface UsersData {
   profile: UserProfileResponse | null;
@@ -23,7 +24,7 @@ export function useUsers() {
       setData((prev) => ({ ...prev, profile: response }));
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch user profile';
+      const message = (err as ApiError)?.message || 'Failed to fetch user profile';
       setError(message);
       throw err;
     } finally {
@@ -39,7 +40,7 @@ export function useUsers() {
       setData((prev) => ({ ...prev, hierarchy: response }));
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch organization hierarchy';
+      const message = (err as ApiError)?.message || 'Failed to fetch organization hierarchy';
       setError(message);
       throw err;
     } finally {

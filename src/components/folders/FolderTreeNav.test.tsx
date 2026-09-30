@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { FolderTreeNav } from './FolderTreeNav';
-import { folderApi } from '../../api/folderApi';
 import { BrowserRouter } from 'react-router';
+import { folderApi } from '../../api/folderApi';
 
 vi.mock('../../api/folderApi', () => ({
   folderApi: {
-    getFolderTree: vi.fn(),
-  },
+    getFolderTree: vi.fn()
+  }
 }));
 
 describe('FolderTreeNav', () => {
@@ -36,7 +36,7 @@ describe('FolderTreeNav', () => {
   });
 
   it('renders loading state initially', () => {
-    vi.mocked(folderApi.getFolderTree).mockReturnValue(new Promise(() => {}));
+    vi.mocked(folderApi.getFolderTree).mockReturnValue(new Promise(() => {})); // Never resolves
     render(
       <BrowserRouter>
         <FolderTreeNav onSelectFolder={vi.fn()} activeFolderId={null} />
@@ -58,9 +58,9 @@ describe('FolderTreeNav', () => {
   });
 
   it('renders folder tree and handles clicks', async () => {
-    vi.mocked(folderApi.getFolderTree).mockResolvedValue(mockTreeData);
     const handleSelect = vi.fn();
-    
+    vi.mocked(folderApi.getFolderTree).mockResolvedValue(mockTreeData);
+
     render(
       <BrowserRouter>
         <FolderTreeNav onSelectFolder={handleSelect} activeFolderId="1" />
@@ -71,13 +71,10 @@ describe('FolderTreeNav', () => {
       expect(screen.getByText('Root Folder')).toBeTruthy();
     });
 
-    // Toggle child visibility
-    const toggleIcon = screen.getByText('▶');
-    fireEvent.click(toggleIcon);
-
+    const rootToggle = screen.getByText('▶');
+    fireEvent.click(rootToggle);
     expect(screen.getByText('Child Folder')).toBeTruthy();
 
-    // Select child folder
     fireEvent.click(screen.getByText('Child Folder'));
     expect(handleSelect).toHaveBeenCalledWith('2');
   });

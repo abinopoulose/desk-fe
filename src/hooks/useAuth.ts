@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { login as loginApi, register as registerApi } from '../api/authApi';
 import type { LoginRequest, RegisterRequest, UserDTO } from '../types/auth';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface AuthData {
   user: UserDTO | null;
@@ -31,7 +32,7 @@ export function useAuth() {
         storeLogin(response.token, response.user, response.user.roles || []);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Login failed';
+        const message = (err as ApiError)?.message || 'Login failed';
         setError(message);
         throw err;
       } finally {
@@ -50,7 +51,7 @@ export function useAuth() {
         storeLogin(response.token, response.user, response.user.roles || []);
         return response;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Registration failed';
+        const message = (err as ApiError)?.message || 'Registration failed';
         setError(message);
         throw err;
       } finally {

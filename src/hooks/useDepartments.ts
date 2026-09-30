@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { departmentApi } from '../api/departmentApi';
 import type { DepartmentDTO, CreateDepartmentRequest, UpdateDepartmentRequest } from '../types/department';
 import { DEFAULT_DEPARTMENT_FORM_VALUES } from '../constants/departmentConstants';
+import type { ApiError } from '../utils/apiErrorHandler';
 
 export function useDepartments() {
   const [departments, setDepartments] = useState<DepartmentDTO[]>([]);
@@ -18,7 +19,7 @@ export function useDepartments() {
       const data = await departmentApi.getAllDepartments();
       setDepartments(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load departments';
+      const message = (err as ApiError)?.message || 'Failed to load departments';
       setError(message);
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ticketApi } from '../api/ticketApi';
+import type { ApiError } from '../utils/apiErrorHandler';
 import type {
   TicketListResponse,
   TicketFilterParams,
@@ -23,7 +24,7 @@ export function useTickets() {
       setData(response);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch tickets';
+      const message = (err as ApiError)?.message || 'Failed to fetch tickets';
       setError(message);
       throw err;
     } finally {
@@ -38,7 +39,7 @@ export function useTickets() {
       const response = await ticketApi.getTicketDetails(ticketId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch ticket details';
+      const message = (err as ApiError)?.message || 'Failed to fetch ticket details';
       setError(message);
       throw err;
     } finally {
@@ -53,7 +54,7 @@ export function useTickets() {
       const response = await ticketApi.createTicket(request);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create ticket';
+      const message = (err as ApiError)?.message || 'Failed to create ticket';
       setError(message);
       throw err;
     } finally {
@@ -68,7 +69,7 @@ export function useTickets() {
       const response = await ticketApi.updateTicketStatus(ticketId, statusId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update ticket status';
+      const message = (err as ApiError)?.message || 'Failed to update ticket status';
       setError(message);
       throw err;
     } finally {
@@ -83,7 +84,7 @@ export function useTickets() {
       const response = await ticketApi.assignTicket(ticketId, assigneeId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to assign ticket';
+      const message = (err as ApiError)?.message || 'Failed to assign ticket';
       setError(message);
       throw err;
     } finally {
@@ -98,7 +99,7 @@ export function useTickets() {
       const response = await ticketApi.addComment(ticketId, content);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to add comment';
+      const message = (err as ApiError)?.message || 'Failed to add comment';
       setError(message);
       throw err;
     } finally {
@@ -113,7 +114,7 @@ export function useTickets() {
       const response = await ticketApi.getComments(ticketId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch comments';
+      const message = (err as ApiError)?.message || 'Failed to fetch comments';
       setError(message);
       throw err;
     } finally {
@@ -128,7 +129,7 @@ export function useTickets() {
       const response = await ticketApi.getTicketSchema(typeId);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch ticket schema';
+      const message = (err as ApiError)?.message || 'Failed to fetch ticket schema';
       setError(message);
       throw err;
     } finally {

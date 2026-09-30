@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+import { handleApiError } from '../utils/apiErrorHandler';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
@@ -25,10 +25,8 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
-      useAuthStore.getState().logout();
-    }
-    return Promise.reject(error);
+    const standardizedError = handleApiError(error);
+    return Promise.reject(standardizedError);
   }
 );
 

@@ -100,7 +100,7 @@ describe('CreateTicketPage', () => {
     });
     
     const submitBtn = screen.getByRole('button', { name: 'Submit' });
-    fireEvent.click(submitBtn);
+    fireEvent.submit(submitBtn.closest('form')!);
     
     await waitFor(() => {
       expect(screen.getByText('This field is required')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('CreateTicketPage', () => {
     fireEvent.change(deviceInput, { target: { value: 'MacBook Pro' } });
     
     const submitBtn = screen.getByRole('button', { name: 'Submit' });
-    fireEvent.click(submitBtn);
+    fireEvent.submit(submitBtn.closest('form')!);
     
     // Modal opens
     await waitFor(() => {
@@ -147,12 +147,8 @@ describe('CreateTicketPage', () => {
   it('displays backend 400 validation errors', async () => {
     vi.mocked(ticketApi.getTicketSchema).mockResolvedValue(mockSchema);
     vi.mocked(ticketApi.createTicket).mockRejectedValue({
-      response: {
-        status: 400,
-        data: {
-          errors: { device: 'Device is out of stock' }
-        }
-      }
+      statusCode: 400,
+      details: { device: 'Device is out of stock' }
     });
     
     renderComponent();
@@ -165,7 +161,7 @@ describe('CreateTicketPage', () => {
     fireEvent.change(deviceInput, { target: { value: 'MacBook Pro' } });
     
     const submitBtn = screen.getByRole('button', { name: 'Submit' });
-    fireEvent.click(submitBtn);
+    fireEvent.submit(submitBtn.closest('form')!);
     
     await waitFor(() => {
       expect(screen.getByText('Confirm Ticket Details')).toBeInTheDocument();
