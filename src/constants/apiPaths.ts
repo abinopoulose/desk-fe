@@ -26,9 +26,11 @@ export const API_PATHS = {
   },
   METRICS: {
     BASE: '/metrics',
+    PERFORMANCE: '/metrics/performance',
   },
   ROLES: {
     BASE: '/roles',
+    BY_NAME: (name: string) => `/roles/${name}`,
   },
   SLA_CONFIGS: {
     BY_ID: (id: string) => `/sla-configs/${id}`,
@@ -42,6 +44,7 @@ export const API_PATHS = {
   },
   USERS: {
     BASE: '/users',
+    ROLES: (id: string) => `/users/${id}/roles`,
     PROFILE: (id: string) => `/users/${id}/profile`,
     HIERARCHY: '/users/hierarchy',
   },

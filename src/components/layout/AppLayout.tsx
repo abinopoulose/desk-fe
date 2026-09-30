@@ -1,12 +1,10 @@
-import { ROUTES } from '../../constants';
+import { ROUTES, navConfig } from '../../constants';
 import { Outlet, NavLink } from 'react-router';
 import { useAuth } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import { PrivilegeGate } from '../auth/PrivilegeGate';
 import {
-  LayoutDashboard, FolderTree, Ticket, Network,
-  Settings, Building2, Users, Clock, Database,
-  BarChart3, UserCircle, Menu, ChevronLeft, ChevronRight,
+  UserCircle, Menu, ChevronLeft, ChevronRight,
   LogOut, ShieldCheck
 } from 'lucide-react';
 
@@ -68,38 +66,29 @@ export function AppLayout() {
         
         <nav className="p-3 flex flex-col gap-1 flex-1 overflow-y-auto no-scrollbar">
           {isSidebarOpen && <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-2 mb-1 px-3">Main</div>}
-          <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-          <NavItem to="/browse" icon={FolderTree} label="Browse Folders" />
-          <NavItem to="/tickets/new" icon={Ticket} label="Create Ticket" />
-          <NavItem to="/org-chart" icon={Network} label="Org Chart" />
+          {navConfig.filter(n => n.group === 'main').map(n => (
+            <NavItem key={n.to} to={n.to} icon={n.icon} label={n.label} />
+          ))}
 
           {showAdmin && (
             <>
               {isSidebarOpen && <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-1 px-3">Admin</div>}
-              <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
-                <NavItem to="/admin/ticket-types" icon={Settings} label="Ticket Types" />
-              </PrivilegeGate>
-              <PrivilegeGate requiredPrivilege="DEPARTMENT_WRITE">
-                <NavItem to="/admin/departments" icon={Building2} label="Departments" />
-              </PrivilegeGate>
-              <PrivilegeGate requiredPrivilege="ROLE_WRITE">
-                <NavItem to="/admin/roles" icon={Users} label="Roles & Users" />
-              </PrivilegeGate>
-              <PrivilegeGate requiredPrivilege="SLA_WRITE">
-                <NavItem to="/admin/sla-configs" icon={Clock} label="SLA Configs" />
-              </PrivilegeGate>
-              <PrivilegeGate requiredPrivilege="TENANT_MANAGE">
-                <NavItem to="/admin/tenant" icon={Database} label="Tenant Config" />
-              </PrivilegeGate>
+              {navConfig.filter(n => n.group === 'admin').map(n => (
+                <PrivilegeGate key={n.to} requiredPrivilege={n.requiredPrivilege as any}>
+                  <NavItem to={n.to} icon={n.icon} label={n.label} />
+                </PrivilegeGate>
+              ))}
             </>
           )}
           
           {showAnalytics && (
             <>
               {isSidebarOpen && <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-1 px-3">Analytics</div>}
-              <PrivilegeGate requiredPrivilege="METRICS_READ">
-                <NavItem to="/metrics" icon={BarChart3} label="Metrics" />
-              </PrivilegeGate>
+              {navConfig.filter(n => n.group === 'analytics').map(n => (
+                <PrivilegeGate key={n.to} requiredPrivilege={n.requiredPrivilege as any}>
+                  <NavItem to={n.to} icon={n.icon} label={n.label} />
+                </PrivilegeGate>
+              ))}
             </>
           )}
         </nav>

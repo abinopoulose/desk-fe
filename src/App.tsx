@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { useEffect } from 'react';
+import { ROUTES } from './constants';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
@@ -33,26 +34,26 @@ function App() {
     <BrowserRouter>
       <PageErrorBoundary>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
+          <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<TicketListPage />} />
-            <Route path="/browse" element={<BrowseFoldersPage />} />
-            <Route path="/tickets/new" element={<CreateTicketPage />} />
-            <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
-            <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
-            <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
-            <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
-            <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
-            <Route path="/admin/sla-configs" element={<SlaConfigPage />} />
-            <Route path="/admin/departments" element={<DepartmentAdminPage />} />
-            <Route path="/admin/roles" element={<RoleAdminPage />} />
-            <Route path="/admin/tenant" element={<TenantConfigPage />} />
-            <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
-            <Route path="/org-chart" element={<OrgChartPage />} />
-            <Route path="/users/:userId" element={<UserProfilePage />} />
+            <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+            <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
+            <Route path={ROUTES.BROWSE} element={<BrowseFoldersPage />} />
+            <Route path={ROUTES.TICKETS.NEW} element={<CreateTicketPage />} />
+            <Route path={ROUTES.TICKETS.DETAILS_PATH} element={<TicketDetailsPage />} />
+            <Route path={ROUTES.TICKETS.BASE} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+            <Route path={ROUTES.ADMIN.TICKET_TYPES} element={<TicketTypeAdminPage />} />
+            <Route path={ROUTES.ADMIN.TICKET_TYPE_NEW} element={<TicketTypeFormPage />} />
+            <Route path={ROUTES.ADMIN.TICKET_TYPE_EDIT_PATH} element={<TicketTypeFormPage />} />
+            <Route path={ROUTES.ADMIN.TICKET_STATUSES_PATH} element={<TicketStatusManager />} />
+            <Route path={ROUTES.ADMIN.SLA_CONFIGS} element={<SlaConfigPage />} />
+            <Route path={ROUTES.ADMIN.DEPARTMENTS} element={<DepartmentAdminPage />} />
+            <Route path={ROUTES.ADMIN.ROLES} element={<RoleAdminPage />} />
+            <Route path={ROUTES.ADMIN.TENANT} element={<TenantConfigPage />} />
+            <Route path={ROUTES.METRICS} element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
+            <Route path={ROUTES.ORG_CHART} element={<OrgChartPage />} />
+            <Route path={ROUTES.USERS.PROFILE_PATH} element={<UserProfilePage />} />
           </Route>
         </Routes>
       </PageErrorBoundary>

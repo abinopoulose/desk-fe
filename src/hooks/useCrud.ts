@@ -111,7 +111,7 @@ export function useCrud<T, FormStateT>({
     }
   }, [isEditing, editingItem, formState, mapFormStateToPayload, update, getId, create, cancelEdit, refetch]);
 
-  const remove = useCallback(async (id: string, skipConfirm = false) => {
+  const remove = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
     try {

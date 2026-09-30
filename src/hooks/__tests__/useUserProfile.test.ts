@@ -20,7 +20,6 @@ describe('useUserProfile hook', () => {
     fullName: 'Test User',
     email: 'test@example.com',
     title: 'Engineer',
-    departmentName: 'Engineering',
     manager: null,
     reportees: [],
     roles: [],

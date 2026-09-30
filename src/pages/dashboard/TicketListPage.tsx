@@ -1,3 +1,4 @@
+import { ROUTES } from '../../constants';
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../store/authStore';
@@ -160,10 +161,10 @@ export const TicketListPage: React.FC = () => {
               tickets.map((t) => (
                 <tr
                   key={t.id}
-                  onClick={() => navigate(`/tickets/${t.id}`)}
+                  onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
                   className="hover:bg-gray-50 cursor-pointer"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/tickets/${t.id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.TICKETS.DETAILS(t.id))}
                 >
                   <td className="py-2 px-4 border">{t.id.substring(0, 8)}...</td>
                   <td className="py-2 px-4 border">

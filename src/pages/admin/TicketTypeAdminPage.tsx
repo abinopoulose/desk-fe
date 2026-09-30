@@ -87,13 +87,13 @@ export const TicketTypeAdminPage: React.FC = () => {
                     </td>
                     <td className="p-4 text-right space-x-2">
                       <button
-                        onClick={() => navigate(`/admin/ticket-types/${type.id}/statuses`)}
+                        onClick={() => navigate(ROUTES.ADMIN.TICKET_STATUSES(type.id))}
                         className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
                       >
                         Statuses
                       </button>
                       <button
-                        onClick={() => navigate(`/admin/ticket-types/${type.id}/edit`)}
+                        onClick={() => navigate(ROUTES.ADMIN.TICKET_TYPE_EDIT(type.id))}
                         className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                       >
                         Edit Schema

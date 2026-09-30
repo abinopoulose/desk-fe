@@ -15,16 +15,10 @@ describe('useOrgChart hook', () => {
 
   const mockOrgData: OrgNode[] = [
     {
-      user: {
-        id: 'u1',
-        fullName: 'Test User',
-        email: 'test@example.com',
-        title: 'CEO',
-        departmentName: 'Executive',
-        manager: null,
-        roles: [],
-        isActive: true,
-      },
+      id: 'u1',
+      fullName: 'Test User',
+      email: 'test@example.com',
+      title: 'CEO',
       children: [],
     },
   ];

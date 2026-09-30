@@ -4,8 +4,6 @@ import { FolderTreeNav } from '../../components/folders/FolderTreeNav';
 import { FolderContents } from '../../components/folders/FolderContents';
 import { useAuth } from '../../store/authStore';
 import { ROUTES } from '../../constants';
-import { useFolderTree } from '../../hooks/useFolderTree';
-import { useFolderContents } from '../../hooks/useFolderContents';
 
 export const BrowseFoldersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,9 +11,6 @@ export const BrowseFoldersPage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { hasPrivilege } = useAuth();
-
-  const folderTree = useFolderTree();
-  const folderContents = useFolderContents(folderId);
 
   const handleSelectFolder = (id: string) => {
     setSearchParams({ folderId: id });
@@ -56,11 +51,6 @@ export const BrowseFoldersPage: React.FC = () => {
           <FolderTreeNav 
             activeFolderId={folderId} 
             onSelectFolder={handleSelectFolder}
-            treeData={folderTree.treeData}
-            isLoading={folderTree.isLoading}
-            error={folderTree.error}
-            expandedNodes={folderTree.expandedNodes}
-            toggleNode={folderTree.toggleNode}
           />
         </div>
       </div>
@@ -92,9 +82,6 @@ export const BrowseFoldersPage: React.FC = () => {
             <FolderContents 
               folderId={folderId} 
               onSelectFolder={handleSelectFolder}
-              contents={folderContents.contents}
-              isLoading={folderContents.isLoading}
-              error={folderContents.error}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-500">

@@ -1,3 +1,4 @@
+import { ROUTES } from '../../constants';
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { OrgChartTree } from '../../components/org/OrgChartTree';
@@ -10,7 +11,7 @@ export const OrgChartPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSelectUser = useCallback((userId: string) => {
-    navigate(`/users/${userId}`);
+    navigate(ROUTES.USERS.PROFILE(userId));
   }, [navigate]);
 
   const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 2));

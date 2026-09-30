@@ -1,3 +1,4 @@
+import { ROUTES } from '../../constants';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
@@ -35,7 +36,7 @@ export const PageErrorBoundary: React.FC<PageErrorBoundaryProps> = ({ children }
             <button
               onClick={() => {
                 reset();
-                navigate('/');
+                navigate(ROUTES.DASHBOARD);
               }}
               className="flex items-center gap-2 px-6 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium transition-colors"
             >

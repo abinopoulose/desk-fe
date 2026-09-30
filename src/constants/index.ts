@@ -7,3 +7,4 @@ export * from './ticketConstants';
 export * from './roleConstants';
 export * from './departmentConstants';
 export * from './metricsConstants';
+export * from './navConfig';

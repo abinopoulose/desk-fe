@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { folderApi } from '../../api/folderApi';
 import type { FolderContentsDTO } from '../../types/folder';
+import { ROUTES } from '../../constants';
 
 interface FolderContentsProps {
   folderId: string;
@@ -90,7 +91,7 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
               {contents.ticketTypes.map(type => (
                 <div 
                   key={type.id}
-                  onClick={() => navigate(`/tickets/new?typeId=${type.id}`)}
+                  onClick={() => navigate(`${ROUTES.TICKETS.NEW}?typeId=${type.id}`)}
                   className="flex flex-col p-5 border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow bg-white"
                 >
                   <div className="flex justify-between items-start mb-2">

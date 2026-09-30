@@ -7,7 +7,8 @@ import { SelectField } from './fields/SelectField';
 import { CheckboxField } from './fields/CheckboxField';
 import { NumberField } from './fields/NumberField';
 import { DateField } from './fields/DateField';
-import { Validator, required, minLength, maxLength, minValue, maxValue, composeValidators } from '../../utils/validation';
+import type { Validator } from '../../utils/validation';
+import { required, minLength, maxLength, minValue, maxValue, composeValidators } from '../../utils/validation';
 export interface DynamicFormRendererProps {
   schema: FormSchema;
   onSubmit: (data: Record<string, unknown>) => void;

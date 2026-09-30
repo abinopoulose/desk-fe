@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { ticketTypeApi } from '../api/ticketTypeApi';
 import type {
@@ -93,7 +93,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
       description: DEFAULT_STATUS_VALUES.description,
       isDefault: DEFAULT_STATUS_VALUES.isDefault,
     }),
-    mapFormStateToPayload: (formState, isEditing) => ({
+    mapFormStateToPayload: (formState) => ({
       name: formState.name,
       mappedState: formState.mappedState,
       // For create, displayOrder needs to be statuses.length, but we don't have access to statuses here directly

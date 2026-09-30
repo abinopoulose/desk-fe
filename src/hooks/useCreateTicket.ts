@@ -2,6 +2,7 @@ import type { ApiError } from '../utils/apiErrorHandler';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
 import { ticketApi } from '../api/ticketApi';
+import { ROUTES } from '../constants';
 import type { FormSchemaResponse } from '../types/ticket';
 
 export function useCreateTicket() {
@@ -55,7 +56,7 @@ export function useCreateTicket() {
         priority,
         formData: stagedFormData,
       });
-      navigate(`/tickets/${result.id}`);
+      navigate(ROUTES.TICKETS.DETAILS(result.id));
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       setShowConfirmModal(false);
