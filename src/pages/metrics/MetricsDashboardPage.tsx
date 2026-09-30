@@ -4,37 +4,18 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { metricsApi } from '../../api/metricsApi';
 import { departmentApi } from '../../api/departmentApi';
-import type { PerformanceMetricsResponse, MetricsFilterParams } from '../../types/metrics';
+import { useMetrics } from '../../hooks/useMetrics';
+import { METRICS_COLORS } from '../../constants';
 
 interface Department {
   id: string;
   name: string;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a288fe', '#ff6666'];
-
 export const MetricsDashboardPage: React.FC = () => {
-  const [metrics, setMetrics] = useState<PerformanceMetricsResponse | null>(null);
+  const { metrics, chartData, loading, error, filters, setFilter, refetch } = useMetrics({});
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [filters, setFilters] = useState<MetricsFilterParams>({});
-
-  const fetchMetrics = async (currentFilters: MetricsFilterParams) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await metricsApi.getPerformanceMetrics(currentFilters);
-      setMetrics(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchDepartments = async () => {
     try {
@@ -43,24 +24,12 @@ export const MetricsDashboardPage: React.FC = () => {
         setDepartments(departmentsData);
       }
     } catch { /* noop */ 
-
     }
   };
 
   useEffect(() => {
     fetchDepartments();
   }, []);
-
-  useEffect(() => {
-    fetchMetrics(filters);
-  }, [filters]);
-
-  const handleFilterChange = (key: keyof MetricsFilterParams, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value === '' ? undefined : value,
-    }));
-  };
 
   const renderSummaryCards = () => {
     if (!metrics) return null;
@@ -90,14 +59,7 @@ export const MetricsDashboardPage: React.FC = () => {
   };
 
   const renderCharts = () => {
-    if (!metrics) return null;
-
-    // SLA Compliance Data
-    const onTimeCount = metrics.totalTickets - metrics.slaBreachCount;
-    const slaData = [
-      { name: 'On Time', value: onTimeCount },
-      { name: 'Breached', value: metrics.slaBreachCount }
-    ];
+    if (!metrics || !chartData) return null;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -137,7 +99,7 @@ export const MetricsDashboardPage: React.FC = () => {
                   label={(props: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => `P${props.priority} ${((props.percent || 0) * 100).toFixed(0)}%`}
                 >
                   {metrics.byPriority.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={METRICS_COLORS[index % METRICS_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -171,7 +133,7 @@ export const MetricsDashboardPage: React.FC = () => {
               <ResponsiveContainer width="100%" height="80%">
                 <PieChart>
                   <Pie
-                    data={slaData}
+                    data={chartData.slaData}
                     cx="50%"
                     cy="50%"
                     startAngle={180}
@@ -213,7 +175,7 @@ export const MetricsDashboardPage: React.FC = () => {
           <select
             className="border-gray-300 rounded-md text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
             value={filters.departmentId || ''}
-            onChange={(e) => handleFilterChange('departmentId', e.target.value)}
+            onChange={(e) => setFilter('departmentId', e.target.value)}
           >
             <option value="">All Departments</option>
             {departments.map((d) => (
@@ -225,7 +187,7 @@ export const MetricsDashboardPage: React.FC = () => {
             type="datetime-local"
             className="border-gray-300 rounded-md text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
             value={filters.startDate || ''}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            onChange={(e) => setFilter('startDate', e.target.value)}
           />
           
           <span className="self-center text-gray-500">to</span>
@@ -234,11 +196,11 @@ export const MetricsDashboardPage: React.FC = () => {
             type="datetime-local"
             className="border-gray-300 rounded-md text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
             value={filters.endDate || ''}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            onChange={(e) => setFilter('endDate', e.target.value)}
           />
           
           <button
-            onClick={() => fetchMetrics(filters)}
+            onClick={() => refetch()}
             className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             Refresh
@@ -249,7 +211,7 @@ export const MetricsDashboardPage: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8 flex justify-between">
           <p>{error}</p>
-          <button onClick={() => fetchMetrics(filters)} className="font-semibold underline">Retry</button>
+          <button onClick={() => refetch()} className="font-semibold underline">Retry</button>
         </div>
       )}
 
