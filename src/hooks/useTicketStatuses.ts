@@ -9,6 +9,7 @@ import type {
 } from '../types/ticket';
 import { DEFAULT_STATUS_VALUES } from '../constants';
 import type { ApiError } from '../utils/apiErrorHandler';
+import { useCrud } from './useCrud';
 
 export interface StatusFormState {
   name: string;
@@ -49,215 +50,96 @@ export interface UseTicketStatusesReturn {
 export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn {
   let routeId: string | undefined;
   try {
-    const params = useParams<{ id?: string }>();
-    routeId = params?.id;
+    const params = useParams<{ id: string }>();
+    routeId = params.id;
   } catch {
     routeId = undefined;
   }
-  const typeId = typeIdProp ?? routeId;
 
+  const typeId = typeIdProp || routeId;
   const [ticketType, setTicketType] = useState<TicketTypeDTO | null>(null);
-  const [statuses, setStatuses] = useState<TicketStatusDTO[]>([]);
-  const [loading, setLoading] = useState<boolean>(Boolean(typeId));
-  const [error, setError] = useState<string | null>(null);
 
-  // Modal / Form state
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingStatus, setEditingStatus] = useState<TicketStatusDTO | null>(null);
-  const [formState, setFormState] = useState<StatusFormState>({
-    name: DEFAULT_STATUS_VALUES.name,
-    mappedState: DEFAULT_STATUS_VALUES.mappedState,
-    color: DEFAULT_STATUS_VALUES.color,
-    description: DEFAULT_STATUS_VALUES.description,
-    isDefault: DEFAULT_STATUS_VALUES.isDefault,
-  });
-
-  const setFormField = useCallback((field: keyof StatusFormState, value: unknown) => {
-    setFormState((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  }, []);
-
-  const startEdit = useCallback((status?: TicketStatusDTO) => {
-    if (status) {
-      setEditingStatus(status);
-      setIsEditing(true);
-      setFormState({
-        name: status.name,
-        mappedState: status.mappedState,
-        color: DEFAULT_STATUS_VALUES.color,
-        description: DEFAULT_STATUS_VALUES.description,
-        isDefault: DEFAULT_STATUS_VALUES.isDefault,
-      });
-    } else {
-      setEditingStatus(null);
-      setIsEditing(false);
-      setFormState({
-        name: DEFAULT_STATUS_VALUES.name,
-        mappedState: DEFAULT_STATUS_VALUES.mappedState,
-        color: DEFAULT_STATUS_VALUES.color,
-        description: DEFAULT_STATUS_VALUES.description,
-        isDefault: DEFAULT_STATUS_VALUES.isDefault,
-      });
-    }
-    setIsModalOpen(true);
-  }, []);
-
-  const cancelEdit = useCallback(() => {
-    setIsModalOpen(false);
-    setIsEditing(false);
-    setEditingStatus(null);
-    setFormState({
+  const crud = useCrud<TicketStatusDTO, StatusFormState>({
+    autoFetch: !!typeId,
+    fetchAll: async () => {
+      if (!typeId) return [];
+      const statusesData = await ticketTypeApi.getTicketStatuses(typeId);
+      const sorted = [...statusesData].sort((a, b) => a.displayOrder - b.displayOrder);
+      
+      if (typeof ticketTypeApi.getTicketTypeById === 'function') {
+        try {
+          const typeData = await ticketTypeApi.getTicketTypeById(typeId);
+          setTicketType(typeData);
+        } catch {
+          // Optional
+        }
+      }
+      return sorted;
+    },
+    create: (data) => ticketTypeApi.createTicketStatus(typeId || '', data),
+    update: (id, data) => ticketTypeApi.updateTicketStatus(id, data),
+    remove: ticketTypeApi.deleteTicketStatus,
+    defaultFormState: {
       name: DEFAULT_STATUS_VALUES.name,
       mappedState: DEFAULT_STATUS_VALUES.mappedState,
       color: DEFAULT_STATUS_VALUES.color,
       description: DEFAULT_STATUS_VALUES.description,
       isDefault: DEFAULT_STATUS_VALUES.isDefault,
-    });
-  }, []);
-
-  const fetchStatuses = useCallback(
-    async (id?: string): Promise<TicketStatusDTO[]> => {
-      const idToUse = id ?? typeId;
-      if (!idToUse) {
-        return [];
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const statusesData = await ticketTypeApi.getTicketStatuses(idToUse);
-        const sorted = [...statusesData].sort((a, b) => a.displayOrder - b.displayOrder);
-        setStatuses(sorted);
-
-        if (typeof ticketTypeApi.getTicketTypeById === 'function') {
-          try {
-            const typeData = await ticketTypeApi.getTicketTypeById(idToUse);
-            setTicketType(typeData);
-          } catch {
-            // Optional ticket type metadata
-          }
-        }
-
-        return sorted;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Failed to fetch ticket statuses';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
     },
-    [typeId]
-  );
-
-  useEffect(() => {
-    if (typeId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      void fetchStatuses(typeId).catch(() => {
-        // Error is set in fetchStatuses
-      });
-    }
-  }, [typeId, fetchStatuses]);
-
-  const createStatus = useCallback(
-    async (targetTypeId: string, req: CreateStatusRequest): Promise<TicketStatusDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await ticketTypeApi.createTicketStatus(targetTypeId, req);
-        return response;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Failed to create ticket status';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  const updateStatus = useCallback(
-    async (statusId: string, req: UpdateStatusRequest): Promise<TicketStatusDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await ticketTypeApi.updateTicketStatus(statusId, req);
-        return response;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Failed to update ticket status';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  const deleteStatus = useCallback(async (statusId: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      await ticketTypeApi.deleteTicketStatus(statusId);
-    } catch (err: unknown) {
-      const message = (err as ApiError)?.message || 'Failed to delete ticket status';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refetch = useCallback(async (): Promise<TicketStatusDTO[]> => {
-    if (typeId) {
-      try {
-        return await fetchStatuses(typeId);
-      } catch {
-        return statuses;
-      }
-    }
-    return statuses;
-  }, [typeId, fetchStatuses, statuses]);
+    mapEntityToFormState: (status) => ({
+      name: status.name,
+      mappedState: status.mappedState,
+      color: DEFAULT_STATUS_VALUES.color,
+      description: DEFAULT_STATUS_VALUES.description,
+      isDefault: DEFAULT_STATUS_VALUES.isDefault,
+    }),
+    mapFormStateToPayload: (formState, isEditing) => ({
+      name: formState.name,
+      mappedState: formState.mappedState,
+      // For create, displayOrder needs to be statuses.length, but we don't have access to statuses here directly
+      // So we handle it in `save` wrapper below if needed! Wait, actually `save` wrapper is easier.
+      // But we must return something here:
+      displayOrder: 0, 
+    }),
+    getId: (status) => status.id,
+  });
 
   const save = useCallback(
     async (e?: React.FormEvent): Promise<TicketStatusDTO | null> => {
       if (e && e.preventDefault) {
         e.preventDefault();
       }
-      setLoading(true);
-      setError(null);
+      crud.setLoading(true);
+      crud.setError(null);
       try {
         let result: TicketStatusDTO;
-        if (editingStatus) {
-          result = await ticketTypeApi.updateTicketStatus(editingStatus.id, {
-            name: formState.name,
-            mappedState: formState.mappedState,
-            displayOrder: editingStatus.displayOrder,
+        if (crud.isEditing && crud.editingItem) {
+          result = await ticketTypeApi.updateTicketStatus(crud.editingItem.id, {
+            name: crud.formState.name,
+            mappedState: crud.formState.mappedState,
+            displayOrder: crud.editingItem.displayOrder,
           });
         } else {
           result = await ticketTypeApi.createTicketStatus(typeId || '', {
-            name: formState.name,
-            mappedState: formState.mappedState,
-            displayOrder: statuses.length,
+            name: crud.formState.name,
+            mappedState: crud.formState.mappedState,
+            displayOrder: crud.items.length,
           });
         }
-        cancelEdit();
+        crud.cancelEdit();
         if (typeId) {
-          await fetchStatuses(typeId);
+          await crud.refetch();
         }
         return result;
       } catch (err: unknown) {
         console.error('Failed to save status', err);
-        setError('Failed to save status.');
+        crud.setError('Failed to save status.');
         return null;
       } finally {
-        setLoading(false);
+        crud.setLoading(false);
       }
     },
-    [editingStatus, formState, typeId, statuses.length, cancelEdit, fetchStatuses]
+    [crud.isEditing, crud.editingItem, crud.formState, typeId, crud.items.length, crud.cancelEdit, crud.refetch, crud.setLoading, crud.setError]
   );
 
   const remove = useCallback(
@@ -267,40 +149,41 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
           return;
         }
       }
-      setLoading(true);
-      setError(null);
+      crud.setLoading(true);
+      crud.setError(null);
       try {
         await ticketTypeApi.deleteTicketStatus(statusId);
         if (typeId) {
-          await fetchStatuses(typeId);
+          await crud.refetch();
         }
       } catch (err: unknown) {
         console.error('Failed to delete status', err);
-        setError('Failed to delete status.');
+        crud.setError('Failed to delete status.');
       } finally {
-        setLoading(false);
+        crud.setLoading(false);
       }
     },
-    [typeId, fetchStatuses]
+    [typeId, crud.refetch, crud.setLoading, crud.setError]
   );
 
   const handleMove = useCallback(
     async (index: number, direction: 'up' | 'down'): Promise<void> => {
+      const statuses = crud.items;
       if (direction === 'up' && index === 0) return;
       if (direction === 'down' && index === statuses.length - 1) return;
 
       const newStatuses = [...statuses];
       const swapIndex = direction === 'up' ? index - 1 : index + 1;
 
-      // Swap locally
       [newStatuses[index], newStatuses[swapIndex]] = [newStatuses[swapIndex], newStatuses[index]];
 
-      // Update display orders
       newStatuses[index].displayOrder = index;
       newStatuses[swapIndex].displayOrder = swapIndex;
-      setStatuses(newStatuses);
+      
+      // We manually update local state since we don't have a crud.setItems exposed for array manipulation like this
+      // Actually we exposed setItems!
+      crud.setItems(newStatuses);
 
-      // Save to backend
       try {
         await Promise.all([
           ticketTypeApi.updateTicketStatus(newStatuses[index].id, {
@@ -316,40 +199,71 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
         ]);
       } catch (err: unknown) {
         console.error('Failed to update orders', err);
-        setError('Failed to update orders.');
+        crud.setError('Failed to update orders.');
         if (typeId) {
-          void fetchStatuses(typeId); // Revert on failure
+          void crud.refetch();
         }
       }
     },
-    [statuses, typeId, fetchStatuses]
+    [crud.items, typeId, crud.refetch, crud.setItems, crud.setError]
+  );
+
+  const fetchStatuses = useCallback(
+    async (id?: string): Promise<TicketStatusDTO[]> => {
+      const idToUse = id ?? typeId;
+      if (!idToUse) return [];
+      crud.setLoading(true);
+      crud.setError(null);
+      try {
+        const statusesData = await ticketTypeApi.getTicketStatuses(idToUse);
+        const sorted = [...statusesData].sort((a, b) => a.displayOrder - b.displayOrder);
+        crud.setItems(sorted);
+        
+        if (typeof ticketTypeApi.getTicketTypeById === 'function') {
+          try {
+            const typeData = await ticketTypeApi.getTicketTypeById(idToUse);
+            setTicketType(typeData);
+          } catch {
+            // Optional
+          }
+        }
+        return sorted;
+      } catch (err: unknown) {
+        const message = (err as ApiError)?.message || 'Failed to fetch ticket statuses';
+        crud.setError(message);
+        throw err;
+      } finally {
+        crud.setLoading(false);
+      }
+    },
+    [typeId, crud.setLoading, crud.setError, crud.setItems]
   );
 
   return {
     ticketType,
-    statuses,
-    data: statuses,
-    loading,
-    error,
-    formState,
-    setFormField,
-    isEditing,
-    isModalOpen,
-    editingStatus,
-    startEdit,
-    openModal: startEdit,
-    cancelEdit,
-    closeModal: cancelEdit,
+    statuses: crud.items,
+    data: crud.items,
+    loading: crud.loading,
+    error: crud.error,
+    formState: crud.formState,
+    setFormField: crud.setFormField,
+    isEditing: crud.isEditing,
+    isModalOpen: crud.isModalOpen,
+    editingStatus: crud.editingItem,
+    startEdit: crud.startEdit,
+    openModal: crud.startEdit,
+    cancelEdit: crud.cancelEdit,
+    closeModal: crud.cancelEdit,
     save,
     handleSave: save,
     remove,
     handleDelete: remove,
     handleMove,
     moveStatus: handleMove,
-    refetch,
+    refetch: crud.refetch,
     fetchStatuses,
-    createStatus,
-    updateStatus,
-    deleteStatus,
+    createStatus: ticketTypeApi.createTicketStatus,
+    updateStatus: ticketTypeApi.updateTicketStatus,
+    deleteStatus: ticketTypeApi.deleteTicketStatus,
   };
 }

@@ -1,90 +1,108 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { slaApi } from '../api/slaApi';
+import type { SlaConfigDTO, CreateSlaConfigRequest, UpdateSlaConfigRequest } from '../types/sla';
+import { useCrud } from './useCrud';
 import type { ApiError } from '../utils/apiErrorHandler';
-import type {
-  SlaConfigDTO,
-  CreateSlaConfigRequest,
-  UpdateSlaConfigRequest,
-} from '../types/sla';
 
-export function useSla() {
-  const [data, setData] = useState<SlaConfigDTO[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+export interface SlaFormState {
+  priority: number;
+  resolutionMinutes: number;
+  workingDays: number[];
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  escalationHooks: string;
+}
 
-  const fetchSlaConfigs = useCallback(async (ticketTypeId: string): Promise<SlaConfigDTO[]> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await slaApi.getSlaConfigs(ticketTypeId);
-      setData(response);
-      return response;
-    } catch (err: unknown) {
-      const message = (err as ApiError)?.message || 'Failed to fetch SLA configs';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+const DEFAULT_SLA_FORM_VALUES: SlaFormState = {
+  priority: 1,
+  resolutionMinutes: 60,
+  workingDays: [1, 2, 3, 4, 5],
+  workingHoursStart: '09:00:00',
+  workingHoursEnd: '17:00:00',
+  escalationHooks: '',
+};
 
-  const createSlaConfig = useCallback(
-    async (ticketTypeId: string, req: CreateSlaConfigRequest): Promise<SlaConfigDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await slaApi.createSlaConfig(ticketTypeId, req);
-        return response;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Failed to create SLA config';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
+export function useSla(ticketTypeId?: string) {
+  const crud = useCrud<SlaConfigDTO, SlaFormState>({
+    autoFetch: !!ticketTypeId,
+    fetchAll: () => ticketTypeId ? slaApi.getSlaConfigs(ticketTypeId) : Promise.resolve([]),
+    create: (data: CreateSlaConfigRequest) => slaApi.createSlaConfig(ticketTypeId || '', data),
+    update: (id: string, data: UpdateSlaConfigRequest) => slaApi.updateSlaConfig(id, data),
+    remove: slaApi.deleteSlaConfig,
+    defaultFormState: DEFAULT_SLA_FORM_VALUES,
+    mapEntityToFormState: (sla) => ({
+      priority: sla.priority,
+      resolutionMinutes: sla.resolutionMinutes,
+      workingDays: [...sla.workingDays],
+      workingHoursStart: sla.workingHoursStart,
+      workingHoursEnd: sla.workingHoursEnd,
+      escalationHooks: sla.escalationHooks ? JSON.stringify(sla.escalationHooks, null, 2) : '',
+    }),
+    mapFormStateToPayload: (formState) => {
+      let parsedHooks = undefined;
+      if (formState.escalationHooks) {
+        try {
+          parsedHooks = JSON.parse(formState.escalationHooks);
+        } catch (e) {
+          // ignore
+        }
       }
+      return {
+        priority: formState.priority,
+        resolutionMinutes: formState.resolutionMinutes,
+        workingDays: formState.workingDays,
+        workingHoursStart: formState.workingHoursStart,
+        workingHoursEnd: formState.workingHoursEnd,
+        escalationHooks: parsedHooks,
+      };
     },
-    []
-  );
+    getId: (sla) => sla.id,
+  });
 
-  const updateSlaConfig = useCallback(
-    async (id: string, req: UpdateSlaConfigRequest): Promise<SlaConfigDTO> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await slaApi.updateSlaConfig(id, req);
-        return response;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Failed to update SLA config';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  const deleteSlaConfig = useCallback(async (id: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      await slaApi.deleteSlaConfig(id);
-    } catch (err: unknown) {
-      const message = (err as ApiError)?.message || 'Failed to delete SLA config';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const toggleWorkingDay = useCallback((dayValue: number) => {
+    crud.setFormState((prev) => ({
+      ...prev,
+      workingDays: prev.workingDays.includes(dayValue)
+        ? prev.workingDays.filter((d) => d !== dayValue)
+        : [...prev.workingDays, dayValue]
+    }));
+  }, [crud.setFormState]);
 
   return {
-    data,
-    loading,
-    error,
-    fetchSlaConfigs,
-    createSlaConfig,
-    updateSlaConfig,
-    deleteSlaConfig,
+    configs: crud.items,
+    data: crud.items.length > 0 ? crud.items : null, // Backwards compat
+    loading: crud.loading,
+    error: crud.error,
+    formState: crud.formState,
+    setFormField: crud.setFormField,
+    setFormState: crud.setFormState,
+    toggleWorkingDay,
+    isEditing: crud.isEditing,
+    editingConfig: crud.editingItem,
+    startEdit: crud.startEdit,
+    cancelEdit: crud.cancelEdit,
+    save: crud.save,
+    remove: crud.remove,
+    refetch: crud.refetch,
+    
+    // Backwards compat wrappers
+    fetchSlaConfigs: async (id: string) => {
+      crud.setLoading(true);
+      crud.setError(null);
+      try {
+        const response = await slaApi.getSlaConfigs(id);
+        crud.setItems(response);
+        return response;
+      } catch (err: unknown) {
+        const message = (err as ApiError)?.message || 'Failed to fetch SLA configs';
+        crud.setError(message);
+        throw err;
+      } finally {
+        crud.setLoading(false);
+      }
+    },
+    createSlaConfig: slaApi.createSlaConfig,
+    updateSlaConfig: slaApi.updateSlaConfig,
+    deleteSlaConfig: slaApi.deleteSlaConfig,
   };
 }
