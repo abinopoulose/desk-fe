@@ -1,33 +1,22 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
-import { tenantApi } from '../../api/tenantApi';
+import { useTenantConfig } from '../../hooks/useTenantConfig';
+
 export const TenantConfigPage: React.FC = () => {
+  const { config, loading, saving, error, updateConfig } = useTenantConfig();
+  
   const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
   const [superAdminEmail, setSuperAdminEmail] = useState<string>('');
   const [newDomain, setNewDomain] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
-  const [saving, setSaving] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-  const loadConfig = async () => {
-    setLoading(true);
-    try {
-      const config = await tenantApi.getTenantConfig();
+  useEffect(() => {
+    if (config) {
       setAllowedDomains(config.allowedDomains || []);
       setSuperAdminEmail(config.superAdminEmail || '');
-    } catch (err) {
-      console.error('Failed to load tenant config', err);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadConfig();
-  }, []);
-
-
+  }, [config]);
 
   const handleAddDomain = () => {
     const domain = newDomain.trim().toLowerCase();
@@ -46,21 +35,20 @@ export const TenantConfigPage: React.FC = () => {
   };
 
   const handleConfirmSave = async () => {
-    setSaving(true);
     setShowConfirm(false);
-    try {
-      await tenantApi.updateTenantConfig({
-        allowedDomains,
-        superAdminEmail,
-      });
-      alert('Tenant configuration saved successfully.');
-    } catch (err) {
-      console.error('Failed to save tenant config', err);
-      alert('Failed to save tenant configuration.');
-    } finally {
-      setSaving(false);
-    }
+    await updateConfig({
+      allowedDomains,
+      superAdminEmail,
+    });
   };
+
+  if (error) {
+    return (
+      <PrivilegeGate requiredPrivilege="TENANT_MANAGE">
+        <div className="p-6 max-w-4xl mx-auto text-red-600">{error}</div>
+      </PrivilegeGate>
+    );
+  }
 
   return (
     <PrivilegeGate requiredPrivilege="TENANT_MANAGE">

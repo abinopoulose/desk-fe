@@ -26,6 +26,7 @@ export function useDepartments() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refetch();
   }, [refetch]);
 
@@ -53,34 +54,26 @@ export function useDepartments() {
   }, []);
 
   const save = useCallback(async () => {
-    try {
-      if (editingId) {
-        const updateData: UpdateDepartmentRequest = { 
-          name: formState.name, 
-          description: formState.description 
-        };
-        await departmentApi.updateDepartment(editingId, updateData);
-      } else {
-        const createData: CreateDepartmentRequest = { 
-          name: formState.name, 
-          description: formState.description 
-        };
-        await departmentApi.createDepartment(createData);
-      }
-      cancelEdit();
-      await refetch();
-    } catch (err: unknown) {
-      throw err;
+    if (editingId) {
+      const updateData: UpdateDepartmentRequest = { 
+        name: formState.name, 
+        description: formState.description 
+      };
+      await departmentApi.updateDepartment(editingId, updateData);
+    } else {
+      const createData: CreateDepartmentRequest = { 
+        name: formState.name, 
+        description: formState.description 
+      };
+      await departmentApi.createDepartment(createData);
     }
+    cancelEdit();
+    await refetch();
   }, [editingId, formState, refetch, cancelEdit]);
 
   const remove = useCallback(async (id: string) => {
-    try {
-      await departmentApi.deleteDepartment(id);
-      await refetch();
-    } catch (err: unknown) {
-      throw err;
-    }
+    await departmentApi.deleteDepartment(id);
+    await refetch();
   }, [refetch]);
 
   return {
