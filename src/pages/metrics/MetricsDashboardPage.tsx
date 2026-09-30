@@ -7,6 +7,7 @@ import {
 import { departmentApi } from '../../api/departmentApi';
 import { useMetrics } from '../../hooks/useMetrics';
 import { METRICS_COLORS } from '../../constants';
+import { SectionErrorBoundary } from '../../components/errors/SectionErrorBoundary';
 
 interface Department {
   id: string;
@@ -64,104 +65,112 @@ export const MetricsDashboardPage: React.FC = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Trend Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Ticket Volume Trend</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={metrics.trend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tick={{fontSize: 12}} />
-                <YAxis tick={{fontSize: 12}} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="created" stroke="#0088FE" strokeWidth={2} dot={false} name="Created" />
-                <Line type="monotone" dataKey="closed" stroke="#00C49F" strokeWidth={2} dot={false} name="Closed" />
-              </LineChart>
-            </ResponsiveContainer>
+        <SectionErrorBoundary sectionName="Ticket Volume Trend">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Ticket Volume Trend</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={metrics.trend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tick={{fontSize: 12}} />
+                  <YAxis tick={{fontSize: 12}} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="created" stroke="#0088FE" strokeWidth={2} dot={false} name="Created" />
+                  <Line type="monotone" dataKey="closed" stroke="#00C49F" strokeWidth={2} dot={false} name="Closed" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        </SectionErrorBoundary>
 
         {/* Priority Breakdown */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Priority Distribution</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={metrics.byPriority}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="count"
-                  nameKey="priority"
-                  label={(props: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => `P${props.priority} ${((props.percent || 0) * 100).toFixed(0)}%`}
-                >
-                  {metrics.byPriority.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={METRICS_COLORS[index % METRICS_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Department Breakdown */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Volume by Department</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={metrics.byDepartment} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="departmentName" type="category" tick={{fontSize: 12}} width={100} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" name="Tickets" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* SLA Compliance */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">SLA Compliance</h3>
-          <div className="h-72 flex flex-col justify-center items-center">
-            {metrics.totalTickets > 0 ? (
-              <ResponsiveContainer width="100%" height="80%">
+        <SectionErrorBoundary sectionName="Priority Distribution">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Priority Distribution</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={chartData.slaData}
+                    data={metrics.byPriority}
                     cx="50%"
                     cy="50%"
-                    startAngle={180}
-                    endAngle={0}
-                    innerRadius={80}
-                    outerRadius={110}
-                    paddingAngle={2}
-                    dataKey="value"
-                    nameKey="name"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="count"
+                    nameKey="priority"
+                    label={(props: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => `P${props.priority} ${((props.percent || 0) * 100).toFixed(0)}%`}
                   >
-                    <Cell fill="#00C49F" />
-                    <Cell fill="#FF8042" />
+                    {metrics.byPriority.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={METRICS_COLORS[index % METRICS_COLORS.length]} />
+                    ))}
                   </Pie>
                   <Tooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            ) : (
-              <div className="text-gray-400">No data available</div>
-            )}
-            {metrics.averageTatHours !== null && (
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-500">Average Turnaround Time</p>
-                <p className="text-xl font-semibold text-gray-800">{metrics.averageTatHours} hours</p>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        </SectionErrorBoundary>
+
+        {/* Department Breakdown */}
+        <SectionErrorBoundary sectionName="Volume by Department">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Volume by Department</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={metrics.byDepartment} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" />
+                  <YAxis dataKey="departmentName" type="category" tick={{fontSize: 12}} width={100} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#8884d8" name="Tickets" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
+        {/* SLA Compliance */}
+        <SectionErrorBoundary sectionName="SLA Compliance">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">SLA Compliance</h3>
+            <div className="h-72 flex flex-col justify-center items-center">
+              {metrics.totalTickets > 0 ? (
+                <ResponsiveContainer width="100%" height="80%">
+                  <PieChart>
+                    <Pie
+                      data={chartData.slaData}
+                      cx="50%"
+                      cy="50%"
+                      startAngle={180}
+                      endAngle={0}
+                      innerRadius={80}
+                      outerRadius={110}
+                      paddingAngle={2}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      <Cell fill="#00C49F" />
+                      <Cell fill="#FF8042" />
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-gray-400">No data available</div>
+              )}
+              {metrics.averageTatHours !== null && (
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-500">Average Turnaround Time</p>
+                  <p className="text-xl font-semibold text-gray-800">{metrics.averageTatHours} hours</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionErrorBoundary>
       </div>
     );
   };

@@ -20,6 +20,7 @@ import { SlaConfigPage } from './pages/admin/SlaConfigPage';
 import { DepartmentAdminPage } from './pages/admin/DepartmentAdminPage';
 import { RoleAdminPage } from './pages/admin/RoleAdminPage';
 import { TenantConfigPage } from './pages/admin/TenantConfigPage';
+import { PageErrorBoundary } from './components/errors/PageErrorBoundary';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -30,31 +31,34 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<TicketListPage />} />
-          <Route path="/browse" element={<BrowseFoldersPage />} />
-          <Route path="/tickets/new" element={<CreateTicketPage />} />
-          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
-          <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
-          <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
-          <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
-          <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
-          <Route path="/admin/sla-configs" element={<SlaConfigPage />} />
-          <Route path="/admin/departments" element={<DepartmentAdminPage />} />
-          <Route path="/admin/roles" element={<RoleAdminPage />} />
-          <Route path="/admin/tenant" element={<TenantConfigPage />} />
-          <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
-          <Route path="/org-chart" element={<OrgChartPage />} />
-          <Route path="/users/:userId" element={<UserProfilePage />} />
-        </Route>
-      </Routes>
+      <PageErrorBoundary>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<TicketListPage />} />
+            <Route path="/browse" element={<BrowseFoldersPage />} />
+            <Route path="/tickets/new" element={<CreateTicketPage />} />
+            <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+            <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/admin/ticket-types" element={<TicketTypeAdminPage />} />
+            <Route path="/admin/ticket-types/new" element={<TicketTypeFormPage />} />
+            <Route path="/admin/ticket-types/:id/edit" element={<TicketTypeFormPage />} />
+            <Route path="/admin/ticket-types/:id/statuses" element={<TicketStatusManager />} />
+            <Route path="/admin/sla-configs" element={<SlaConfigPage />} />
+            <Route path="/admin/departments" element={<DepartmentAdminPage />} />
+            <Route path="/admin/roles" element={<RoleAdminPage />} />
+            <Route path="/admin/tenant" element={<TenantConfigPage />} />
+            <Route path="/metrics" element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
+            <Route path="/org-chart" element={<OrgChartPage />} />
+            <Route path="/users/:userId" element={<UserProfilePage />} />
+          </Route>
+        </Routes>
+      </PageErrorBoundary>
     </BrowserRouter>
   )
 }
 
 export default App;
+

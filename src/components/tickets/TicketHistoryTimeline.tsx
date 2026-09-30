@@ -65,7 +65,9 @@ const getBadgeConfig = (type: TimelineItem['type']) => {
   }
 };
 
-export const TicketHistoryTimeline: React.FC<TicketHistoryTimelineProps> = ({
+import { SectionErrorBoundary } from '../errors/SectionErrorBoundary';
+
+const TicketHistoryTimelineInner: React.FC<TicketHistoryTimelineProps> = ({
   history,
   comments,
   className = '',
@@ -158,3 +160,9 @@ export const TicketHistoryTimeline: React.FC<TicketHistoryTimelineProps> = ({
     </div>
   );
 };
+
+export const TicketHistoryTimeline: React.FC<TicketHistoryTimelineProps> = (props) => (
+  <SectionErrorBoundary sectionName="ticket timeline">
+    <TicketHistoryTimelineInner {...props} />
+  </SectionErrorBoundary>
+);

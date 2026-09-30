@@ -78,7 +78,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   );
 };
 
-export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({ 
+import { SectionErrorBoundary } from '../errors/SectionErrorBoundary';
+
+const FolderTreeNavInner: React.FC<FolderTreeNavProps> = ({ 
   onSelectFolder, 
   activeFolderId,
   treeData,
@@ -111,3 +113,9 @@ export const FolderTreeNav: React.FC<FolderTreeNavProps> = ({
     </div>
   );
 };
+
+export const FolderTreeNav: React.FC<FolderTreeNavProps> = (props) => (
+  <SectionErrorBoundary sectionName="folder tree">
+    <FolderTreeNavInner {...props} />
+  </SectionErrorBoundary>
+);
