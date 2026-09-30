@@ -1,58 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { OrgChartTree } from '../../components/org/OrgChartTree';
-import { getOrgHierarchy } from '../../api/userApi';
-import type { OrgNode } from '../../types/user';
+import { useOrgChart } from '../../hooks/useOrgChart';
 
 export const OrgChartPage: React.FC = () => {
-  const [data, setData] = useState<OrgNode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { orgData: data, loading, error, refetch: fetchHierarchy } = useOrgChart();
   const [filterText, setFilterText] = useState('');
   const [zoom, setZoom] = useState(1);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadHierarchy = async () => {
-      try {
-        setError(null);
-        const hierarchy = await getOrgHierarchy();
-        if (isMounted) {
-          setData(hierarchy);
-          setLoading(false);
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          const errorMsg = err instanceof Error ? err.message : 'Failed to fetch org hierarchy';
-          setError(errorMsg);
-          setLoading(false);
-        }
-      }
-    };
-
-    loadHierarchy();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const fetchHierarchy = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    getOrgHierarchy()
-      .then(hierarchy => {
-        setData(hierarchy);
-        setLoading(false);
-      })
-      .catch((err: unknown) => {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to fetch org hierarchy';
-        setError(errorMsg);
-        setLoading(false);
-      });
-  }, []);
 
   const handleSelectUser = useCallback((userId: string) => {
     navigate(`/users/${userId}`);
