@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import type { FormSchema, FormField, FieldType } from '../../types/formSchema';
+import React, { useEffect, useRef } from 'react';
+import type { FormSchema, FieldType } from '../../types/formSchema';
 import { DynamicFormRenderer } from '../forms/DynamicFormRenderer';
+import { useSchemaBuilder, FIELD_TYPE_OPTIONS } from '../../hooks/useSchemaBuilder';
 
 export interface SchemaBuilderProps {
   schema: FormSchema;
@@ -8,79 +9,73 @@ export interface SchemaBuilderProps {
 }
 
 export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }) => {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const {
+    schema: builderSchema,
+    fields,
+    selectedField,
+    selectedIndex,
+    selectField,
+    addField,
+    removeField,
+    reorderField,
+    updateField,
+    isPreview,
+    togglePreview,
+    dragHandlers
+  } = useSchemaBuilder(schema);
 
-  const handleAddField = () => {
-    const newField: FormField = {
-      name: `field_${Date.now()}`,
-      label: 'New Field',
-      type: 'text',
-    };
-    onChange({ fields: [...schema.fields, newField] });
-    setEditingIndex(schema.fields.length);
-  };
+  const isFirstRender = useRef(true);
 
-  const handleRemoveField = (index: number) => {
-    const newFields = [...schema.fields];
-    newFields.splice(index, 1);
-    onChange({ fields: newFields });
-    if (editingIndex === index) {
-      setEditingIndex(null);
-    } else if (editingIndex !== null && editingIndex > index) {
-      setEditingIndex(editingIndex - 1);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  };
+    onChange(builderSchema);
+  }, [builderSchema, onChange]);
 
-  const handleMoveField = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === schema.fields.length - 1) return;
-
-    const newFields = [...schema.fields];
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    [newFields[index], newFields[swapIndex]] = [newFields[swapIndex], newFields[index]];
-    
-    onChange({ fields: newFields });
-    if (editingIndex === index) {
-      setEditingIndex(swapIndex);
-    } else if (editingIndex === swapIndex) {
-      setEditingIndex(index);
-    }
-  };
-
-  const handleUpdateField = (index: number, updates: Partial<FormField>) => {
-    const newFields = [...schema.fields];
-    newFields[index] = { ...newFields[index], ...updates };
-    onChange({ fields: newFields });
-  };
+  const activeField = selectedField;
+  const editingIndex = selectedIndex;
 
   const handleUpdateOptions = (index: number, optionsString: string) => {
     const options = optionsString.split(',').map(s => s.trim()).filter(s => s);
-    handleUpdateField(index, { options });
+    updateField(index, { options });
   };
-
-  const activeField = editingIndex !== null ? schema.fields[editingIndex] : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Schema Editor Side */}
-      <div className="border rounded p-4 bg-gray-50">
+      <div className={`border rounded p-4 bg-gray-50 ${isPreview ? 'hidden lg:block' : 'block'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold">Fields</h3>
-          <button
-            type="button"
-            onClick={handleAddField}
-            className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-          >
-            + Add Field
-          </button>
+          <div className="space-x-2">
+            <button
+              type="button"
+              onClick={togglePreview}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 lg:hidden"
+            >
+              Show Preview
+            </button>
+            <button
+              type="button"
+              onClick={addField}
+              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+            >
+              + Add Field
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2 mb-6">
-          {schema.fields.map((field, index) => (
+          {fields.map((field, index) => (
             <div 
               key={index}
+              draggable
+              onDragStart={() => dragHandlers.onDragStart(index)}
+              onDragOver={dragHandlers.onDragOver}
+              onDrop={() => dragHandlers.onDrop(index)}
               className={`p-3 border rounded flex justify-between items-center cursor-pointer ${editingIndex === index ? 'border-blue-500 bg-blue-50' : 'bg-white'}`}
-              onClick={() => setEditingIndex(index)}
+              onClick={() => selectField(index)}
             >
               <div>
                 <span className="font-medium">{field.label}</span>
@@ -89,7 +84,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
               <div className="flex space-x-2">
                 <button 
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); handleMoveField(index, 'up'); }}
+                  onClick={(e) => { e.stopPropagation(); reorderField(index, index - 1); }}
                   disabled={index === 0}
                   className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50 text-xs"
                 >
@@ -97,15 +92,15 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                 </button>
                 <button 
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); handleMoveField(index, 'down'); }}
-                  disabled={index === schema.fields.length - 1}
+                  onClick={(e) => { e.stopPropagation(); reorderField(index, index + 1); }}
+                  disabled={index === fields.length - 1}
                   className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50 text-xs"
                 >
                   ↓
                 </button>
                 <button 
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); handleRemoveField(index); }}
+                  onClick={(e) => { e.stopPropagation(); removeField(index); }}
                   className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs"
                 >
                   ✕
@@ -113,7 +108,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
               </div>
             </div>
           ))}
-          {schema.fields.length === 0 && (
+          {fields.length === 0 && (
             <p className="text-gray-500 text-center py-4">No fields added yet.</p>
           )}
         </div>
@@ -127,7 +122,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                 <input
                   type="text"
                   value={activeField.name}
-                  onChange={(e) => handleUpdateField(editingIndex, { name: e.target.value })}
+                  onChange={(e) => updateField(editingIndex, { name: e.target.value })}
                   className="w-full border rounded p-2 text-sm"
                 />
               </div>
@@ -136,7 +131,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                 <input
                   type="text"
                   value={activeField.label}
-                  onChange={(e) => handleUpdateField(editingIndex, { label: e.target.value })}
+                  onChange={(e) => updateField(editingIndex, { label: e.target.value })}
                   className="w-full border rounded p-2 text-sm"
                 />
               </div>
@@ -144,15 +139,12 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                 <label className="block text-sm font-medium mb-1">Type</label>
                 <select
                   value={activeField.type}
-                  onChange={(e) => handleUpdateField(editingIndex, { type: e.target.value as FieldType })}
+                  onChange={(e) => updateField(editingIndex, { type: e.target.value as FieldType })}
                   className="w-full border rounded p-2 text-sm"
                 >
-                  <option value="text">Text</option>
-                  <option value="textarea">Textarea</option>
-                  <option value="select">Select</option>
-                  <option value="checkbox">Checkbox</option>
-                  <option value="number">Number</option>
-                  <option value="date">Date</option>
+                  {FIELD_TYPE_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
               </div>
 
@@ -174,13 +166,13 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                   type="checkbox"
                   id={`required_${editingIndex}`}
                   checked={!!activeField.required}
-                  onChange={(e) => handleUpdateField(editingIndex, { required: e.target.checked })}
+                  onChange={(e) => updateField(editingIndex, { required: e.target.checked })}
                   className="mr-2"
                 />
                 <label htmlFor={`required_${editingIndex}`} className="text-sm">Required Field</label>
               </div>
 
-              {/* Conditional Logic (simplified for brevity) */}
+              {/* Conditional Logic */}
               <div className="pt-2 border-t border-gray-200 mt-2">
                 <label className="block text-sm font-medium mb-1 text-gray-700">Conditional Display</label>
                 <div className="flex gap-2">
@@ -190,7 +182,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                     value={activeField.conditionalOn?.field || ''}
                     onChange={(e) => {
                       const val = e.target.value;
-                      handleUpdateField(editingIndex, { 
+                      updateField(editingIndex, { 
                         conditionalOn: val ? { field: val, value: activeField.conditionalOn?.value || '' } : undefined 
                       });
                     }}
@@ -203,7 +195,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                     onChange={(e) => {
                       const val = e.target.value;
                       if (activeField.conditionalOn?.field) {
-                         handleUpdateField(editingIndex, { 
+                         updateField(editingIndex, { 
                            conditionalOn: { field: activeField.conditionalOn.field, value: val }
                          });
                       }
@@ -218,11 +210,21 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
       </div>
 
       {/* Preview Side */}
-      <div className="border rounded p-4 bg-white">
-        <h3 className="text-lg font-bold mb-4 border-b pb-2">Form Preview</h3>
-        {schema.fields.length > 0 ? (
+      <div className={`border rounded p-4 bg-white ${!isPreview ? 'hidden lg:block' : 'block'}`}>
+        <div className="flex justify-between items-center mb-4 border-b pb-2">
+          <h3 className="text-lg font-bold">Form Preview</h3>
+          <button
+            type="button"
+            onClick={togglePreview}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 lg:hidden"
+          >
+            Show Editor
+          </button>
+        </div>
+        
+        {builderSchema.fields.length > 0 ? (
           <DynamicFormRenderer 
-            schema={schema} 
+            schema={builderSchema} 
             onSubmit={(data) => console.log('Preview submit:', data)} 
           />
         ) : (
