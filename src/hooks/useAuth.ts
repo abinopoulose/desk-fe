@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { login as loginApi, register as registerApi } from '../api/authApi';
-import type { LoginRequest, RegisterRequest, UserDTO } from '../types/auth';
+import { login as loginApi } from '../api/authApi';
+import type { LoginRequest, UserDTO } from '../types/auth';
 import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface AuthData {
@@ -42,24 +42,6 @@ export function useAuth() {
     [storeLogin]
   );
 
-  const register = useCallback(
-    async (request: RegisterRequest) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await registerApi(request);
-        storeLogin(response.token, response.user, response.user.roles || []);
-        return response;
-      } catch (err: unknown) {
-        const message = (err as ApiError)?.message || 'Registration failed';
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [storeLogin]
-  );
 
   const logout = useCallback(() => {
     storeLogout();
@@ -73,7 +55,9 @@ export function useAuth() {
     (privilege: string) => {
       const isSuperAdmin = Boolean(
         user?.roles?.includes('SUPER_ADMIN') ||
+        user?.roles?.includes('ORG_ADMIN') ||
         privileges.includes('SUPER_ADMIN') ||
+        privileges.includes('ORG_ADMIN') ||
         privileges.includes('ADMIN_FULL_ACCESS')
       );
       return isSuperAdmin || privileges.includes(privilege);
@@ -91,7 +75,6 @@ export function useAuth() {
     loading,
     error,
     login,
-    register,
     logout,
     initialize,
     hasPrivilege,

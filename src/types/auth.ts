@@ -4,6 +4,8 @@ export interface UserDTO {
   fullName: string;
   title?: string;
   roles: string[];
+  organizationId?: string;
+  organizationName?: string;
 }
 
 export interface AuthResponse {
@@ -16,8 +18,17 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface RegisterRequest {
-  email: string;
+
+
+export interface CreateOrgRequest {
+  name: string;
+  adminEmail: string;
+  adminFullName: string;
   password: string;
-  fullName: string;
+}
+
+export interface SetPasswordRequest {
+  token: string;
+  password: string;
+  confirmPassword?: string;
 }

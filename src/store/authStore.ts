@@ -41,6 +41,16 @@ export const DEFAULT_ROLE_PRIVILEGES: Record<string, string[]> = {
     'ADMIN_FULL_ACCESS',
     'TENANT_MANAGE'
   ],
+  ORG_ADMIN: [
+    'ADMIN_FULL_ACCESS', 'TENANT_MANAGE', 'METRICS_READ', 'AUDIT_READ',
+    'USER_READ', 'USER_WRITE', 'USER_DELETE', 'USER_INVITE',
+    'ROLE_READ', 'ROLE_WRITE',
+    'TICKET_READ', 'TICKET_WRITE', 'TICKET_DELETE', 'TICKET_MANAGEMENT',
+    'TICKET_TYPE_READ', 'TICKET_TYPE_WRITE', 'TICKET_TYPE_DELETE',
+    'DEPARTMENT_READ', 'DEPARTMENT_WRITE', 'DEPARTMENT_DELETE',
+    'FOLDER_READ', 'FOLDER_WRITE', 'FOLDER_DELETE',
+    'SLA_READ', 'SLA_WRITE',
+  ],
   IT_SUPPORT: [
     'USER_READ', 'TICKET_READ', 'TICKET_WRITE', 'TICKET_MANAGEMENT',
     'TICKET_TYPE_READ', 'DEPARTMENT_READ', 'FOLDER_READ', 'SLA_READ'
@@ -120,7 +130,9 @@ export const useAuth = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isSuperAdmin = Boolean(
     user?.roles?.includes('SUPER_ADMIN') ||
+    user?.roles?.includes('ORG_ADMIN') ||
     privileges.includes('SUPER_ADMIN') ||
+    privileges.includes('ORG_ADMIN') ||
     privileges.includes('ADMIN_FULL_ACCESS')
   );
   return {

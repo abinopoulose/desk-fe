@@ -1,7 +1,10 @@
 export const API_PATHS = {
   AUTH: {
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    SET_PASSWORD: '/auth/set-password',
+  },
+  ORGANIZATIONS: {
+    REGISTER: '/organizations/register',
   },
   TICKETS: {
     BASE: '/tickets',
@@ -38,15 +41,13 @@ export const API_PATHS = {
   SLA: {
     BASE: '/slas',
   },
-  TENANT: {
-    BASE: '/tenant',
-    CONFIG: '/tenant/config',
-  },
   USERS: {
     BASE: '/users',
     ROLES: (id: string) => `/users/${id}/roles`,
     PROFILE: (id: string) => `/users/${id}/profile`,
     HIERARCHY: '/users/hierarchy',
+    INVITE: '/users/invite',
+    RESEND_INVITE: (id: string) => `/users/${id}/resend-invitation`,
   },
   FOLDERS: {
     BASE: '/folders',

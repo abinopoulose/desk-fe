@@ -1,6 +1,7 @@
 export * from './useAuth';
 export * from './useLogin';
-export * from './useRegister';
+export * from './useOrgSignup';
+export * from './useSetPassword';
 export * from './useTickets';
 export * from './useTicketDetails';
 export * from './useTicketComments';
@@ -14,7 +15,6 @@ export * from './useFolderTree';
 export * from './useFolderContents';
 export * from './useUsers';
 export * from './useMetrics';
-export * from './useTenantConfig';
 export * from './useCreateTicket';
 export * from './useTicketTypeForm';
 export * from './useUserProfile';

@@ -21,9 +21,9 @@ export const navConfig: NavItemConfig[] = [
   
   { group: 'admin', to: ROUTES.ADMIN.TICKET_TYPES, icon: Settings, label: 'Ticket Types', requiredPrivilege: 'TICKET_TYPE_WRITE' },
   { group: 'admin', to: ROUTES.ADMIN.DEPARTMENTS, icon: Building2, label: 'Departments', requiredPrivilege: 'DEPARTMENT_WRITE' },
-  { group: 'admin', to: ROUTES.ADMIN.ROLES, icon: Users, label: 'Roles & Users', requiredPrivilege: 'ROLE_WRITE' },
+  { group: 'admin', to: ROUTES.ADMIN.EMPLOYEES, icon: Users, label: 'Employees', requiredPrivilege: 'USER_INVITE' },
+  { group: 'admin', to: ROUTES.ADMIN.ROLES, icon: Users, label: 'Roles & Permissions', requiredPrivilege: 'ROLE_WRITE' },
   { group: 'admin', to: ROUTES.ADMIN.SLA_CONFIGS, icon: Clock, label: 'SLA Configs', requiredPrivilege: 'SLA_WRITE' },
-  { group: 'admin', to: ROUTES.ADMIN.TENANT, icon: Database, label: 'Tenant Config', requiredPrivilege: 'TENANT_MANAGE' },
   
   { group: 'analytics', to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'METRICS_READ' },
 ];

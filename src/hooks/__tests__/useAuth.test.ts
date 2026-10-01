@@ -6,7 +6,6 @@ import * as authApi from '../../api/authApi';
 
 vi.mock('../../api/authApi', () => ({
   login: vi.fn(),
-  register: vi.fn(),
 }));
 
 describe('useAuth hook', () => {
@@ -69,28 +68,6 @@ describe('useAuth hook', () => {
     expect(result.current.loading).toBe(false);
   });
 
-  it('performs registration successfully', async () => {
-    const mockUser = { id: '2', email: 'new@example.com', fullName: 'New User', roles: ['USER'] };
-    const mockResponse = {
-      token: 'new-token',
-      user: mockUser,
-    };
-    vi.mocked(authApi.register).mockResolvedValueOnce(mockResponse);
-
-    const { result } = renderHook(() => useAuth());
-
-    await act(async () => {
-      await result.current.register({
-        email: 'new@example.com',
-        password: 'password123',
-        fullName: 'New User',
-      });
-    });
-
-    expect(result.current.data.isAuthenticated).toBe(true);
-    expect(result.current.data.token).toBe('new-token');
-    expect(result.current.data.user).toEqual(mockUser);
-  });
 
   it('handles logout and initialize', () => {
     Object.defineProperty(window, 'location', {

@@ -41,7 +41,7 @@ export function AppLayout() {
   const { user, hasPrivilege } = useAuth();
   const { isSidebarOpen, toggleSidebar } = useAppStore();
 
-  const showAdmin = hasPrivilege('TICKET_TYPE_WRITE') || hasPrivilege('DEPARTMENT_WRITE') || hasPrivilege('ROLE_WRITE') || hasPrivilege('SLA_WRITE') || hasPrivilege('TENANT_MANAGE');
+  const showAdmin = hasPrivilege('TICKET_TYPE_WRITE') || hasPrivilege('DEPARTMENT_WRITE') || hasPrivilege('ROLE_WRITE') || hasPrivilege('SLA_WRITE') || hasPrivilege('USER_INVITE');
   const showAnalytics = hasPrivilege('METRICS_READ');
 
   return (

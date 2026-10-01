@@ -1,4 +1,4 @@
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'AGENT' | 'USER';
+export type Role = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'ADMIN' | 'AGENT' | 'USER';
 
 export interface User {
   id: string;
@@ -7,6 +7,14 @@ export interface User {
   title?: string;
   managerId?: string;
   roles: Role[];
+  status?: 'ACTIVE' | 'PENDING';
+}
+
+export interface InviteEmployeeRequest {
+  email: string;
+  fullName: string;
+  title?: string;
+  roles: string[];
 }
 
 export interface UserSummaryDTO {

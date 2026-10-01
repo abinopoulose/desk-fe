@@ -105,9 +105,9 @@ export const LoginPage: React.FC = () => {
 
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
-              Don't have an account?{' '}
+              Don't have an organization account yet?{' '}
               <Link to={ROUTES.AUTH.REGISTER} className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                Create one now
+                Register your Organization
               </Link>
             </p>
           </div>

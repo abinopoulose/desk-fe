@@ -1,11 +1,11 @@
 import { ROUTES } from '../../constants';
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { useRegister } from '../../hooks';
-import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, Loader2, User } from 'lucide-react';
+import { useOrgSignup } from '../../hooks/useOrgSignup';
+import { Mail, Lock, Eye, EyeOff, Building2, ArrowRight, Loader2, User } from 'lucide-react';
 
-export const RegisterPage: React.FC = () => {
-  const { formState, setField, submit, loading, error } = useRegister();
+export const OrgSignupPage: React.FC = () => {
+  const { formState, setField, submit, loading, error } = useOrgSignup();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -18,9 +18,9 @@ export const RegisterPage: React.FC = () => {
         <div className="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 mb-6 transform transition-transform hover:scale-105 duration-300">
-              <UserPlus className="w-8 h-8 ml-1" />
+              <Building2 className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create account</h2>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create your Organization</h2>
             <p className="text-slate-500 mt-2">Get started with your new workspace</p>
           </div>
 
@@ -33,45 +33,66 @@ export const RegisterPage: React.FC = () => {
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Full Name
+                <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Organization Name
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
+                    placeholder="Acme Corp"
+                    value={formState.name}
+                    onChange={(e) => setField('name', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="adminFullName" className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Admin Full Name
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
                     <User className="w-5 h-5" />
                   </div>
                   <input
-                    id="fullName"
-                    name="fullName"
+                    id="adminFullName"
+                    name="adminFullName"
                     type="text"
                     autoComplete="name"
                     required
                     className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="John Doe"
-                    value={formState.fullName}
-                    onChange={(e) => setField('fullName', e.target.value)}
+                    value={formState.adminFullName}
+                    onChange={(e) => setField('adminFullName', e.target.value)}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Email address
+                <label htmlFor="adminEmail" className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Admin Email address
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
                     <Mail className="w-5 h-5" />
                   </div>
                   <input
-                    id="email"
-                    name="email"
+                    id="adminEmail"
+                    name="adminEmail"
                     type="email"
                     autoComplete="email"
                     required
                     className="block w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
                     placeholder="you@example.com"
-                    value={formState.email}
-                    onChange={(e) => setField('email', e.target.value)}
+                    value={formState.adminEmail}
+                    onChange={(e) => setField('adminEmail', e.target.value)}
                   />
                 </div>
               </div>
@@ -142,7 +163,7 @@ export const RegisterPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  Create Account
+                  Create Organization
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}

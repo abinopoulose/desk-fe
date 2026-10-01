@@ -2,6 +2,7 @@ export const ROUTES = {
   AUTH: {
     LOGIN: '/login',
     REGISTER: '/register',
+    SET_PASSWORD: '/set-password',
   },
   DASHBOARD: '/dashboard',
   BROWSE: '/browse',
@@ -27,6 +28,6 @@ export const ROUTES = {
     SLA_CONFIGS: '/admin/sla-configs',
     DEPARTMENTS: '/admin/departments',
     ROLES: '/admin/roles',
-    TENANT: '/admin/tenant',
+    EMPLOYEES: '/admin/employees',
   },
 } as const;
