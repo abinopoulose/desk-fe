@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, FolderTree, Ticket, Network,
-  Settings, Building2, Users, Clock, Database,
+  Settings, Building2, Users, Clock,
   BarChart3
 } from 'lucide-react';
 import { ROUTES } from './routes';

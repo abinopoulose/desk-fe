@@ -5,7 +5,7 @@ import type { UserDTO } from '../../types/auth';
 describe('tokenStorage', () => {
   const mockUser: UserDTO = {
     id: 'user-1',
-    name: 'Test User',
+    fullName: 'Test User',
     email: 'test@example.com',
     roles: ['EMPLOYEE']
   };

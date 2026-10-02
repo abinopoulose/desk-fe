@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { registerOrganization } from '../api/organizationApi';
 import { useAuthStore } from '../store/authStore';
-import { CreateOrgRequest } from '../types/auth';
+import type { CreateOrgRequest } from '../types/auth';
 import { isAxiosError } from 'axios';
 import { ROUTES } from '../constants';
 

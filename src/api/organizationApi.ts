@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import { CreateOrgRequest, AuthResponse } from '../types/auth';
+import type { CreateOrgRequest, AuthResponse } from '../types/auth';
 import { API_PATHS } from '../constants';
 
 export const registerOrganization = (data: CreateOrgRequest) =>

@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useEmployeeManagement } from '../useEmployeeManagement';
-import { getOrgUsers, inviteEmployee, resendInvitation } from '../../api/employeeApi';
+import { getOrgUsers, inviteEmployee } from '../../api/employeeApi';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('../../api/employeeApi', () => ({
