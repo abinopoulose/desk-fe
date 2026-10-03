@@ -57,7 +57,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
             folderId: data.folderId,
             departmentId: data.departmentId,
             formSchema: (data.formSchema as unknown as FormSchema) || { fields: [] },
-            isActive: data.isActive,
+            isActive: data.isActive ?? data.active ?? false,
           });
         })
         .catch((err: unknown) => {
@@ -99,6 +99,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
           departmentId: formData.departmentId,
           formSchema: formData.formSchema as unknown as Record<string, unknown>,
           isActive: formData.isActive,
+          active: formData.isActive,
         };
 
         let result: TicketTypeDTO;

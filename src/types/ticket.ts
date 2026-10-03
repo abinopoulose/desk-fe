@@ -23,12 +23,16 @@ export interface TicketTypeSummaryDTO {
   id: string;
   title: string;
   departmentId: string;
+  departmentName?: string;
+  description?: string;
   folderPath: string; // From requirements
   isActive: boolean;
+  active?: boolean;
 }
 
 export interface TicketTypeDTO extends TicketType {
   isActive: boolean;
+  active?: boolean;
   folderPath?: string;
 }
 
@@ -39,6 +43,7 @@ export interface CreateTicketTypeRequest {
   departmentId: string;
   formSchema: Record<string, unknown>;
   isActive?: boolean;
+  active?: boolean;
 }
 
 export type UpdateTicketTypeRequest = CreateTicketTypeRequest;

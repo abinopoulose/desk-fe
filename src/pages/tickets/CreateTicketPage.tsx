@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
 import type { FormSchema } from '../../types/formSchema';
 import { useCreateTicket } from '../../hooks';
-import { TICKET_PRIORITY_ITEMS, ROUTES } from '../../constants';
+import { TICKET_PRIORITY_ITEMS } from '../../constants';
+import { BrowseFoldersPage } from '../folders/BrowseFoldersPage';
 
 export const CreateTicketPage: React.FC = () => {
   const {
@@ -23,17 +23,7 @@ export const CreateTicketPage: React.FC = () => {
   } = useCreateTicket();
 
   if (!typeId) {
-    return (
-      <div className="p-8">
-        <div className="bg-blue-50 border border-blue-200 rounded p-6 text-center">
-          <h2 className="text-xl font-bold text-blue-800 mb-4">Select a Service Request Type</h2>
-          <p className="mb-4">Please choose what kind of ticket you'd like to create.</p>
-          <Link to={ROUTES.BROWSE} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Browse Folders
-          </Link>
-        </div>
-      </div>
-    );
+    return <BrowseFoldersPage />;
   }
 
   if (loadingSchema) {

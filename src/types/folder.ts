@@ -20,6 +20,7 @@ export interface TicketTypeSummaryDTO {
   departmentName: string;
   folderPath: string;
   isActive: boolean;
+  active?: boolean;
 }
 
 export interface FolderContentsDTO {

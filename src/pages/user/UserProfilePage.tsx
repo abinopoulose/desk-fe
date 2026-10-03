@@ -11,6 +11,8 @@ const UserProfilePage: React.FC = () => {
     error,
     isEditing,
     refetch,
+    saving,
+    uploadPicture,
   } = useUserProfile(userId);
 
   if (loading) {

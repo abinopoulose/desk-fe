@@ -2,12 +2,15 @@ import { ROUTES } from '../../constants';
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { SchemaBuilder } from '../../components/admin/SchemaBuilder';
+import { SlaConfigSection } from '../../components/admin/SlaConfigSection';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
-import { useTicketTypeForm } from '../../hooks';
+import { useTicketTypeForm, useDepartments, useFolderTree } from '../../hooks';
+import type { FolderNodeDTO } from '../../types/folder';
 
 export const TicketTypeFormPage: React.FC = () => {
   const navigate = useNavigate();
   const {
+    ticketTypeId,
     isEditMode,
     title,
     setTitle,
@@ -21,13 +24,29 @@ export const TicketTypeFormPage: React.FC = () => {
     setFormSchema,
     isActive,
     setIsActive,
-    loading,
+    loading: formLoading,
     submitting,
     error,
     handleSubmit,
   } = useTicketTypeForm();
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  const { departments, loading: depsLoading } = useDepartments();
+  const { treeData, isLoading: treeLoading } = useFolderTree();
+
+  const flattenFolders = (nodes: FolderNodeDTO[], path = ''): { id: string, name: string }[] => {
+    return nodes.reduce((acc, node) => {
+      const currentPath = path ? `${path} / ${node.name}` : node.name;
+      acc.push({ id: node.id, name: currentPath });
+      if (node.children) {
+        acc.push(...flattenFolders(node.children, currentPath));
+      }
+      return acc;
+    }, [] as { id: string, name: string }[]);
+  };
+
+  const folderOptions = flattenFolders(treeData);
+
+  if (formLoading || depsLoading || treeLoading) return <div className="p-6">Loading...</div>;
 
   return (
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
@@ -58,42 +77,49 @@ export const TicketTypeFormPage: React.FC = () => {
                 id="title"
                 type="text"
                 required
-                value={title}
+                value={title || ''}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border rounded p-2"
               />
             </div>
             <div>
-              <label htmlFor="departmentId" className="block text-sm font-medium mb-1">Department ID *</label>
-              <input
+              <label htmlFor="departmentId" className="block text-sm font-medium mb-1">Department *</label>
+              <select
                 id="departmentId"
-                type="text"
                 required
-                value={departmentId}
+                value={departmentId || ''}
                 onChange={(e) => setDepartmentId(e.target.value)}
-                className="w-full border rounded p-2"
-              />
+                className="w-full border rounded p-2 bg-white"
+              >
+                <option value="" disabled>Select a department</option>
+                {departments.map((dep) => (
+                  <option key={dep.id} value={dep.id}>{dep.name}</option>
+                ))}
+              </select>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
               <textarea
                 id="description"
-                value={description}
+                value={description || ''}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full border rounded p-2 h-20"
               />
             </div>
             <div>
-              <label htmlFor="folderId" className="block text-sm font-medium mb-1">Folder ID *</label>
-              <input
+              <label htmlFor="folderId" className="block text-sm font-medium mb-1">Folder *</label>
+              <select
                 id="folderId"
-                type="text"
                 required
-                value={folderId}
+                value={folderId || ''}
                 onChange={(e) => setFolderId(e.target.value)}
-                className="w-full border rounded p-2"
-                placeholder="e.g. IT/Hardware"
-              />
+                className="w-full border rounded p-2 bg-white"
+              >
+                <option value="" disabled>Select a folder</option>
+                {folderOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>{opt.name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center h-full pt-6">
               <input
@@ -112,6 +138,10 @@ export const TicketTypeFormPage: React.FC = () => {
           <h2 className="text-xl font-bold mb-6 border-b pb-2">Form Schema Builder</h2>
           <SchemaBuilder schema={formSchema} onChange={setFormSchema} />
         </div>
+
+        {isEditMode && ticketTypeId && (
+          <SlaConfigSection ticketTypeId={ticketTypeId} />
+        )}
 
         <div className="mt-8 flex justify-end">
           <button

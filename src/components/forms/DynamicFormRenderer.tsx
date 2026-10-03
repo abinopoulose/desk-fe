@@ -112,26 +112,25 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     if (!isFieldVisible(field)) return null;
 
     const props = {
-      key: field.name,
       field,
       value: values[field.name],
-            onChange: (val: any) => handleChange(field.name, val),
+      onChange: (val: any) => handleChange(field.name, val),
       error: errors[field.name] || externalErrors[field.name],
     };
 
     switch (field.type) {
       case 'text':
-        return <TextField {...props} />;
+        return <TextField key={field.name} {...props} />;
       case 'textarea':
-        return <TextAreaField {...props} />;
+        return <TextAreaField key={field.name} {...props} />;
       case 'select':
-        return <SelectField {...props} />;
+        return <SelectField key={field.name} {...props} />;
       case 'checkbox':
-        return <CheckboxField {...props} />;
+        return <CheckboxField key={field.name} {...props} />;
       case 'number':
-        return <NumberField {...props} />;
+        return <NumberField key={field.name} {...props} />;
       case 'date':
-        return <DateField {...props} />;
+        return <DateField key={field.name} {...props} />;
       default:
         return null;
     }

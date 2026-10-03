@@ -143,3 +143,4 @@ export const useAuth = () => {
     isAuthenticated
   };
 };
+useAuthStore.getState().initialize();

@@ -6,6 +6,7 @@ export interface UserDTO {
   roles: string[];
   organizationId?: string;
   organizationName?: string;
+  profilePictureUrl?: string;
 }
 
 export interface AuthResponse {
