@@ -5,6 +5,7 @@ export interface User {
   email: string;
   fullName: string;
   title?: string;
+  profilePictureUrl?: string;
   managerId?: string;
   roles: Role[];
   status?: 'ACTIVE' | 'PENDING';
@@ -29,6 +30,7 @@ export interface UserProfileResponse {
   email: string;
   fullName: string;
   title?: string;
+  profilePictureUrl?: string;
   manager: UserSummaryDTO | null;
   reportees: UserSummaryDTO[];
   roles: string[];

@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { AxiosError } from 'axios';
 import { login as loginApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ROUTES, VALIDATION_MESSAGES } from '../constants';
@@ -50,17 +49,23 @@ export function useLogin() {
         const from = state?.from?.pathname || ROUTES.DASHBOARD;
         navigate(from, { replace: true });
         return true;
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          if (err.response?.status === 401) {
-            setError('Invalid credentials');
-          } else if (err.response?.status === 403) {
-            setError('Unauthorized domain');
-          } else {
-            setError(err.response?.data?.message || 'A network error occurred. Please try again.');
-          }
+      } catch (err: unknown) {
+        const errorObj = err as {
+          message?: string;
+          statusCode?: number;
+          response?: { status?: number; data?: { message?: string } };
+        };
+        const status = errorObj?.statusCode || errorObj?.response?.status;
+        const serverMessage = errorObj?.response?.data?.message || errorObj?.message;
+
+        if (status === 401) {
+          setError(serverMessage || 'Invalid email or password');
+        } else if (status === 403) {
+          setError(serverMessage || 'Unauthorized domain');
+        } else if (serverMessage) {
+          setError(serverMessage);
         } else {
-          setError('An unexpected error occurred');
+          setError('A network error occurred. Please try again.');
         }
         return false;
       } finally {

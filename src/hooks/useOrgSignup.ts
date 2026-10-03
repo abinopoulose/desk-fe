@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { registerOrganization } from '../api/organizationApi';
 import { useAuthStore } from '../store/authStore';
 import type { CreateOrgRequest } from '../types/auth';
-import { isAxiosError } from 'axios';
 import { ROUTES } from '../constants';
 
 export const useOrgSignup = () => {
@@ -44,17 +43,23 @@ export const useOrgSignup = () => {
       const response = await registerOrganization(payload);
       login(response.data.token, response.data.user);
       navigate(ROUTES.DASHBOARD);
-    } catch (err) {
-      if (isAxiosError(err) && err.response) {
-        if (err.response.status === 403) {
-          setError('This email domain is not authorized to register.');
-        } else if (err.response.status === 409) {
-          setError('An organization already exists for this domain.');
-        } else {
-          setError(err.response.data?.message || 'Registration failed');
-        }
+    } catch (err: unknown) {
+      const errorObj = err as {
+        statusCode?: number;
+        message?: string;
+        response?: { status?: number; data?: { message?: string } };
+      };
+      const status = errorObj?.statusCode || errorObj?.response?.status;
+      const serverMessage = errorObj?.response?.data?.message || errorObj?.message;
+
+      if (status === 403) {
+        setError('This email domain is not authorized to register.');
+      } else if (status === 409) {
+        setError('An organization already exists for this domain.');
+      } else if (serverMessage) {
+        setError(serverMessage);
       } else {
-        setError('An unexpected error occurred');
+        setError('Registration failed');
       }
     } finally {
       setLoading(false);

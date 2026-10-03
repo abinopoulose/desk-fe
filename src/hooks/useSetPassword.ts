@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { setPassword } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
-import { isAxiosError } from 'axios';
 import { ROUTES } from '../constants';
 
 export const useSetPassword = () => {
@@ -38,23 +37,26 @@ export const useSetPassword = () => {
 
     setLoading(true);
     try {
-      const response = await setPassword({ token, password: formState.password });
+      const response = await setPassword({ token, password: formState.password, confirmPassword: formState.confirmPassword });
       login(response.token, response.user);
       navigate(ROUTES.DASHBOARD);
-    } catch (err) {
-      if (isAxiosError(err) && err.response) {
-        const data = err.response.data;
-        if (data?.message?.includes('expired')) {
-          setError('This invitation link has expired. Please contact your administrator.');
-        } else if (data?.message?.includes('used')) {
-          setError('This invitation link has already been used.');
-        } else if (data?.message?.includes('Invalid')) {
-          setError('Invalid invitation link.');
-        } else {
-          setError(data?.message || 'Failed to set password');
-        }
+    } catch (err: unknown) {
+      const errorObj = err as {
+        message?: string;
+        response?: { data?: { message?: string } };
+      };
+      const message = errorObj?.response?.data?.message || errorObj?.message || '';
+
+      if (message.includes('expired')) {
+        setError('This invitation link has expired. Please contact your administrator.');
+      } else if (message.includes('used')) {
+        setError('This invitation link has already been used.');
+      } else if (message.includes('Invalid') || message.includes('invalid')) {
+        setError('Invalid invitation link.');
+      } else if (message) {
+        setError(message);
       } else {
-        setError('An unexpected error occurred');
+        setError('Failed to set password');
       }
     } finally {
       setLoading(false);

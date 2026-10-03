@@ -102,8 +102,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     tokenStorage.clearAll();
     set({ user: null, token: null, isAuthenticated: false, privileges: [] });
-    // redirect to login
-    window.location.href = ROUTES.AUTH.LOGIN;
+    // redirect to login if not already on the login page
+    if (typeof window !== 'undefined' && window.location.pathname !== ROUTES.AUTH.LOGIN) {
+      window.location.href = ROUTES.AUTH.LOGIN;
+    }
   },
   initialize: () => {
     const token = tokenStorage.getToken();

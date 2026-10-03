@@ -17,3 +17,15 @@ export const getOrgHierarchy = async (rootUserId?: string): Promise<OrgNode[]> =
   const response = await axiosInstance.get(API_PATHS.USERS.HIERARCHY, { params });
   return response.data;
 };
+
+export const uploadProfilePicture = async (userId: string, file: File): Promise<UserProfileResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await axiosInstance.post(`/users/${userId}/profile-picture`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};

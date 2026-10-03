@@ -134,8 +134,12 @@ export function AppLayout() {
                    <p className="text-sm font-medium text-slate-900 leading-none mb-1">{user.fullName}</p>
                    <p className="text-xs text-slate-500 leading-none">{user.roles?.[0] || 'User'}</p>
                  </div>
-                 <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold border border-indigo-200 shadow-sm">
-                   {user.fullName.charAt(0).toUpperCase()}
+                 <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold border border-indigo-200 shadow-sm overflow-hidden">
+                   {user.profilePictureUrl ? (
+                     <img src={user.profilePictureUrl} alt={user.fullName} className="w-full h-full object-cover" />
+                   ) : (
+                     user.fullName.charAt(0).toUpperCase()
+                   )}
                  </div>
                </div>
              )}

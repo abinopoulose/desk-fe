@@ -9,7 +9,16 @@ export const inviteEmployee = async (data: InviteEmployeeRequest) => {
 
 export const getOrgUsers = async (): Promise<User[]> => {
   const response = await axiosInstance.get(API_PATHS.USERS.BASE);
-  return response.data;
+  const data = response.data;
+  const userList = Array.isArray(data) ? data : (data?.users || []);
+  return userList.map((u: any) => ({
+    id: u.id,
+    email: u.email,
+    fullName: u.fullName,
+    title: u.title,
+    roles: u.roles || [],
+    status: u.status || u.activationStatus || 'ACTIVE'
+  }));
 };
 
 export const resendInvitation = async (userId: string) => {

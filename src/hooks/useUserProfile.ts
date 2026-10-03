@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getUserProfile, updateUserProfile } from '../api/userApi';
+import { getUserProfile, updateUserProfile, uploadProfilePicture } from '../api/userApi';
 import type { UserProfileResponse } from '../types/user';
 
 import { required, email } from '../utils/validation';
@@ -96,6 +96,20 @@ export function useUserProfile(userId: string | undefined) {
     return Promise.resolve();
   }, [userId, fetchProfile]);
 
+  const uploadPicture = useCallback(async (file: File) => {
+    if (!userId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await uploadProfilePicture(userId, file);
+      setProfile(updated);
+    } catch {
+      setError('Failed to upload profile picture');
+    } finally {
+      setSaving(false);
+    }
+  }, [userId]);
+
   return {
     profile,
     loading,
@@ -107,6 +121,7 @@ export function useUserProfile(userId: string | undefined) {
     setField,
     save,
     refetch,
-    editForm
+    editForm,
+    uploadPicture
   };
 }

@@ -60,8 +60,28 @@ const UserProfilePage: React.FC = () => {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Header Card */}
       <div className="bg-white p-6 rounded-lg shadow flex items-center space-x-6 border">
-        <div className="w-20 h-20 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-3xl font-bold">
-          {profile.fullName.charAt(0).toUpperCase()}
+        <div className="relative group w-20 h-20">
+          {profile.profilePictureUrl ? (
+            <img src={profile.profilePictureUrl} alt={profile.fullName} className="w-20 h-20 rounded-full object-cover shadow-sm" />
+          ) : (
+            <div className="w-20 h-20 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm">
+              {profile.fullName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <label className={`absolute inset-0 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${saving ? 'opacity-100' : ''}`}>
+            <span className="text-xs font-semibold">{saving ? 'Uploading...' : 'Upload'}</span>
+            <input 
+              type="file" 
+              accept="image/*"
+              className="hidden" 
+              disabled={saving}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  uploadPicture(e.target.files[0]);
+                }
+              }} 
+            />
+          </label>
         </div>
         <div className="flex-1">
           <div className="flex items-center space-x-3">

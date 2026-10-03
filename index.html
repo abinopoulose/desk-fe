@@ -5,6 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>desk-fe</title>
+    <script>
+      // Clear rogue service workers and caches on localhost:5173
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          for (var registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function (keys) {
+          for (var key of keys) {
+            caches.delete(key);
+          }
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -19,25 +19,38 @@ export const handleApiError = (error: unknown): ApiError => {
     if (!axiosError.response) {
       message = 'Network error - please check your connection';
     } else {
+      const serverMessage = typeof responseData?.message === 'string' && responseData.message.trim().length > 0
+        ? responseData.message
+        : undefined;
+
       switch (statusCode) {
-        case 401:
-          message = 'Authentication required';
-          useAuthStore.getState().logout();
+        case 401: {
+          message = serverMessage || 'Authentication required';
+          const requestUrl = axiosError.config?.url || '';
+          const isAuthEndpoint = requestUrl.includes('/auth/login') ||
+                                 requestUrl.includes('/auth/set-password');
+          if (!isAuthEndpoint) {
+            useAuthStore.getState().logout();
+          }
           break;
+        }
         case 403:
-          message = 'You do not have permission to perform this action';
+          message = serverMessage || 'You do not have permission to perform this action';
           break;
         case 404:
-          message = 'The requested resource was not found';
+          message = serverMessage || 'The requested resource was not found';
+          break;
+        case 409:
+          message = serverMessage || 'Conflict occurred';
           break;
         case 422:
-          message = 'Validation failed';
+          message = serverMessage || 'Validation failed';
           break;
         case 500:
-          message = 'Internal server error';
+          message = serverMessage || 'Internal server error';
           break;
         default:
-          message = (responseData?.message as string) || `Error ${statusCode}`;
+          message = serverMessage || `Error ${statusCode}`;
           break;
       }
     }
