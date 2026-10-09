@@ -18,7 +18,7 @@ describe('ArchiveBrowser', () => {
     cleanup();
   });
 
-  it('renders the detective archive atmosphere with search bar and title', () => {
+  it('renders the ticketing system category browser with search bar and title', () => {
     vi.spyOn(archiveHook, 'useArchiveBrowser').mockReturnValue({
       currentFolderId: null,
       breadcrumbs: [],
@@ -26,8 +26,8 @@ describe('ArchiveBrowser', () => {
         folderId: 'root',
         folderName: '/',
         subfolders: [
-          { id: 'f-1', name: 'Homicide & Felonies', parentId: null, createdAt: '', updatedAt: '' },
-          { id: 'f-2', name: 'Cyber Crimes', parentId: null, createdAt: '', updatedAt: '' },
+          { id: 'f-1', name: 'IT & Infrastructure', parentId: null, createdAt: '', updatedAt: '' },
+          { id: 'f-2', name: 'HR & People Ops', parentId: null, createdAt: '', updatedAt: '' },
         ],
         ticketTypes: [],
       },
@@ -45,11 +45,11 @@ describe('ArchiveBrowser', () => {
 
     render(<ArchiveBrowser />);
 
-    expect(screen.getByText('Case Archives')).toBeDefined();
-    expect(screen.getByText('Select a case file to open a new investigation...')).toBeDefined();
-    expect(screen.getByPlaceholderText('Search all case files...')).toBeDefined();
-    expect(screen.getByText('Homicide & Felonies')).toBeDefined();
-    expect(screen.getByText('Cyber Crimes')).toBeDefined();
+    expect(screen.getByText('Select Ticket Category')).toBeDefined();
+    expect(screen.getByText('Service Catalog')).toBeDefined();
+    expect(screen.getByPlaceholderText('Search ticket types, issues, or services...')).toBeDefined();
+    expect(screen.getByText('IT & Infrastructure')).toBeDefined();
+    expect(screen.getByText('HR & People Ops')).toBeDefined();
   });
 
   it('allows navigating into a folder when clicked or via keyboard', () => {
@@ -61,7 +61,7 @@ describe('ArchiveBrowser', () => {
         folderId: 'root',
         folderName: '/',
         subfolders: [
-          { id: 'f-1', name: 'Internal Affairs', parentId: null, createdAt: '', updatedAt: '' },
+          { id: 'f-1', name: 'Security & Access', parentId: null, createdAt: '', updatedAt: '' },
         ],
         ticketTypes: [],
       },
@@ -79,7 +79,7 @@ describe('ArchiveBrowser', () => {
 
     render(<ArchiveBrowser />);
 
-    const folderCard = screen.getByRole('button', { name: /Open folder Internal Affairs/i });
+    const folderCard = screen.getByRole('button', { name: /Open folder Security & Access/i });
     fireEvent.click(folderCard);
     expect(navigateToFolderMock).toHaveBeenCalledWith('f-1');
 
@@ -88,21 +88,21 @@ describe('ArchiveBrowser', () => {
     expect(navigateToFolderMock).toHaveBeenCalledTimes(2);
   });
 
-  it('renders case file cards and navigates to ticket creation on click', () => {
+  it('renders ticket template cards and navigates to ticket creation on click', () => {
     vi.spyOn(archiveHook, 'useArchiveBrowser').mockReturnValue({
       currentFolderId: 'f-1',
-      breadcrumbs: [{ id: 'f-1', name: 'Cold Cases' }],
+      breadcrumbs: [{ id: 'f-1', name: 'Hardware Requests' }],
       contents: {
         folderId: 'f-1',
-        folderName: 'Cold Cases',
+        folderName: 'Hardware Requests',
         subfolders: [],
         ticketTypes: [
           {
             id: 'tt-101',
-            title: 'Unsolved Missing Persons Dossier',
-            description: 'Escalate historical disappearance case file',
-            departmentName: 'Detectives Division',
-            folderPath: 'Cold Cases',
+            title: 'Laptop Replacement Request',
+            description: 'Request a new laptop or peripheral device replacement',
+            departmentName: 'IT Operations',
+            folderPath: 'Hardware Requests',
             isActive: true,
           },
         ],
@@ -121,12 +121,11 @@ describe('ArchiveBrowser', () => {
 
     render(<ArchiveBrowser />);
 
-    expect(screen.getByText('Unsolved Missing Persons Dossier')).toBeDefined();
-    expect(screen.getByText('Escalate historical disappearance case file')).toBeDefined();
-    expect(screen.getByText('Detectives Division')).toBeDefined();
-    expect(screen.getByText('Case File')).toBeDefined();
+    expect(screen.getByText('Laptop Replacement Request')).toBeDefined();
+    expect(screen.getByText('Request a new laptop or peripheral device replacement')).toBeDefined();
+    expect(screen.getByText('IT Operations')).toBeDefined();
 
-    const caseFileCard = screen.getByRole('button', { name: /Open case file Unsolved Missing Persons Dossier/i });
+    const caseFileCard = screen.getByRole('button', { name: /Open case file Laptop Replacement Request/i });
     fireEvent.click(caseFileCard);
 
     expect(mockNavigate).toHaveBeenCalledWith('/tickets/new?typeId=tt-101');
@@ -137,12 +136,12 @@ describe('ArchiveBrowser', () => {
     vi.spyOn(archiveHook, 'useArchiveBrowser').mockReturnValue({
       currentFolderId: 'f-2',
       breadcrumbs: [
-        { id: 'f-1', name: 'Records Room' },
-        { id: 'f-2', name: 'Vault 42' },
+        { id: 'f-1', name: 'IT Support' },
+        { id: 'f-2', name: 'Hardware' },
       ],
       contents: {
         folderId: 'f-2',
-        folderName: 'Vault 42',
+        folderName: 'Hardware',
         subfolders: [],
         ticketTypes: [],
       },
@@ -160,7 +159,7 @@ describe('ArchiveBrowser', () => {
 
     render(<ArchiveBrowser />);
 
-    const backButton = screen.getByText(/Return to Vault 42/i);
+    const backButton = screen.getByText(/Return to IT Support/i);
     expect(backButton).toBeDefined();
 
     fireEvent.click(backButton);
@@ -175,15 +174,15 @@ describe('ArchiveBrowser', () => {
       contents: null,
       isLoading: false,
       treeData: [],
-      searchQuery: 'stolen',
+      searchQuery: 'laptop',
       searchResults: [
         {
           id: 'tt-99',
-          title: 'Stolen Artifact Report',
-          description: 'High value museum theft investigation',
+          title: 'Laptop Repair Form',
+          description: 'Submit an issue with screen, battery, or keyboard',
           departmentId: 'dept-1',
-          departmentName: 'Special Crimes',
-          folderPath: 'Archives / Theft',
+          departmentName: 'IT Support',
+          folderPath: 'Hardware / Laptops',
           isActive: true,
         },
       ],
@@ -197,22 +196,22 @@ describe('ArchiveBrowser', () => {
 
     render(<ArchiveBrowser />);
 
-    expect(screen.getByText('Search Results (1)')).toBeDefined();
-    expect(screen.getByText('Stolen Artifact Report')).toBeDefined();
+    expect(screen.getByText('Search Results')).toBeDefined();
+    expect(screen.getByText('Laptop Repair Form')).toBeDefined();
 
     // Clear search button
-    const clearButton = screen.getByRole('button', { name: /Clear search/i });
+    const clearButton = screen.getAllByRole('button', { name: /Clear search/i })[0];
     fireEvent.click(clearButton);
     expect(setSearchQueryMock).toHaveBeenCalledWith('');
   });
 
-  it('shows atmospheric empty state when archive is empty', () => {
+  it('shows clean empty state when archive folder is empty', () => {
     vi.spyOn(archiveHook, 'useArchiveBrowser').mockReturnValue({
       currentFolderId: 'f-empty',
-      breadcrumbs: [{ id: 'f-empty', name: 'Archived 1982' }],
+      breadcrumbs: [{ id: 'f-empty', name: 'Archived Services' }],
       contents: {
         folderId: 'f-empty',
-        folderName: 'Archived 1982',
+        folderName: 'Archived Services',
         subfolders: [],
         ticketTypes: [],
       },
@@ -231,6 +230,6 @@ describe('ArchiveBrowser', () => {
     render(<ArchiveBrowser />);
 
     expect(screen.getByText('This archive is empty')).toBeDefined();
-    expect(screen.getByText(/The trail goes cold here/i)).toBeDefined();
+    expect(screen.getByText(/No ticket types or subcategories are currently filed/i)).toBeDefined();
   });
 });

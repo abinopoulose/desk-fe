@@ -118,7 +118,9 @@ describe('useArchiveBrowser', () => {
       { id: 'root-1', name: 'Major Crimes' },
       { id: 'sub-1', name: 'Cold Cases' },
     ]);
-    expect(result.current.contents?.ticketTypes).toHaveLength(1);
+    await waitFor(() => {
+      expect(result.current.contents?.ticketTypes).toHaveLength(1);
+    });
     expect(result.current.contents?.ticketTypes[0].title).toBe('Homicide Incident');
   });
 
