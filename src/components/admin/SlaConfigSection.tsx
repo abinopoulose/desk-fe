@@ -7,12 +7,10 @@ import {
   Calendar,
   Sparkles,
   X,
-  Sliders,
 } from 'lucide-react';
 import { DataGridSkeleton } from '../common/Skeletons';
 import { slaApi } from '../../api/slaApi';
 import type { SlaConfigDTO, CreateSlaConfigRequest } from '../../types/sla';
-
 import {
   DAYS_OF_WEEK,
   PRIORITY_OPTIONS,
@@ -47,9 +45,9 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
     escalationHooks: null,
   });
 
-  // Custom duration helper
-  const [customValue, setCustomValue] = useState<number>(24);
-  const [customUnit, setCustomUnit] = useState<'hours' | 'days'>('hours');
+  // Schedule preset state: 'standard' | '24_7' | 'custom'
+  const [scheduleMode, setScheduleMode] = useState<'standard' | '24_7' | 'custom'>('standard');
+  const [customHours, setCustomHours] = useState<number>(24);
 
   const loadSlas = () => {
     if (!ticketTypeId) return;
@@ -83,16 +81,27 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         workingHoursEnd: item.workingHoursEnd || '17:00:00',
         escalationHooks: item.escalationHooks || null,
       });
-      // Derive custom hours or days
-      if (item.resolutionMinutes % 1440 === 0) {
-        setCustomValue(item.resolutionMinutes / 1440);
-        setCustomUnit('days');
+
+      setCustomHours(Math.round(item.resolutionMinutes / 60));
+
+      // Determine schedule mode
+      const isMonFri =
+        item.workingDays?.length === 5 && [1, 2, 3, 4, 5].every((d) => item.workingDays.includes(d));
+      const is9to5 =
+        item.workingHoursStart?.startsWith('09:00') && item.workingHoursEnd?.startsWith('17:00');
+      const is24_7 =
+        item.workingDays?.length === 7 &&
+        item.workingHoursStart?.startsWith('00:00') &&
+        (item.workingHoursEnd?.startsWith('23:59') || item.workingHoursEnd?.startsWith('24:00'));
+
+      if (isMonFri && is9to5) {
+        setScheduleMode('standard');
+      } else if (is24_7) {
+        setScheduleMode('24_7');
       } else {
-        setCustomValue(Math.round(item.resolutionMinutes / 60));
-        setCustomUnit('hours');
+        setScheduleMode('custom');
       }
     } else {
-      // Find the next unused priority if possible
       const usedPriorities = activeItems.map((i) => i.priority);
       const nextPriority = [1, 2, 3, 4].find((p) => !usedPriorities.includes(p)) || 3;
       setEditingId(null);
@@ -104,10 +113,29 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         workingHoursEnd: '17:00:00',
         escalationHooks: null,
       });
-      setCustomValue(24);
-      setCustomUnit('hours');
+      setScheduleMode('standard');
+      setCustomHours(24);
     }
     setShowForm(true);
+  };
+
+  const handleScheduleModeChange = (mode: 'standard' | '24_7' | 'custom') => {
+    setScheduleMode(mode);
+    if (mode === 'standard') {
+      setFormData({
+        ...formData,
+        workingDays: [1, 2, 3, 4, 5],
+        workingHoursStart: '09:00:00',
+        workingHoursEnd: '17:00:00',
+      });
+    } else if (mode === '24_7') {
+      setFormData({
+        ...formData,
+        workingDays: [1, 2, 3, 4, 5, 6, 7],
+        workingHoursStart: '00:00:00',
+        workingHoursEnd: '23:59:00',
+      });
+    }
   };
 
   const handleDayToggle = (day: number) => {
@@ -119,28 +147,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
     }
   };
 
-  const handleSetPresetDays = (days: number[]) => {
-    setFormData({ ...formData, workingDays: days });
-  };
-
-  const handleSelectPresetTime = (minutes: number) => {
-    setFormData({ ...formData, resolutionMinutes: minutes });
-    if (minutes % 1440 === 0) {
-      setCustomValue(minutes / 1440);
-      setCustomUnit('days');
-    } else {
-      setCustomValue(Math.round(minutes / 60));
-      setCustomUnit('hours');
-    }
-  };
-
-  const handleCustomDurationChange = (val: number, unit: 'hours' | 'days') => {
-    setCustomValue(val);
-    setCustomUnit(unit);
-    const calculatedMinutes = unit === 'days' ? val * 1440 : val * 60;
-    setFormData({ ...formData, resolutionMinutes: calculatedMinutes });
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -150,11 +156,10 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         workingDays: formData.workingDays,
         workingHoursStart: formData.workingHoursStart,
         workingHoursEnd: formData.workingHoursEnd,
-        escalationHooks: formData.escalationHooks,
+        escalationHooks: null,
       };
 
       if (isCreateMode) {
-        // Handle staged configuration
         const currentStaged = stagedConfigs ? [...stagedConfigs] : [];
         if (editingId && editingId.startsWith('staged-')) {
           const idx = parseInt(editingId.replace('staged-', ''), 10);
@@ -208,7 +213,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
       },
       {
         priority: 2, // High
-        resolutionMinutes: 480, // 8 hours (1 business day)
+        resolutionMinutes: 480, // 8 hours
         workingDays: [1, 2, 3, 4, 5],
         workingHoursStart: '09:00:00',
         workingHoursEnd: '17:00:00',
@@ -216,7 +221,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
       },
       {
         priority: 3, // Medium
-        resolutionMinutes: 1440, // 24 hours (1 day)
+        resolutionMinutes: 1440, // 24 hours
         workingDays: [1, 2, 3, 4, 5],
         workingHoursStart: '09:00:00',
         workingHoursEnd: '17:00:00',
@@ -224,7 +229,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
       },
       {
         priority: 4, // Low
-        resolutionMinutes: 2880, // 48 hours (2 days)
+        resolutionMinutes: 2880, // 48 hours
         workingDays: [1, 2, 3, 4, 5],
         workingHoursStart: '09:00:00',
         workingHoursEnd: '17:00:00',
@@ -270,6 +275,11 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
     const e = end.substring(0, 5);
     return `${s} – ${e}`;
   };
+
+  // Determine if current resolution time matches a preset
+  const isPresetSelected = RESOLUTION_PRESETS.some(
+    (p) => p.minutes === formData.resolutionMinutes
+  );
 
   return (
     <div className="space-y-6">
@@ -352,7 +362,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
 
                     return (
                       <tr key={config.id || index} className="hover:bg-slate-50/60 transition-colors">
-                        {/* Priority Badge */}
                         <td className="py-4 px-5">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${priorityMeta.badgeClass}`}
@@ -364,7 +373,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                           </span>
                         </td>
 
-                        {/* Resolution Time */}
                         <td className="py-4 px-5">
                           <div className="font-semibold text-slate-900">
                             {formatResolutionTime(config.resolutionMinutes)}
@@ -374,7 +382,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                           </div>
                         </td>
 
-                        {/* Working Days */}
                         <td className="py-4 px-5 text-slate-600">
                           <div className="flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -382,7 +389,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                           </div>
                         </td>
 
-                        {/* Working Hours */}
                         <td className="py-4 px-5 text-slate-600">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -390,7 +396,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                           </div>
                         </td>
 
-                        {/* Actions */}
                         <td className="py-4 px-5 text-right space-x-2">
                           <button
                             type="button"
@@ -418,22 +423,22 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         </div>
       )}
 
-      {/* Simplified Add/Edit Modal for HR / Business Users */}
+      {/* SIMPLIFIED Add/Edit Modal (Clean, compact, no overwhelming boxes) */}
       {showForm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-xl max-w-xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full border border-slate-200 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-xs z-10">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Clock className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-slate-900">
                     {editingId ? 'Edit SLA Policy' : 'Add SLA Policy'}
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    Define target resolution timeline and business hours
+                  <p className="text-[11px] text-slate-500">
+                    Set resolution target time and work schedule
                   </p>
                 </div>
               </div>
@@ -441,20 +446,20 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="w-8 h-8 rounded-xl border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleSave} className="p-6 space-y-6">
-              {/* 1. Priority Selection Cards */}
+            {/* Modal Body - Simple 3 Fields */}
+            <form onSubmit={handleSave} className="p-5 space-y-4">
+              {/* 1. Priority Selection (Simple horizontal pill buttons) */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
-                  1. Select Priority Level <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Priority Level <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   {PRIORITY_OPTIONS.map((p) => {
                     const isSelected = formData.priority === p.value;
                     return (
@@ -462,222 +467,168 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                         key={p.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, priority: p.value })}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 cursor-pointer ${
                           isSelected
-                            ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-100 shadow-2xs'
-                            : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50'
+                            ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 ring-2 ring-indigo-100 shadow-2xs'
+                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`w-2 h-2 rounded-full ${p.dotClass}`} />
-                          <span className="text-xs font-bold text-slate-900">
-                            {p.name} ({p.code})
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 leading-tight">
-                          {p.description}
-                        </p>
+                        <span className={`w-2 h-2 rounded-full ${p.dotClass} shrink-0`} />
+                        <span className="truncate">
+                          {p.name} ({p.code})
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* 2. Target Resolution Time */}
+              {/* 2. Target Resolution Time (Single clean dropdown + custom input if needed) */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                    2. Target Resolution Time <span className="text-rose-500">*</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Target Resolution Time <span className="text-rose-500">*</span>
                   </label>
                   <span className="text-xs font-bold text-indigo-600">
                     {formatResolutionTime(formData.resolutionMinutes)}
                   </span>
                 </div>
 
-                {/* Quick Presets */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {RESOLUTION_PRESETS.map((preset) => {
-                    const isSelected = formData.resolutionMinutes === preset.minutes;
-                    return (
-                      <button
-                        key={preset.minutes}
-                        type="button"
-                        onClick={() => handleSelectPresetTime(preset.minutes)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Custom duration inputs */}
-                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
-                  <span className="text-xs text-slate-500 font-medium">Custom duration:</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={customValue}
-                    onChange={(e) =>
-                      handleCustomDurationChange(Math.max(1, parseInt(e.target.value) || 1), customUnit)
+                <select
+                  value={isPresetSelected ? formData.resolutionMinutes : 'custom'}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setFormData({ ...formData, resolutionMinutes: customHours * 60 });
+                    } else {
+                      const mins = parseInt(e.target.value, 10);
+                      setFormData({ ...formData, resolutionMinutes: mins });
+                      setCustomHours(Math.round(mins / 60));
                     }
-                    className="w-20 bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none text-center font-bold"
-                  />
-                  <select
-                    value={customUnit}
-                    onChange={(e) =>
-                      handleCustomDurationChange(customValue, e.target.value as 'hours' | 'days')
-                    }
-                    className="bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none font-medium cursor-pointer"
-                  >
-                    <option value="hours">Hours</option>
-                    <option value="days">Business Days</option>
-                  </select>
-                  <span className="text-[11px] text-slate-400 ml-auto">
-                    ({formData.resolutionMinutes} mins total)
-                  </span>
-                </div>
-              </div>
+                  }}
+                  className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none cursor-pointer"
+                >
+                  {RESOLUTION_PRESETS.map((preset) => (
+                    <option key={preset.minutes} value={preset.minutes}>
+                      {preset.label}
+                    </option>
+                  ))}
+                  <option value="custom">Custom Hours...</option>
+                </select>
 
-              {/* 3. Working Days Schedule */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                    3. Applicable Working Days <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleSetPresetDays([1, 2, 3, 4, 5])}
-                      className="text-[11px] font-semibold text-indigo-600 hover:underline cursor-pointer"
-                    >
-                      Mon – Fri
-                    </button>
-                    <span className="text-slate-300">•</span>
-                    <button
-                      type="button"
-                      onClick={() => handleSetPresetDays([1, 2, 3, 4, 5, 6, 7])}
-                      className="text-[11px] font-semibold text-indigo-600 hover:underline cursor-pointer"
-                    >
-                      All Days
-                    </button>
+                {/* Custom Hours Input (only shown when custom option chosen) */}
+                {!isPresetSelected && (
+                  <div className="mt-2 flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="text-xs text-slate-500">Custom target:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={customHours}
+                      onChange={(e) => {
+                        const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                        setCustomHours(val);
+                        setFormData({ ...formData, resolutionMinutes: val * 60 });
+                      }}
+                      className="w-20 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-center font-bold outline-none"
+                    />
+                    <span className="text-xs text-slate-600">hours</span>
                   </div>
-                </div>
-
-                {/* Day selector pills */}
-                <div className="grid grid-cols-7 gap-1.5">
-                  {DAYS_OF_WEEK.map((day) => {
-                    const isSelected = (formData.workingDays || []).includes(day.value);
-                    return (
-                      <button
-                        key={day.value}
-                        type="button"
-                        onClick={() => handleDayToggle(day.value)}
-                        className={`py-2 rounded-xl text-xs font-semibold border transition-all text-center cursor-pointer ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                        {day.short}
-                      </button>
-                    );
-                  })}
-                </div>
+                )}
               </div>
 
-              {/* 4. Working Hours Schedule */}
+              {/* 3. Working Schedule (Clean 2-choice selector with optional custom expand) */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
-                  4. Business Hours Window <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Working Schedule <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="block text-[11px] text-slate-500 mb-1">Day Starts At</span>
-                    <input
-                      type="time"
-                      value={formData.workingHoursStart?.substring(0, 5) || '09:00'}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          workingHoursStart: `${e.target.value}:00`,
-                        })
-                      }
-                      required
-                      className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs text-slate-800 outline-none"
-                    />
-                  </div>
 
-                  <div>
-                    <span className="block text-[11px] text-slate-500 mb-1">Day Ends At</span>
-                    <input
-                      type="time"
-                      value={formData.workingHoursEnd?.substring(0, 5) || '17:00'}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          workingHoursEnd: `${e.target.value}:00`,
-                        })
-                      }
-                      required
-                      className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs text-slate-800 outline-none"
-                    />
+                <select
+                  value={scheduleMode}
+                  onChange={(e) =>
+                    handleScheduleModeChange(e.target.value as 'standard' | '24_7' | 'custom')
+                  }
+                  className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none cursor-pointer"
+                >
+                  <option value="standard">Mon – Fri, 9:00 AM – 5:00 PM (Standard Business Hours)</option>
+                  <option value="24_7">Every Day, 24/7 Coverage (Around the Clock)</option>
+                  <option value="custom">Custom Days & Hours...</option>
+                </select>
+
+                {/* Custom schedule details (only visible if user specifically selects custom) */}
+                {scheduleMode === 'custom' && (
+                  <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div>
+                      <span className="text-[11px] font-semibold text-slate-600 block mb-1">
+                        Active Days:
+                      </span>
+                      <div className="grid grid-cols-7 gap-1">
+                        {DAYS_OF_WEEK.map((day) => {
+                          const isSelected = (formData.workingDays || []).includes(day.value);
+                          return (
+                            <button
+                              key={day.value}
+                              type="button"
+                              onClick={() => handleDayToggle(day.value)}
+                              className={`py-1.5 rounded-lg text-[11px] font-semibold border transition-all text-center cursor-pointer ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {day.short}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-500 block mb-0.5">Start Time</span>
+                        <input
+                          type="time"
+                          value={formData.workingHoursStart?.substring(0, 5) || '09:00'}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              workingHoursStart: `${e.target.value}:00`,
+                            })
+                          }
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 block mb-0.5">End Time</span>
+                        <input
+                          type="time"
+                          value={formData.workingHoursEnd?.substring(0, 5) || '17:00'}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              workingHoursEnd: `${e.target.value}:00`,
+                            })
+                          }
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 outline-none"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-
-              {/* Optional Advanced Settings (Hidden by default so HR users are never overwhelmed) */}
-              <details className="text-xs border border-slate-200/80 rounded-xl p-3 bg-slate-50/50 group">
-                <summary className="font-semibold text-slate-600 flex items-center gap-1.5 cursor-pointer list-none">
-                  <Sliders className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Advanced: Escalation Webhooks (Optional)</span>
-                  <span className="text-[10px] text-slate-400 font-normal ml-auto group-open:rotate-180 transition-transform">
-                    ▼
-                  </span>
-                </summary>
-                <div className="pt-3 mt-2 border-t border-slate-200/60">
-                  <p className="text-[11px] text-slate-500 mb-2">
-                    Webhook triggers for external alerting systems (leave empty if not configured).
-                  </p>
-                  <textarea
-                    rows={2}
-                    value={
-                      formData.escalationHooks
-                        ? JSON.stringify(formData.escalationHooks, null, 2)
-                        : ''
-                    }
-                    onChange={(e) => {
-                      try {
-                        const parsed = e.target.value.trim() ? JSON.parse(e.target.value) : null;
-                        setFormData({ ...formData, escalationHooks: parsed });
-                      } catch {
-                        // ignore typing errors until valid
-                      }
-                    }}
-                    placeholder='{"notifyUrl": "https://..."}'
-                    className="w-full bg-white border border-slate-200 font-mono text-[11px] p-2.5 rounded-lg text-slate-700 outline-none"
-                  />
-                </div>
-              </details>
 
               {/* Modal Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  {editingId ? 'Update Policy' : 'Save SLA Policy'}
+                  {editingId ? 'Update Policy' : 'Save Policy'}
                 </button>
               </div>
             </form>

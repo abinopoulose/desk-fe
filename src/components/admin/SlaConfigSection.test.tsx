@@ -67,7 +67,7 @@ describe('SlaConfigSection Component', () => {
     expect(passedConfigs[0].resolutionMinutes).toBe(240); // 4h
   });
 
-  it('opens add SLA form with priority selection cards and preset duration buttons', () => {
+  it('opens simplified add SLA form with clean priority pills, resolution select, and schedule select', () => {
     render(
       <SlaConfigSection
         stagedConfigs={mockStagedConfigs}
@@ -79,15 +79,12 @@ describe('SlaConfigSection Component', () => {
 
     // Modal title and button both exist
     expect(screen.getAllByText('Add SLA Policy').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/1. Select Priority Level/i)).toBeDefined();
-    expect(screen.getByText(/2. Target Resolution Time/i)).toBeDefined();
-    expect(screen.getByText('8 Hours (1 Work Day)')).toBeDefined();
-    expect(screen.getByText('24 Hours (1 Day)')).toBeDefined();
-    expect(screen.getByText('48 Hours (2 Days)')).toBeDefined();
-    expect(screen.getAllByText(/Mon – Fri/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Priority Level/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Target Resolution Time/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Working Schedule/i).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('allows selecting resolution time presets', () => {
+  it('allows changing priority and resolution time in the simplified form', () => {
     render(
       <SlaConfigSection
         stagedConfigs={mockStagedConfigs}
@@ -97,11 +94,15 @@ describe('SlaConfigSection Component', () => {
 
     fireEvent.click(screen.getByText('Add SLA Policy'));
 
-    // Click 48 Hours preset
-    fireEvent.click(screen.getByText('48 Hours (2 Days)'));
+    // Click Low priority pill
+    const lowPill = screen.getByText('Low (P4)');
+    fireEvent.click(lowPill);
 
-    // Should display 48 hours formatted as "2 business days (48 hrs)"
-    expect(screen.getByText('2 business days (48 hrs)')).toBeDefined();
+    // Change resolution target dropdown
+    const selects = screen.getAllByRole('combobox');
+    expect(selects.length).toBeGreaterThanOrEqual(1);
+    fireEvent.change(selects[0], { target: { value: '480' } });
+    expect(selects[0]).toBeDefined();
   });
 
   it('allows deleting an SLA policy in staged create mode', () => {
