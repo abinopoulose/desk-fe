@@ -1,12 +1,14 @@
 import { PageHeaderSkeleton, CardSkeleton } from "../../components/common/Skeletons";
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
 import type { FormSchema } from '../../types/formSchema';
 import { useCreateTicket } from '../../hooks';
-import { TICKET_PRIORITY_ITEMS } from '../../constants';
-import { BrowseFoldersPage } from '../folders/BrowseFoldersPage';
+import { ROUTES, TICKET_PRIORITY_ITEMS } from '../../constants';
+import { ArchiveBrowser } from '../../components/archive/ArchiveBrowser';
 
 export const CreateTicketPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     typeId,
     schemaResponse,
@@ -24,7 +26,7 @@ export const CreateTicketPage: React.FC = () => {
   } = useCreateTicket();
 
   if (!typeId) {
-    return <BrowseFoldersPage />;
+    return <ArchiveBrowser />;
   }
 
   if (loadingSchema) {
@@ -52,6 +54,14 @@ export const CreateTicketPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <button
+        type="button"
+        onClick={() => navigate(ROUTES.TICKETS.NEW)}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-amber-600 mb-6 transition-colors group cursor-pointer"
+      >
+        <span className="transition-transform group-hover:-translate-x-1">←</span>
+        <span>Back to Case Archives</span>
+      </button>
       {error && (
         <div className="mb-4 p-4 bg-red-100 text-red-800 rounded" role="alert">
           {error}
