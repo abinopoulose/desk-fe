@@ -1,8 +1,82 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  ShieldCheck, 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  Shield, 
+  AlertCircle, 
+  X, 
+  Check, 
+  Lock,
+  Layers,
+  CheckSquare,
+  Square
+} from 'lucide-react';
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { DataGridSkeleton } from '../../components/common/Skeletons';
-import React from 'react';
 import { useRoles } from '../../hooks';
 import { AVAILABLE_PERMISSIONS, PERMISSION_LABELS } from '../../constants';
+import type { RoleDTO } from '../../types/role';
+
+interface PermissionGroup {
+  id: string;
+  title: string;
+  permissions: string[];
+}
+
+const PERMISSION_GROUPS: PermissionGroup[] = [
+  {
+    id: 'tickets',
+    title: 'Ticket Management',
+    permissions: [
+      'TICKET_READ',
+      'TICKET_WRITE',
+      'TICKET_DELETE',
+      'TICKET_MANAGEMENT',
+      'TICKET_TYPE_READ',
+      'TICKET_TYPE_WRITE',
+      'TICKET_TYPE_DELETE',
+    ],
+  },
+  {
+    id: 'users',
+    title: 'Users & Access Control',
+    permissions: [
+      'USER_READ',
+      'USER_WRITE',
+      'USER_DELETE',
+      'USER_INVITE',
+      'ROLE_READ',
+      'ROLE_WRITE',
+    ],
+  },
+  {
+    id: 'org',
+    title: 'Departments & Folders',
+    permissions: [
+      'DEPARTMENT_READ',
+      'DEPARTMENT_WRITE',
+      'DEPARTMENT_DELETE',
+      'FOLDER_READ',
+      'FOLDER_WRITE',
+      'FOLDER_DELETE',
+    ],
+  },
+  {
+    id: 'system',
+    title: 'SLA, Analytics & Administration',
+    permissions: [
+      'SLA_READ',
+      'SLA_WRITE',
+      'METRICS_READ',
+      'AUDIT_READ',
+      'ADMIN_FULL_ACCESS',
+      'TENANT_MANAGE',
+    ],
+  },
+];
 
 export const RoleAdminPage: React.FC = () => {
   const {
@@ -20,8 +94,22 @@ export const RoleAdminPage: React.FC = () => {
     remove,
   } = useRoles({ autoFetch: true });
 
-  const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const filteredRoles = useMemo(() => {
+    if (!searchQuery.trim()) return roles;
+    const q = searchQuery.toLowerCase().trim();
+    return roles.filter(
+      (r) =>
+        r.roleName.toLowerCase().includes(q) ||
+        (r.description && r.description.toLowerCase().includes(q)) ||
+        (r.privileges && r.privileges.some((p) => p.toLowerCase().includes(q)))
+    );
+  }, [roles, searchQuery]);
 
   const handleDeleteClick = (roleName: string) => {
     setConfirmDelete(roleName);
@@ -31,7 +119,7 @@ export const RoleAdminPage: React.FC = () => {
     if (!confirmDelete) return;
     setIsDeleting(true);
     try {
-      await remove(confirmDelete, true); // true to skip confirm in hook
+      await remove(confirmDelete, true);
     } catch (err) {
       console.error('Delete failed', err);
     } finally {
@@ -40,168 +128,467 @@ export const RoleAdminPage: React.FC = () => {
     }
   };
 
+  const handleSaveRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalError(null);
+    setIsSubmitting(true);
+    try {
+      const result = await save(e);
+      if (!result) {
+        setModalError('Failed to save role. Please check your inputs.');
+      }
+    } catch (err: unknown) {
+      console.error('Save failed', err);
+      setModalError('Failed to save role.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Group permission helpers
+  const handleToggleGroup = (groupPermissions: string[]) => {
+    const allSelected = groupPermissions.every((p) => formState.permissions.includes(p));
+    let nextPermissions: string[];
+    if (allSelected) {
+      nextPermissions = formState.permissions.filter((p) => !groupPermissions.includes(p));
+    } else {
+      const added = groupPermissions.filter((p) => !formState.permissions.includes(p));
+      nextPermissions = [...formState.permissions, ...added];
+    }
+    setFormField('permissions', nextPermissions);
+  };
+
+  const handleSelectAllPermissions = () => {
+    setFormField('permissions', [...AVAILABLE_PERMISSIONS]);
+  };
+
+  const handleClearAllPermissions = () => {
+    setFormField('permissions', []);
+  };
+
   return (
-    <>
-    <div className="p-6">
-      
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Role Admin Page</h1>
-        <button
-          onClick={() => startEdit()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
-        >
-          Create Role
-        </button>
+    <div className="min-h-full bg-slate-50 text-slate-800 p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-    </div>
+        {/* Header Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-2xs">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  Roles & Permissions
+                </h1>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  {roles.length}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Configure security roles, access policies, and granular system privileges
+              </p>
+            </div>
+          </div>
 
-      {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-          {error}
-          
-    </div>
-      )}
+          <button
+            type="button"
+            onClick={() => {
+              setModalError(null);
+              startEdit();
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Role</span>
+          </button>
+        </div>
 
-      {loading ? (
-        <div className="p-6"><DataGridSkeleton rows={5} columns={4} /></div>
-      ) : (
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="p-4 font-medium text-gray-600">Role Name</th>
-                <th className="p-4 font-medium text-gray-600">Description</th>
-                <th className="p-4 font-medium text-gray-600">Privileges</th>
-                <th className="p-4 font-medium text-gray-600 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {roles.map((role) => (
-                <tr key={role.id || role.roleName} className="border-b hover:bg-gray-50">
-                  <td className="p-4 font-medium">{role.roleName}</td>
-                  <td className="p-4 text-gray-600">{role.description || '-'}</td>
-                  <td className="p-4 text-gray-600">
-                    <div className="flex flex-wrap gap-1">
-                      {role.privileges.map((priv) => (
-                        <span key={priv} className="px-2 py-1 bg-gray-100 text-xs rounded">
-                          {(PERMISSION_LABELS[priv] || priv).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </span>
-                      ))}
-                      
-    </div>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => startEdit(role)}
-                      className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(role.roleName)}
-                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {roles.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-500">
-                    No roles found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          
-    </div>
-      )}
+        {/* Global Error Banner */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center gap-3 text-sm">
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {/* Create / Edit Role Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <h2 className="text-xl font-bold mb-4">
-              {isEditing ? 'Edit Role' : 'Create Role'}
-            </h2>
-            <form onSubmit={save} className="flex flex-col flex-1 min-h-0">
-              <div className="mb-4">
-                <label htmlFor="roleName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Role Name *
-                </label>
-                <input
-                  id="roleName"
-                  type="text"
-                  value={formState.name}
-                  onChange={(e) => setFormField('name', e.target.value)}
-                  className="w-full border p-2 rounded"
-                  required
-                  disabled={isEditing}
-                />
-                
-    </div>
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <input
-                  id="description"
-                  type="text"
-                  value={formState.description}
-                  onChange={(e) => setFormField('description', e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-                
-    </div>
-              <div className="mb-4 flex-1 overflow-y-auto">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Privileges / Permissions
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {AVAILABLE_PERMISSIONS.map((priv) => (
-                    <label key={priv} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formState.permissions.includes(priv)}
-                        onChange={() => togglePermission(priv)}
-                        className="rounded text-blue-600"
-                      />
-                      <span className="text-sm">
-                        {(PERMISSION_LABELS[priv] || priv).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                      </span>
-                    </label>
-                  ))}
-                  
-    </div>
-                
-    </div>
-              <div className="flex justify-end space-x-2 pt-4 border-t">
+        {/* Search & Stats Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search roles or privileges..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white hover:border-slate-300 focus:border-indigo-500 border border-slate-200 rounded-xl py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 transition-all shadow-2xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div className="text-xs text-slate-400">
+            Showing <span className="font-semibold text-slate-700">{filteredRoles.length}</span> of {roles.length} roles
+          </div>
+        </div>
+
+        {/* Content Area */}
+        {loading ? (
+          <div className="p-6 bg-white rounded-2xl border border-slate-200">
+            <DataGridSkeleton rows={5} columns={4} />
+          </div>
+        ) : filteredRoles.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
+              <Shield className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-900 mb-1">
+              {searchQuery ? 'No matching roles' : 'No roles created'}
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mb-4">
+              {searchQuery 
+                ? `No role names, descriptions, or privileges match "${searchQuery}".` 
+                : 'Define roles to control what your employees and administrators can access.'}
+            </p>
+            {!searchQuery && (
+              <button
+                type="button"
+                onClick={() => startEdit()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Role</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="py-3.5 px-5">Role Name</th>
+                    <th className="py-3.5 px-5">Description</th>
+                    <th className="py-3.5 px-5">Assigned Privileges</th>
+                    <th className="py-3.5 px-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {filteredRoles.map((role: RoleDTO) => {
+                    const privCount = role.privileges?.length || 0;
+                    const isSuperAdmin = role.privileges?.includes('ADMIN_FULL_ACCESS');
+                    return (
+                      <tr 
+                        key={role.id || role.roleName} 
+                        className="hover:bg-slate-50/60 transition-colors group"
+                      >
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                              <Shield className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                  {role.roleName}
+                                </span>
+                                {isSuperAdmin && (
+                                  <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-bold">
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-5 text-slate-600 max-w-xs">
+                          <p className="line-clamp-2 leading-relaxed">
+                            {role.description || <span className="text-slate-400 italic">No description</span>}
+                          </p>
+                        </td>
+
+                        <td className="py-4 px-5 max-w-md">
+                          <div className="flex flex-wrap items-center gap-1">
+                            {role.privileges?.slice(0, 4).map((priv) => (
+                              <span 
+                                key={priv} 
+                                className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-medium rounded-md border border-slate-200/70 truncate max-w-[150px]"
+                                title={PERMISSION_LABELS[priv] || priv}
+                              >
+                                {PERMISSION_LABELS[priv] || priv}
+                              </span>
+                            ))}
+                            {privCount > 4 && (
+                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-semibold rounded-md border border-indigo-100">
+                                +{privCount - 4} more
+                              </span>
+                            )}
+                            {privCount === 0 && (
+                              <span className="text-slate-400 text-xs italic">
+                                No privileges assigned
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setModalError(null);
+                                startEdit(role);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/70 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                              title="Edit role"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteClick(role.roleName)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50/70 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                              title="Delete role"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Create / Edit Role Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+            <div 
+              className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="role-modal-title"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 id="role-modal-title" className="text-base font-bold text-slate-900">
+                      {isEditing ? `Edit Role: ${formState.name}` : 'Create New Role'}
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      {isEditing ? 'Modify permissions and role description' : 'Define name, purpose, and system privileges'}
+                    </p>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
                 >
-                  Cancel
+                  <X className="w-4 h-4" />
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
-                >
-                  {isEditing ? 'Update Role' : 'Save Role'}
-                </button>
-                
+              </div>
+
+              {/* Modal Form */}
+              <form onSubmit={handleSaveRole} className="flex flex-col flex-1 overflow-hidden">
+                <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                  {modalError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{modalError}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="roleName" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Role Identifier <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        id="roleName"
+                        type="text"
+                        placeholder="e.g. TIER_1_SUPPORT"
+                        value={formState.name}
+                        onChange={(e) => setFormField('name', e.target.value)}
+                        disabled={isEditing}
+                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white disabled:bg-slate-100 disabled:text-slate-500 border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                        required
+                        autoFocus={!isEditing}
+                      />
+                      {isEditing && (
+                        <span className="text-[10px] text-slate-400 mt-1 block flex items-center gap-1">
+                          <Lock className="w-3 h-3 text-slate-400" />
+                          Role identifiers cannot be renamed once created
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Description
+                      </label>
+                      <input
+                        id="description"
+                        type="text"
+                        placeholder="e.g. Handles initial triage and customer queries"
+                        value={formState.description}
+                        onChange={(e) => setFormField('description', e.target.value)}
+                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Permissions Selection Header */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Role Privileges ({formState.permissions.length} of {AVAILABLE_PERMISSIONS.length})
+                        </h3>
+                        <p className="text-[11px] text-slate-400">
+                          Select the specific operations this role is allowed to perform
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleSelectAllPermissions}
+                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                        >
+                          Select All
+                        </button>
+                        <span className="text-slate-300">•</span>
+                        <button
+                          type="button"
+                          onClick={handleClearAllPermissions}
+                          className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Categorized Permission Groups */}
+                    <div className="space-y-4 mt-4">
+                      {PERMISSION_GROUPS.map((group) => {
+                        const groupActiveCount = group.permissions.filter((p) => formState.permissions.includes(p)).length;
+                        const isAllSelected = groupActiveCount === group.permissions.length;
+
+                        return (
+                          <div key={group.id} className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-3.5">
+                            <div className="flex items-center justify-between mb-2.5">
+                              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                                {group.title}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => handleToggleGroup(group.permissions)}
+                                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center gap-1"
+                              >
+                                {isAllSelected ? (
+                                  <>
+                                    <Square className="w-3 h-3" />
+                                    <span>Deselect Group</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckSquare className="w-3 h-3" />
+                                    <span>Select Group</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {group.permissions.map((priv) => {
+                                const isChecked = formState.permissions.includes(priv);
+                                return (
+                                  <label
+                                    key={priv}
+                                    className={`flex items-center gap-2.5 p-2 rounded-lg border transition-all cursor-pointer select-none text-xs ${
+                                      isChecked
+                                        ? 'bg-indigo-50/80 border-indigo-300 text-indigo-950 font-medium'
+                                        : 'bg-white border-slate-200/80 text-slate-600 hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => togglePermission(priv)}
+                                      className="w-3.5 h-3.5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                                    />
+                                    <span className="truncate">
+                                      {PERMISSION_LABELS[priv] || priv}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Action Footer */}
+                <div className="p-4 px-6 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/70 shrink-0">
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !formState.name.trim()}
+                    className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Role'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmDialog 
+          open={!!confirmDelete} 
+          onClose={() => setConfirmDelete(null)} 
+          onConfirm={handleConfirmDelete} 
+          title="Delete Role" 
+          description={
+            <>
+              Are you sure you want to delete the role <strong>{confirmDelete}</strong>? Any users assigned this role will lose its permissions.
+            </>
+          } 
+          loading={isDeleting} 
+        />
+      </div>
     </div>
-            </form>
-            
-    </div>
-          
-    </div>
-      )}
-      
-    </div>
-      <ConfirmDialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={handleConfirmDelete} title="Delete Role" description={<>Are you sure you want to delete the role <strong>{confirmDelete}</strong>? This action cannot be undone.</>} loading={isDeleting} />
-  </>
   );
 };
