@@ -1,3 +1,5 @@
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { DataGridSkeleton } from "../../components/common/Skeletons";
 import { ROUTES } from '../../constants';
 import React from 'react';
 import { useNavigate } from 'react-router';
@@ -22,7 +24,27 @@ export const TicketStatusManager: React.FC = () => {
     handleMove,
   } = useTicketStatuses();
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const handleDeleteClick = (id: string) => {
+    setConfirmDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      await remove(confirmDelete, true);
+    } catch (err) {
+      console.error('Delete failed', err);
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
+    }
+  };
+
+  if (loading) return <div className="p-6"><DataGridSkeleton rows={5} columns={4} /></div>;
 
   return (
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
@@ -90,7 +112,7 @@ export const TicketStatusManager: React.FC = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => remove(status.id)}
+                    onClick={() => handleDeleteClick(status.id)}
                     className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
                   >
                     Delete
@@ -154,6 +176,7 @@ export const TicketStatusManager: React.FC = () => {
           </div>
         )}
       </div>
+      <ConfirmDialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={handleConfirmDelete} title="Delete Status" description={<>Are you sure you want to delete this status? This action cannot be undone.</>} loading={isDeleting} />
     </PrivilegeGate>
   );
 };

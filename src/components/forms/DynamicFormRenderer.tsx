@@ -9,6 +9,8 @@ import { NumberField } from './fields/NumberField';
 import { DateField } from './fields/DateField';
 import type { Validator } from '../../utils/validation';
 import { required, minLength, maxLength, minValue, maxValue, composeValidators } from '../../utils/validation';
+import { Grid, Button, Box } from '@mui/material';
+
 export interface DynamicFormRendererProps {
   schema: FormSchema;
   onSubmit: (data: Record<string, unknown>) => void;
@@ -18,6 +20,7 @@ export interface DynamicFormRendererProps {
 }
 
 const EMPTY_OBJECT = {};
+
 export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   schema,
   onSubmit,
@@ -25,7 +28,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   isSubmitting = false,
   externalErrors = {},
 }) => {
-      const [values, setValues] = useState<Record<string, any>>(initialData);
+  const [values, setValues] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -36,30 +39,11 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
 
   const validateField = (field: FormField, value: any): string | null => {
     const validators: Validator[] = [];
-    
-    if (field.required) {
-      validators.push(required);
-    }
-    
-    if (field.minLength !== undefined) {
-      // Create a custom validator here to match exactly what it previously returned 
-      // or just use the new minLength if tests are updated. But the new minLength returns `Must be at least ${min} characters`.
-      // Let's use the new minLength.
-      validators.push(minLength(field.minLength));
-    }
-    
-    if (field.maxLength !== undefined) {
-      validators.push(maxLength(field.maxLength));
-    }
-    
-    if (field.min !== undefined) {
-      validators.push(minValue(field.min));
-    }
-    
-    if (field.max !== undefined) {
-      validators.push(maxValue(field.max));
-    }
-    
+    if (field.required) validators.push(required);
+    if (field.minLength !== undefined) validators.push(minLength(field.minLength));
+    if (field.maxLength !== undefined) validators.push(maxLength(field.maxLength));
+    if (field.min !== undefined) validators.push(minValue(field.min));
+    if (field.max !== undefined) validators.push(maxValue(field.max));
     return composeValidators(...validators)(value);
   };
 
@@ -69,9 +53,8 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     return values[depField] === depValue;
   };
 
-    const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: any) => {
     setValues((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user changes value
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -83,7 +66,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     const newErrors: Record<string, string> = {};
     const submitData: Record<string, unknown> = {};
     let hasErrors = false;
@@ -104,13 +86,10 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
       setErrors(newErrors);
       return;
     }
-
     onSubmit(submitData);
   };
 
   const renderField = (field: FormField) => {
-    if (!isFieldVisible(field)) return null;
-
     const props = {
       field,
       value: values[field.name],
@@ -119,33 +98,34 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     };
 
     switch (field.type) {
-      case 'text':
-        return <TextField key={field.name} {...props} />;
-      case 'textarea':
-        return <TextAreaField key={field.name} {...props} />;
-      case 'select':
-        return <SelectField key={field.name} {...props} />;
-      case 'checkbox':
-        return <CheckboxField key={field.name} {...props} />;
-      case 'number':
-        return <NumberField key={field.name} {...props} />;
-      case 'date':
-        return <DateField key={field.name} {...props} />;
-      default:
-        return null;
+      case 'text': return <TextField key={field.name} {...props} />;
+      case 'textarea': return <TextAreaField key={field.name} {...props} />;
+      case 'select': return <SelectField key={field.name} {...props} />;
+      case 'checkbox': return <CheckboxField key={field.name} {...props} />;
+      case 'number': return <NumberField key={field.name} {...props} />;
+      case 'date': return <DateField key={field.name} {...props} />;
+      default: return null;
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {schema.fields.map(renderField)}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isSubmitting ? 'Submitting...' : 'Submit'}
-      </button>
-    </form>
+    <Box component="form" onSubmit={handleSubmit} noValidate>
+      <Grid container spacing={3}>
+        {schema.fields.map((field) => {
+          if (!isFieldVisible(field)) return null;
+          const isFullWidth = field.type === 'textarea' || field.type === 'checkbox';
+          return (
+            <Grid size={{ xs: 12, md: isFullWidth ? 12 : 6 }} key={field.name}>
+              {renderField(field)}
+            </Grid>
+          );
+        })}
+        <Grid size={{ xs: 12 }}>
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </Button>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };

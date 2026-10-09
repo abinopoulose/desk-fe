@@ -1,41 +1,66 @@
 import React from 'react';
+import { Box, Typography, Chip } from '@mui/material';
+import { EmptyState } from '../common/EmptyState';
+import { ListAlt as ListAltIcon } from '@mui/icons-material';
 
 export interface TicketFormDataCardProps {
   formData?: Record<string, unknown>;
 }
 
+/** Convert snake_case / camelCase keys to "Title Case" labels */
+const humanizeKey = (key: string): string =>
+  key
+    .replace(/([A-Z])/g, ' $1')   // camelCase → spaced
+    .replace(/[_-]+/g, ' ')       // snake_case / kebab → spaced
+    .replace(/\b\w/g, (c) => c.toUpperCase()) // capitalise each word
+    .trim();
+
 export const TicketFormDataCard: React.FC<TicketFormDataCardProps> = ({ formData = {} }) => {
+  const entries = Object.entries(formData);
+
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4 border-b pb-2">Ticket Details</h3>
-      <div className="grid grid-cols-1 gap-4">
-        {Object.entries(formData).map(([key, value]) => (
-          <div key={key}>
-            <dt className="text-sm font-medium text-gray-500 capitalize">
-              {key.replace(/([A-Z])/g, ' $1').trim()}
-            </dt>
-            <dd className="mt-1 text-sm text-gray-900">
-              {typeof value === 'boolean' ? (
-                <span
-                  className={`px-2 py-0.5 rounded text-xs ${
-                    value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {value ? 'Yes' : 'No'}
-                </span>
-              ) : Array.isArray(value) ? (
-                <ul className="list-disc pl-5">
-                  {value.map((v, i) => (
-                    <li key={i}>{String(v)}</li>
-                  ))}
-                </ul>
-              ) : (
-                String(value) || '-'
-              )}
-            </dd>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1, p: 3 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, borderBottom: 1, borderColor: 'divider', pb: 1 }}>
+        Ticket Details
+      </Typography>
+
+      {entries.length === 0 ? (
+        <EmptyState
+          icon={<ListAltIcon />}
+          title="No form data provided"
+          description="This ticket does not have any custom form fields."
+        />
+      ) : (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+          {entries.map(([key, value]) => (
+            <Box key={key}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                {humanizeKey(key)}
+              </Typography>
+              <Box sx={{ mt: 0.5 }}>
+                {typeof value === 'boolean' ? (
+                  <Chip
+                    size="small"
+                    label={value ? 'Yes' : 'No'}
+                    color={value ? 'success' : 'error'}
+                    variant="outlined"
+                  />
+                ) : Array.isArray(value) ? (
+                  <ul className="list-disc pl-5">
+                    {value.map((v, i) => (
+                      <li key={i}>
+                        <Typography variant="body2">{String(v)}</Typography>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Typography variant="body2">{String(value) || '–'}</Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Box>
   );
 };

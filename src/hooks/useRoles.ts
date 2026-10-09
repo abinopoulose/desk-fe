@@ -123,12 +123,7 @@ export function useRoles(options?: UseRolesOptions): UseRolesReturn {
     cancelEdit: crud.cancelEdit,
     closeModal: crud.cancelEdit,
     save: crud.save as any,
-    remove: async (roleNameOrId: string, skipConfirm = false) => {
-      if (!skipConfirm && typeof window !== 'undefined' && window.confirm) {
-        if (!window.confirm(`Are you sure you want to delete role "${roleNameOrId}"?`)) {
-          return;
-        }
-      }
+    remove: async (roleNameOrId: string, /* skipConfirm = false */) => {
       await crud.remove(roleNameOrId);
     },
     refetch: crud.refetch as any,

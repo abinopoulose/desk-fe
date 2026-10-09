@@ -1,3 +1,4 @@
+import { DataGridSkeleton } from '../../components/common/Skeletons';
 import React, { useState } from 'react';
 import { useEmployeeManagement } from '../../hooks/useEmployeeManagement';
 import { Link } from 'react-router';
@@ -65,7 +66,7 @@ export const EmployeeManagementPage: React.FC = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <span className="text-slate-500 animate-pulse">Loading employees...</span>
+          <DataGridSkeleton rows={5} columns={4} />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

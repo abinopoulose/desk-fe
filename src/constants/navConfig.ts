@@ -1,5 +1,6 @@
+import type { ComponentType } from "react";
 import {
-  LayoutDashboard, Ticket, Network,
+  LayoutDashboard, Network,
   Settings, Building2, Users,
   BarChart3
 } from 'lucide-react';
@@ -7,21 +8,38 @@ import { ROUTES } from './routes';
 
 export interface NavItemConfig {
   to: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   requiredPrivilege?: string;
-  group: 'main' | 'admin' | 'analytics';
 }
 
-export const navConfig: NavItemConfig[] = [
-  { group: 'main', to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
-  { group: 'main', to: ROUTES.TICKETS.NEW, icon: Ticket, label: 'Create Ticket' },
-  { group: 'main', to: ROUTES.ORG_CHART, icon: Network, label: 'Org Chart' },
-  
-  { group: 'admin', to: ROUTES.ADMIN.TICKET_TYPES, icon: Settings, label: 'Ticket Master', requiredPrivilege: 'TICKET_TYPE_WRITE' },
-  { group: 'admin', to: ROUTES.ADMIN.DEPARTMENTS, icon: Building2, label: 'Departments', requiredPrivilege: 'DEPARTMENT_WRITE' },
-  { group: 'admin', to: ROUTES.ADMIN.EMPLOYEES, icon: Users, label: 'Employees', requiredPrivilege: 'USER_INVITE' },
-  { group: 'admin', to: ROUTES.ADMIN.ROLES, icon: Users, label: 'Roles & Permissions', requiredPrivilege: 'ROLE_WRITE' },
-  
-  { group: 'analytics', to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'METRICS_READ' },
+export interface NavGroup {
+  label: string;
+  items: NavItemConfig[];
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+}
+
+export const navConfig: NavGroup[] = [
+  {
+    label: 'Workspace',
+    items: [
+      { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
+      // Folders is missing in original navConfig but mentioned in task desc, we use TICKET_TYPES instead for now?
+      // Wait, there's no Folders route in navConfig. The desc says "Tickets, Folders, Metrics, Org Chart"
+      { to: ROUTES.ORG_CHART, icon: Network, label: 'Org Chart' },
+      { to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'METRICS_READ' },
+    ],
+  },
+  {
+    label: 'Administration',
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { to: ROUTES.ADMIN.TICKET_TYPES, icon: Settings, label: 'Ticket Master', requiredPrivilege: 'TICKET_TYPE_WRITE' },
+      { to: ROUTES.ADMIN.DEPARTMENTS, icon: Building2, label: 'Departments', requiredPrivilege: 'DEPARTMENT_WRITE' },
+      { to: ROUTES.ADMIN.EMPLOYEES, icon: Users, label: 'Employees', requiredPrivilege: 'USER_INVITE' },
+      { to: ROUTES.ADMIN.ROLES, icon: Users, label: 'Roles & Permissions', requiredPrivilege: 'ROLE_WRITE' },
+    ],
+  }
 ];

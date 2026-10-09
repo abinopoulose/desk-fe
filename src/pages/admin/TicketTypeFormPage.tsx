@@ -1,3 +1,4 @@
+import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { ROUTES } from '../../constants';
 import React from 'react';
 import { useNavigate } from 'react-router';
@@ -46,7 +47,7 @@ export const TicketTypeFormPage: React.FC = () => {
 
   const folderOptions = flattenFolders(treeData);
 
-  if (formLoading || depsLoading || treeLoading) return <div className="p-6">Loading...</div>;
+  if (formLoading || depsLoading || treeLoading) return <div className="p-6"><DataGridSkeleton rows={5} columns={4} /></div>;
 
   return (
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">

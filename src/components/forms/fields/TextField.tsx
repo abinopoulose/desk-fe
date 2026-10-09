@@ -1,21 +1,23 @@
 import React from 'react';
 import type { FieldProps } from './types';
+import { TextField as MuiTextField, useMediaQuery, useTheme } from '@mui/material';
 
 export const TextField: React.FC<FieldProps> = ({ field, value, onChange, error }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   return (
-    <div className="mb-4">
-      <label htmlFor={field.name} className="block text-sm font-medium mb-1">
-        {field.label} {field.required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        id={field.name}
-        type="text"
-        name={field.name}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-    </div>
+    <MuiTextField
+      id={field.name}
+      name={field.name}
+      label={field.label}
+      required={field.required}
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      error={!!error}
+      helperText={error}
+      fullWidth
+      size={isMobile ? 'medium' : 'small'}
+    />
   );
 };

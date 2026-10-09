@@ -1,3 +1,4 @@
+import { PageHeaderSkeleton, CardSkeleton } from "../../components/common/Skeletons";
 import React from 'react';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
 import type { FormSchema } from '../../types/formSchema';
@@ -27,7 +28,12 @@ export const CreateTicketPage: React.FC = () => {
   }
 
   if (loadingSchema) {
-    return <div className="p-8" data-testid="loading">Loading schema...</div>;
+    return (
+      <div className="p-8 max-w-4xl mx-auto space-y-6">
+        <PageHeaderSkeleton />
+        <CardSkeleton />
+      </div>
+    );
   }
 
   if (error) {

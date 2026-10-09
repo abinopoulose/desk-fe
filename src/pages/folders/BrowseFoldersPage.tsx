@@ -1,37 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router';
-import { FolderTreeNav } from '../../components/folders/FolderTreeNav';
-import { FolderContents } from '../../components/folders/FolderContents';
-import { useAuth } from '../../store/authStore';
-import { ROUTES } from '../../constants';
+import { createPortal } from 'react-dom';
 import { folderApi } from '../../api/folderApi';
+import type { FolderNodeDTO } from '../../types/folder';
+import { ROUTES } from '../../constants';
+import { useAuth } from '../../store/authStore';
+import { FolderTreeNav } from "../../components/folders/FolderTreeNav";
+import { FolderContents } from "../../components/folders/FolderContents";
 
-export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdminMode = false }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const folderId = searchParams.get('folderId');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+import { Box, Drawer, SwipeableDrawer, IconButton, Typography, Button, useMediaQuery, useTheme } from '@mui/material';
+import { Menu as MenuIcon, Add as AddIcon, CreateNewFolder as CreateNewFolderIcon } from '@mui/icons-material';
+
+export const BrowseFoldersPage: React.FC<{isAdminMode?: boolean}> = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { hasPrivilege } = useAuth();
-  
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
+  const isAdminMode = hasPrivilege('DEPARTMENT_WRITE');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const folderId = searchParams.get('folderId');
+
+  const [treeData, setTreeData] = useState<FolderNodeDTO[]>([]);
+  const [isTreeLoading, setIsTreeLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
-
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const [treeData, setTreeData] = useState<any[]>([]);
-  const [isTreeLoading, setIsTreeLoading] = useState(true);
+  
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
   useEffect(() => {
-    setPortalTarget(document.getElementById('header-portal-target'));
+    setPortalTarget(document.getElementById('header-actions'));
   }, []);
 
   useEffect(() => {
     const fetchTree = async () => {
+      setIsTreeLoading(true);
       try {
-        setIsTreeLoading(true);
         const data = await folderApi.getFolderTree();
         setTreeData(data);
       } catch (err) {
@@ -64,9 +72,8 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
       searchParams.delete('folderId');
       setSearchParams(searchParams);
     }
-    setIsSidebarOpen(false);
+    if (isMobile) setIsDrawerOpen(false);
   };
-
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
@@ -83,7 +90,7 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
   const handleContextMenu = (e: React.MouseEvent) => {
     if (!isAdminMode || !hasPrivilege('TICKET_TYPE_WRITE')) return;
     e.preventDefault();
-    setContextMenu({ x: e.pageX, y: e.pageY });
+    setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const handleNewClick = (e: React.MouseEvent) => {
@@ -93,14 +100,34 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
     setContextMenu({ x: rect.left, y: rect.bottom + 8 });
   };
 
-  const handleClickOutside = () => {
-    if (contextMenu) setContextMenu(null);
+  const toggleDrawer = (open: boolean) => (e: React.KeyboardEvent | React.MouseEvent) => {
+    if (e && e.type === 'keydown' && ((e as React.KeyboardEvent).key === 'Tab' || (e as React.KeyboardEvent).key === 'Shift')) return;
+    setIsDrawerOpen(open);
   };
 
-  useEffect(() => {
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, [contextMenu]);
+  const sidebarWidth = 280;
+
+  const sidebarContent = (
+    <Box sx={{ width: sidebarWidth, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="overline" sx={{ fontWeight: 600 }}>Drive</Typography>
+        {isMobile && (
+          <IconButton size="small" onClick={() => setIsDrawerOpen(false)}>
+            <Typography variant="h6" sx={{ lineHeight: 1 }}>×</Typography>
+          </IconButton>
+        )}
+      </Box>
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 1 }}>
+        <FolderTreeNav
+          key={`tree-${refreshKey}`}
+          activeFolderId={folderId}
+          onSelectFolder={handleSelectFolder}
+          treeData={treeData}
+          isLoading={isTreeLoading}
+        />
+      </Box>
+    </Box>
+  );
 
   const headerContent = (
     <div className="flex items-center justify-between w-full pr-4">
@@ -111,123 +138,126 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
   );
 
   return (
-    <div 
-      className="absolute top-16 left-0 right-0 bottom-0 bg-white flex flex-col overflow-hidden z-0" 
-    >
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden', bgcolor: 'background.default', position: 'relative' }}>
       {portalTarget && createPortal(headerContent, portalTarget)}
 
-      {isCreatingFolder && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 transform transition-all">
-            <h3 className="text-lg font-medium text-slate-900 mb-5">New folder</h3>
-            <input 
-              type="text" 
-              value={newFolderName}
-              onChange={e => setNewFolderName(e.target.value)}
-              placeholder="Untitled folder"
-              className="w-full border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 py-2 outline-none transition-shadow"
-              autoFocus
-              onKeyDown={(e) => { if(e.key === 'Enter') handleCreateFolder(); if(e.key === 'Escape') setIsCreatingFolder(false); }}
-            />
-            <div className="flex justify-end gap-1 mt-6">
-              <button 
-                onClick={() => setIsCreatingFolder(false)} 
-                className="px-4 py-2 text-indigo-600 font-medium text-sm rounded-full hover:bg-indigo-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleCreateFolder} 
-                className="px-4 py-2 text-indigo-600 font-medium text-sm rounded-full hover:bg-indigo-50 transition-colors"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Mobile Drawer */}
+      <SwipeableDrawer
+        anchor="left"
+        open={isDrawerOpen}
+        onClose={toggleDrawer(false)}
+        onOpen={toggleDrawer(true)}
+        ModalProps={{ keepMounted: true }}
+      >
+        {sidebarContent}
+      </SwipeableDrawer>
+
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: sidebarWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': { width: sidebarWidth, boxSizing: 'border-box', position: 'relative' },
+          }}
+        >
+          {sidebarContent}
+        </Drawer>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {isSidebarOpen && (
-          <div 
-            className="md:hidden fixed inset-0 bg-black/50 z-20"
-            onClick={() => setIsSidebarOpen(false)}
-          />
+      {/* Main Content */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {isMobile && (
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <IconButton onClick={toggleDrawer(true)}>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 500 }}>
+              Browse Folders
+            </Typography>
+          </Box>
         )}
 
-        <div className={`
-          fixed md:static inset-y-0 left-0 z-30
-          w-64 bg-slate-50 border-r border-slate-200 flex flex-col
-          transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}>
-          <div className="px-4 pt-4 pb-2 text-sm font-semibold text-slate-500 uppercase tracking-wider flex justify-between items-center">
-            Drive
-            <button 
-              className="md:hidden text-slate-500 hover:text-slate-700"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              ✕
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2">
-            <FolderTreeNav 
-              key={`tree-${refreshKey}`}
-              activeFolderId={folderId} 
-              onSelectFolder={handleSelectFolder}
-              treeData={treeData}
-              isLoading={isTreeLoading}
-            />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          <FolderContents 
+        <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <FolderContents
             key={`contents-${refreshKey}-${folderId || 'root'}`}
-            folderId={folderId} 
+            folderId={folderId}
             onSelectFolder={handleSelectFolder}
             isAdminMode={isAdminMode}
             breadcrumbs={breadcrumbs}
-            onNewClick={(e) => { e.stopPropagation(); handleNewClick(e); }}
-            onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e); }}
+            onNewClick={(e: React.MouseEvent) => { e.stopPropagation(); handleNewClick(e); }}
+            onContextMenu={handleContextMenu}
             rootFolders={treeData.map(node => ({ id: node.id, name: node.name }))}
             treeData={treeData}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
+      {/* Context Menu equivalent logic */}
       {contextMenu && (
-        <div 
-          className="fixed bg-white border border-slate-200 shadow-xl rounded-xl py-2 z-50 min-w-[220px] transition-all animate-in fade-in zoom-in-95 duration-100"
-          style={{ 
-            ...(contextMenu.y + 100 > window.innerHeight 
-              ? { bottom: window.innerHeight - contextMenu.y } 
-              : { top: contextMenu.y }),
-            ...(contextMenu.x + 220 > window.innerWidth 
-              ? { right: window.innerWidth - contextMenu.x } 
-              : { left: contextMenu.x })
-          }}
-        >
-          <div className="px-2">
-            <button 
-              className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-md flex items-center gap-3 transition-colors"
+        <>
+          <Box
+            sx={{ position: 'fixed', inset: 0, zIndex: 1299 }}
+            onClick={() => setContextMenu(null)}
+            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
+          />
+          <Box
+            sx={{
+              position: 'fixed',
+              top: contextMenu.y,
+              left: contextMenu.x,
+              bgcolor: 'background.paper',
+              boxShadow: 3,
+              borderRadius: 1,
+              zIndex: 1300,
+              minWidth: 200,
+              py: 1,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              fullWidth
+              sx={{ justifyContent: 'flex-start', px: 2, color: 'text.primary', textTransform: 'none' }}
+              startIcon={<CreateNewFolderIcon />}
               onClick={() => { setIsCreatingFolder(true); setContextMenu(null); }}
             >
-              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
               New folder
-            </button>
-            <div className="h-px bg-slate-100 my-1 mx-1"></div>
-            <button 
-              className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-md flex items-center gap-3 transition-colors"
+            </Button>
+            <Box sx={{ my: 0.5, borderBottom: 1, borderColor: 'divider' }} />
+            <Button
+              fullWidth
+              sx={{ justifyContent: 'flex-start', px: 2, color: 'primary.main', textTransform: 'none' }}
+              startIcon={<AddIcon />}
               onClick={() => { navigate(folderId ? `${ROUTES.ADMIN.TICKET_TYPE_NEW}?folderId=${folderId}` : ROUTES.ADMIN.TICKET_TYPE_NEW); setContextMenu(null); }}
             >
-              <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
               New ticket type
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Box>
+        </>
       )}
-    </div>
+
+      {/* Create Folder Modal */}
+      {isCreatingFolder && (
+        <Box sx={{ position: 'fixed', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', zIndex: 1400, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+          <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 24, p: 3, width: '100%', maxWidth: 400 }}>
+            <Typography variant="h6" sx={{ mb: 3 }}>New folder</Typography>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={e => setNewFolderName(e.target.value)}
+              placeholder="Untitled folder"
+              className="w-full border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 py-2 outline-none"
+              autoFocus
+              onKeyDown={(e) => { if(e.key === 'Enter') handleCreateFolder(); if(e.key === 'Escape') setIsCreatingFolder(false); }}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
+              <Button onClick={() => setIsCreatingFolder(false)} sx={{ borderRadius: 20, textTransform: 'none' }}>Cancel</Button>
+              <Button onClick={handleCreateFolder} variant="contained" sx={{ borderRadius: 20, textTransform: 'none' }}>Create</Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+    </Box>
   );
 };

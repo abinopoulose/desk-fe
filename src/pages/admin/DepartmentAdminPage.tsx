@@ -1,3 +1,5 @@
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { DataGridSkeleton } from '../../components/common/Skeletons';
 import React, { useState } from 'react';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 import { useDepartments } from '../../hooks/useDepartments';
@@ -44,14 +46,24 @@ export const DepartmentAdminPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete the department "${name}"?`)) {
-      try {
-        await remove(id);
-      } catch (error) {
-        console.error('Failed to delete department', error);
-        alert('Failed to delete department. Check console for details.');
-      }
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDelete({ id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      await remove(confirmDelete.id);
+    } catch (error) {
+      console.error('Failed to delete department', error);
+      alert('Failed to delete department. Check console for details.');
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
     }
   };
 
@@ -69,7 +81,7 @@ export const DepartmentAdminPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div>Loading...</div>
+          <div className="p-6"><DataGridSkeleton rows={5} columns={4} /></div>
         ) : (
           <div className="bg-white rounded shadow overflow-hidden">
             <table className="w-full text-left border-collapse">
@@ -93,7 +105,7 @@ export const DepartmentAdminPage: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(dept.id, dept.name)}
+                        onClick={() => handleDeleteClick(dept.id, dept.name)}
                         className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
                       >
                         Delete
@@ -164,6 +176,7 @@ export const DepartmentAdminPage: React.FC = () => {
           </div>
         )}
       </div>
+    <ConfirmDialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={handleConfirmDelete} title="Delete Department" description={<>Are you sure you want to delete the department <strong>{confirmDelete?.name}</strong>? This action cannot be undone.</>} loading={isDeleting} />
     </PrivilegeGate>
   );
 };

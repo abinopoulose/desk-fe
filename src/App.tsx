@@ -19,9 +19,11 @@ import { DepartmentAdminPage } from './pages/admin/DepartmentAdminPage';
 import { RoleAdminPage } from './pages/admin/RoleAdminPage';
 import { EmployeeManagementPage } from './pages/admin/EmployeeManagementPage';
 import { PageErrorBoundary } from './components/errors/PageErrorBoundary';
+import { NotFoundPage } from './pages/errors/NotFoundPage';
+import { useAuth } from './store/authStore';
 
 function App() {
-
+  const { isAuthenticated } = useAuth();
 
   return (
     <BrowserRouter>
@@ -46,7 +48,9 @@ function App() {
             <Route path={ROUTES.METRICS} element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
             <Route path={ROUTES.ORG_CHART} element={<OrgChartPage />} />
             <Route path={ROUTES.USERS.PROFILE_PATH} element={<UserProfilePage />} />
+            {isAuthenticated && <Route path="*" element={<NotFoundPage />} />}
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </PageErrorBoundary>
     </BrowserRouter>
@@ -54,4 +58,3 @@ function App() {
 }
 
 export default App;
-

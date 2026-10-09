@@ -1,3 +1,5 @@
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { DataGridSkeleton } from '../../components/common/Skeletons';
 import React from 'react';
 import { useRoles } from '../../hooks';
 import { AVAILABLE_PERMISSIONS, PERMISSION_LABELS } from '../../constants';
@@ -18,8 +20,30 @@ export const RoleAdminPage: React.FC = () => {
     remove,
   } = useRoles({ autoFetch: true });
 
+  const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const handleDeleteClick = (roleName: string) => {
+    setConfirmDelete(roleName);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      await remove(confirmDelete, true); // true to skip confirm in hook
+    } catch (err) {
+      console.error('Delete failed', err);
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
+    }
+  };
+
   return (
+    <>
     <div className="p-6">
+      
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Role Admin Page</h1>
         <button
@@ -28,16 +52,18 @@ export const RoleAdminPage: React.FC = () => {
         >
           Create Role
         </button>
-      </div>
+        
+    </div>
 
       {error && (
         <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
           {error}
-        </div>
+          
+    </div>
       )}
 
       {loading ? (
-        <div>Loading roles...</div>
+        <div className="p-6"><DataGridSkeleton rows={5} columns={4} /></div>
       ) : (
         <div className="bg-white rounded shadow overflow-hidden">
           <table className="w-full text-left border-collapse">
@@ -58,10 +84,11 @@ export const RoleAdminPage: React.FC = () => {
                     <div className="flex flex-wrap gap-1">
                       {role.privileges.map((priv) => (
                         <span key={priv} className="px-2 py-1 bg-gray-100 text-xs rounded">
-                          {PERMISSION_LABELS[priv] || priv}
+                          {(PERMISSION_LABELS[priv] || priv).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                         </span>
                       ))}
-                    </div>
+                      
+    </div>
                   </td>
                   <td className="p-4 text-right space-x-2">
                     <button
@@ -71,7 +98,7 @@ export const RoleAdminPage: React.FC = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => remove(role.roleName)}
+                      onClick={() => handleDeleteClick(role.roleName)}
                       className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
                     >
                       Delete
@@ -88,7 +115,8 @@ export const RoleAdminPage: React.FC = () => {
               )}
             </tbody>
           </table>
-        </div>
+          
+    </div>
       )}
 
       {/* Create / Edit Role Modal */}
@@ -112,7 +140,8 @@ export const RoleAdminPage: React.FC = () => {
                   required
                   disabled={isEditing}
                 />
-              </div>
+                
+    </div>
               <div className="mb-4">
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                   Description
@@ -124,7 +153,8 @@ export const RoleAdminPage: React.FC = () => {
                   onChange={(e) => setFormField('description', e.target.value)}
                   className="w-full border p-2 rounded"
                 />
-              </div>
+                
+    </div>
               <div className="mb-4 flex-1 overflow-y-auto">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Privileges / Permissions
@@ -139,12 +169,14 @@ export const RoleAdminPage: React.FC = () => {
                         className="rounded text-blue-600"
                       />
                       <span className="text-sm">
-                        {PERMISSION_LABELS[priv] || priv}
+                        {(PERMISSION_LABELS[priv] || priv).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                       </span>
                     </label>
                   ))}
-                </div>
-              </div>
+                  
+    </div>
+                
+    </div>
               <div className="flex justify-end space-x-2 pt-4 border-t">
                 <button
                   type="button"
@@ -159,11 +191,17 @@ export const RoleAdminPage: React.FC = () => {
                 >
                   {isEditing ? 'Update Role' : 'Save Role'}
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                
     </div>
+            </form>
+            
+    </div>
+          
+    </div>
+      )}
+      
+    </div>
+      <ConfirmDialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={handleConfirmDelete} title="Delete Role" description={<>Are you sure you want to delete the role <strong>{confirmDelete}</strong>? This action cannot be undone.</>} loading={isDeleting} />
+  </>
   );
 };

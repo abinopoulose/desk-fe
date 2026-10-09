@@ -1,4 +1,6 @@
+import { Warning, AccessTime } from "@mui/icons-material";
 import React from 'react';
+import { Chip, Box, Typography } from '@mui/material';
 import { Link } from 'react-router';
 import type { TicketDetailResponse } from '../../types/ticket';
 import { getPriorityColor, getPriorityLabel } from '../../constants';
@@ -19,10 +21,24 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold">#{ticket.id.substring(0, 8)}</h1>
+    <Box
+      sx={{
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 1,
+        p: 3,
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        justifyContent: 'space-between',
+        alignItems: { xs: 'flex-start', md: 'center' },
+        gap: 2,
+      }}
+    >
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            #{ticket.id.substring(0, 8)}
+          </Typography>
           <button
             onClick={handleCopy}
             className="p-1 text-gray-400 hover:text-gray-600 rounded"
@@ -30,29 +46,27 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
           >
             Copy
           </button>
-          <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-            {getPriorityLabel(ticket.priority)}
-          </span>
-        </div>
-        <h2 className="text-xl text-gray-800">{ticket.ticketType.title}</h2>
-        <div className="text-sm text-gray-500 mt-2">
+          <Chip size="small" color={getPriorityColor(ticket.priority) as any} label={getPriorityLabel(ticket.priority)} icon={ticket.priority <= 2 ? <Warning fontSize="small" /> : <AccessTime fontSize="small" />} />
+        </Box>
+        <Typography variant="h6" color="text.primary">{ticket.ticketType.title}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Opened on {new Date(ticket.createdAt).toLocaleDateString()} by{' '}
           <Link to={`/users/${ticket.requester.id}`} className="text-blue-600 hover:underline">
             {ticket.requester.fullName}
           </Link>
           <span className="mx-2">•</span>
           Updated {new Date(ticket.updatedAt).toLocaleString()}
-        </div>
-      </div>
+        </Typography>
+      </Box>
 
-      <div className="flex flex-col items-end gap-3">
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-start', md: 'flex-end' }, gap: 1 }}>
         <SLAIndicator
           createdAt={ticket.createdAt}
           dueAt={ticket.slaDueAt}
           breached={ticket.slaBreached}
           statusState={ticket.currentStatus.mappedState}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };

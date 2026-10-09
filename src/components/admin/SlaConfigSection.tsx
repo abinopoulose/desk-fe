@@ -1,3 +1,4 @@
+import { DataGridSkeleton } from "../common/Skeletons";
 import React, { useEffect, useState } from 'react';
 import { slaApi } from '../../api/slaApi';
 import type { SlaConfigDTO, CreateSlaConfigRequest } from '../../types/sla';
@@ -132,7 +133,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({ ticketTypeId
       </div>
 
       {loading ? (
-        <div>Loading SLAs...</div>
+        <DataGridSkeleton rows={2} columns={3} />
       ) : (
         <div className="overflow-hidden border rounded-lg">
           <table className="w-full text-left border-collapse">

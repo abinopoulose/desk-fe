@@ -1,27 +1,56 @@
 import React from 'react';
 import type { FieldProps } from './types';
+import { Autocomplete, TextField, MenuItem, useMediaQuery, useTheme } from '@mui/material';
 
 export const SelectField: React.FC<FieldProps> = ({ field, value, onChange, error }) => {
-  return (
-    <div className="mb-4">
-      <label htmlFor={field.name} className="block text-sm font-medium mb-1">
-        {field.label} {field.required && <span className="text-red-500">*</span>}
-      </label>
-      <select
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const options = field.options || [];
+
+  if (options.length > 5) {
+    return (
+      <Autocomplete
         id={field.name}
-        name={field.name}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full p-2 border rounded bg-white ${error ? 'border-red-500' : 'border-gray-300'}`}
-      >
-        <option value="">Select an option</option>
-        {field.options?.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-    </div>
+        options={options}
+        value={value || null}
+        onChange={(_, newValue) => onChange(newValue)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            name={field.name}
+            label={field.label}
+            required={field.required}
+            error={!!error}
+            helperText={error}
+            size={isMobile ? 'medium' : 'small'}
+          />
+        )}
+      />
+    );
+  }
+
+  return (
+    <TextField
+      id={field.name}
+      name={field.name}
+      label={field.label}
+      select
+      required={field.required}
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      error={!!error}
+      helperText={error}
+      fullWidth
+      size={isMobile ? 'medium' : 'small'}
+    >
+      <MenuItem value="">
+        <em>Select an option</em>
+      </MenuItem>
+      {options.map((opt) => (
+        <MenuItem key={opt} value={opt}>
+          {opt}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 };

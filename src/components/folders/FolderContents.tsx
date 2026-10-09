@@ -1,3 +1,6 @@
+import { Breadcrumbs, Link as MuiLink, Typography } from '@mui/material';
+import { NavigateNext as NavigateNextIcon } from '@mui/icons-material';
+import { DataGridSkeleton } from "../common/Skeletons";
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { folderApi } from '../../api/folderApi';
@@ -143,8 +146,8 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
 
   if (isLoading && !contents) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="p-6">
+        <DataGridSkeleton rows={6} columns={4} />
       </div>
     );
   }
@@ -165,24 +168,29 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
   return (
     <div className="flex flex-col h-full bg-white relative">
       <div className="px-6 py-4 flex items-center justify-between bg-slate-50 border-b border-slate-100">
-        <h2 className="text-xl font-normal text-slate-800 flex items-center">
-          {fullPath.map((part, index, arr) => (
-            <React.Fragment key={index}>
-              <span 
-                className={`cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors ${index === arr.length - 1 ? 'font-medium text-slate-900' : 'text-slate-600'} ${index === 0 ? 'text-xl' : ''}`}
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
+          {fullPath.map((part, index, arr) => {
+            const isLast = index === arr.length - 1;
+            return isLast ? (
+              <Typography key={index} color="text.primary" sx={{ fontWeight: 600 }}>
+                {part.name}
+              </Typography>
+            ) : (
+              <MuiLink
+                key={index}
+                underline="hover"
+                color="inherit"
+                sx={{ cursor: 'pointer' }}
                 onClick={() => {
                   if (part.id === 'root') onSelectFolder(null);
                   else if (part.id) onSelectFolder(part.id);
                 }}
               >
                 {part.name}
-              </span>
-              {index < arr.length - 1 && (
-                <svg className="mx-0.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-              )}
-            </React.Fragment>
-          ))}
-        </h2>
+              </MuiLink>
+            );
+          })}
+        </Breadcrumbs>
         
         {isAdminMode && onNewClick && (
           <button 

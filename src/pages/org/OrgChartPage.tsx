@@ -1,3 +1,4 @@
+import { OrgChartSkeleton } from "../../components/common/Skeletons";
 import { ROUTES } from '../../constants';
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
@@ -43,8 +44,8 @@ export const OrgChartPage: React.FC = () => {
 
       <div className="flex-grow overflow-auto relative">
         {loading ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" data-testid="loading-spinner"></div>
+          <div className="w-full h-full p-8">
+            <OrgChartSkeleton />
           </div>
         ) : error ? (
           <div className="flex h-full flex-col items-center justify-center gap-4">

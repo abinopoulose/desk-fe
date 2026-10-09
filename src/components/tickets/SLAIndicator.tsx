@@ -1,3 +1,4 @@
+import { CheckCircle, Warning, AccessTime } from "@mui/icons-material";
 import React, { useEffect, useState } from 'react';
 
 export interface SLAIndicatorProps {
@@ -40,13 +41,13 @@ export const SLAIndicator: React.FC<SLAIndicatorProps> = ({
   }, [dueAt, statusState]);
 
   if (statusState === 'CLOSED') {
-    return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Closed</span>;
+    return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium flex items-center gap-1"><CheckCircle fontSize="small" /> Closed</span>;
   }
 
   if (breached || timeLeft.totalMs < 0) {
     return (
-      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-        Breached by {timeLeft.hours}h {timeLeft.mins}m
+      <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+        Breached by {timeLeft.hours}h {timeLeft.mins}m <Warning fontSize="small" />
       </span>
     );
   }
@@ -58,11 +59,11 @@ export const SLAIndicator: React.FC<SLAIndicatorProps> = ({
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-sm font-medium ${
+      className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
         isYellow ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
       }`}
     >
-      Due in {timeLeft.hours}h {timeLeft.mins}m
+      <AccessTime fontSize="small" /> Due in {timeLeft.hours}h {timeLeft.mins}m
     </span>
   );
 };

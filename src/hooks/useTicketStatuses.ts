@@ -143,12 +143,7 @@ export function useTicketStatuses(typeIdProp?: string): UseTicketStatusesReturn 
   );
 
   const remove = useCallback(
-    async (statusId: string, skipConfirm = false): Promise<void> => {
-      if (!skipConfirm && typeof window !== 'undefined' && window.confirm) {
-        if (!window.confirm('Are you sure you want to delete this status?')) {
-          return;
-        }
-      }
+    async (statusId: string, /* skipConfirm = false */): Promise<void> => {
       crud.setLoading(true);
       crud.setError(null);
       try {
