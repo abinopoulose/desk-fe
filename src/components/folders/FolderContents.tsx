@@ -8,6 +8,7 @@ import { ticketTypeApi } from '../../api/ticketTypeApi';
 import type { FolderContentsDTO } from '../../types/folder';
 import { ROUTES } from '../../constants';
 import { MoreVertical, Edit2, FolderInput, Trash2 } from 'lucide-react';
+import { FolderExplorerModal } from './FolderExplorerModal';
 
 interface FolderContentsProps {
   folderId: string | null;
@@ -32,7 +33,6 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
   const [moveItem, setMoveItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string } | null>(null);
 
   const [newName, setNewName] = useState('');
-  const [newParentId, setNewParentId] = useState<string>('root');
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchContents = async () => {
@@ -63,17 +63,6 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
     fetchContents();
   }, [folderId, rootFolders]);
 
-  const flattenFolders = (nodes: any[], path = ''): { id: string, name: string }[] => {
-    return nodes.reduce((acc, node) => {
-      const currentPath = path ? `${path} / ${node.name}` : node.name;
-      acc.push({ id: node.id, name: currentPath });
-      if (node.children) {
-        acc.push(...flattenFolders(node.children, currentPath));
-      }
-      return acc;
-    }, [] as { id: string, name: string }[]);
-  };
-
   const handleRename = async () => {
     if (!renameItem || !newName.trim()) return;
     setActionLoading(true);
@@ -95,20 +84,31 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
     }
   };
 
-  const handleMove = async () => {
+  const handleMove = async (targetFolderId: string) => {
     if (!moveItem) return;
     setActionLoading(true);
     try {
       if (moveItem.type === 'folder') {
         await folderApi.updateFolder(moveItem.id, { 
           name: moveItem.name, 
-          parentId: newParentId === 'root' ? undefined : newParentId 
+          parentId: targetFolderId === 'root' ? undefined : targetFolderId 
         });
         setMoveItem(null);
         fetchContents();
         window.location.reload();
       } else {
-        navigate(ROUTES.ADMIN.TICKET_TYPE_EDIT(moveItem.id));
+        const existingType = await ticketTypeApi.getTicketTypeById(moveItem.id);
+        await ticketTypeApi.updateTicketType(moveItem.id, {
+          title: existingType.title,
+          description: existingType.description,
+          folderId: targetFolderId,
+          departmentId: existingType.departmentId,
+          formSchema: existingType.formSchema as Record<string, unknown>,
+          isActive: existingType.isActive,
+        });
+        setMoveItem(null);
+        fetchContents();
+        window.location.reload();
       }
     } catch (err) {
       console.error(err);
@@ -314,12 +314,7 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
             <button 
               className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-md flex items-center gap-3 transition-colors"
               onClick={() => {
-                if (actionMenu.type === 'ticket') {
-                  navigate(ROUTES.ADMIN.TICKET_TYPE_EDIT(actionMenu.id));
-                } else {
-                  setMoveItem(actionMenu);
-                  setNewParentId('root');
-                }
+                setMoveItem(actionMenu);
                 setActionMenu(null);
               }}
             >
@@ -362,30 +357,18 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
         </div>
       )}
 
-      {/* Move Modal */}
-      {moveItem && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h3 className="text-lg font-medium text-slate-900 mb-5">Move {moveItem.type}</h3>
-            <select
-              value={newParentId}
-              onChange={e => setNewParentId(e.target.value)}
-              className="w-full border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 py-2 outline-none"
-            >
-              <option value="root">/ (Root Drive)</option>
-              {flattenFolders(treeData).filter(f => f.id !== moveItem.id).map(f => (
-                <option key={f.id} value={f.id}>{f.name}</option>
-              ))}
-            </select>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setMoveItem(null)} className="px-4 py-2 text-slate-600 font-medium text-sm hover:bg-slate-50 rounded-full">Cancel</button>
-              <button onClick={handleMove} disabled={actionLoading} className="px-4 py-2 bg-indigo-600 text-white font-medium text-sm rounded-full hover:bg-indigo-700">
-                {actionLoading ? 'Moving...' : 'Move'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Move Modal (Real File Explorer Navigator) */}
+      <FolderExplorerModal
+        isOpen={Boolean(moveItem)}
+        onClose={() => setMoveItem(null)}
+        onSelect={(targetId) => handleMove(targetId)}
+        currentFolderId={folderId}
+        treeData={treeData}
+        title={`Move ${moveItem?.type === 'folder' ? 'Folder' : 'Ticket Type'}: ${moveItem?.name || ''}`}
+        description="Navigate to the destination folder and click Select Destination"
+        excludeId={moveItem?.type === 'folder' ? moveItem.id : undefined}
+        allowRoot={moveItem?.type === 'folder'}
+      />
 
       {/* Delete Modal */}
       {deleteItem && (
