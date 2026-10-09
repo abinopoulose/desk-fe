@@ -16,7 +16,7 @@ export interface TicketTypeFormData {
 
 export interface UseTicketTypeFormOptions {
   ticketTypeId?: string;
-  onSuccess?: (ticketType: TicketTypeDTO) => void;
+  onSuccess?: (ticketType: TicketTypeDTO) => Promise<void> | void;
 }
 
 export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
@@ -111,7 +111,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
 
         setSuccess(true);
         if (onSuccess) {
-          onSuccess(result);
+          await onSuccess(result);
         } else {
           navigate(ROUTES.ADMIN.TICKET_TYPES);
         }

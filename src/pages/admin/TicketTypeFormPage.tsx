@@ -20,7 +20,9 @@ import { SlaConfigSection } from '../../components/admin/SlaConfigSection';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 import { FolderExplorerModal } from '../../components/folders/FolderExplorerModal';
 import { useTicketTypeForm, useDepartments, useFolderTree } from '../../hooks';
+import { slaApi } from '../../api/slaApi';
 import type { FolderNodeDTO } from '../../types/folder';
+import type { CreateSlaConfigRequest } from '../../types/sla';
 
 /** Helper to derive breadcrumb path for display */
 function findFolderPath(nodes: FolderNodeDTO[], targetId: string, path: string[] = []): string[] | null {
@@ -37,6 +39,43 @@ function findFolderPath(nodes: FolderNodeDTO[], targetId: string, path: string[]
 
 export const TicketTypeFormPage: React.FC = () => {
   const navigate = useNavigate();
+
+  // Staged SLA configurations for Create mode
+  const [stagedSlas, setStagedSlas] = useState<CreateSlaConfigRequest[]>([
+    {
+      priority: 1, // Critical
+      resolutionMinutes: 240, // 4 hours
+      workingDays: [1, 2, 3, 4, 5],
+      workingHoursStart: '09:00:00',
+      workingHoursEnd: '17:00:00',
+      escalationHooks: null,
+    },
+    {
+      priority: 2, // High
+      resolutionMinutes: 480, // 8 hours
+      workingDays: [1, 2, 3, 4, 5],
+      workingHoursStart: '09:00:00',
+      workingHoursEnd: '17:00:00',
+      escalationHooks: null,
+    },
+    {
+      priority: 3, // Medium
+      resolutionMinutes: 1440, // 24 hours
+      workingDays: [1, 2, 3, 4, 5],
+      workingHoursStart: '09:00:00',
+      workingHoursEnd: '17:00:00',
+      escalationHooks: null,
+    },
+    {
+      priority: 4, // Low
+      resolutionMinutes: 2880, // 48 hours
+      workingDays: [1, 2, 3, 4, 5],
+      workingHoursStart: '09:00:00',
+      workingHoursEnd: '17:00:00',
+      escalationHooks: null,
+    },
+  ]);
+
   const {
     ticketTypeId,
     isEditMode,
@@ -56,7 +95,21 @@ export const TicketTypeFormPage: React.FC = () => {
     submitting,
     error,
     handleSubmit,
-  } = useTicketTypeForm();
+  } = useTicketTypeForm({
+    onSuccess: async (createdTicketType) => {
+      // If we were creating a brand new ticket type, persist any configured SLA policies!
+      if (!isEditMode && stagedSlas.length > 0) {
+        try {
+          await Promise.allSettled(
+            stagedSlas.map((sla) => slaApi.createSlaConfig(createdTicketType.id, sla))
+          );
+        } catch (err) {
+          console.error('Error persisting SLA policies on creation', err);
+        }
+      }
+      navigate(ROUTES.ADMIN.TICKET_TYPES);
+    },
+  });
 
   const { departments, loading: depsLoading } = useDepartments();
   const { treeData, isLoading: treeLoading } = useFolderTree();
@@ -107,7 +160,7 @@ export const TicketTypeFormPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Ticket Master
+                    Service Catalog
                   </span>
                   <span className="text-slate-300">•</span>
                   <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
@@ -116,7 +169,7 @@ export const TicketTypeFormPage: React.FC = () => {
                       : 'bg-slate-100 text-slate-600 border border-slate-200'
                   }`}>
                     {isActive ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
-                    {isActive ? 'Active' : 'Inactive'}
+                    {isActive ? 'Available to Staff' : 'Draft / Inactive'}
                   </span>
                   {ticketTypeId && (
                     <span className="text-[11px] text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
@@ -186,20 +239,24 @@ export const TicketTypeFormPage: React.FC = () => {
               ) : null}
             </button>
 
-            {isEditMode && ticketTypeId && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('sla')}
-                className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                  activeTab === 'sla'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span>SLA Configuration</span>
-              </button>
-            )}
+            {/* SLA tab is available in BOTH Create mode and Edit mode! */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('sla')}
+              className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === 'sla'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>SLA Policy Configuration</span>
+              {!isEditMode && stagedSlas.length > 0 && (
+                <span className="bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded-full text-[10px]">
+                  {stagedSlas.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -212,7 +269,7 @@ export const TicketTypeFormPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 1: General Settings */}
+          {/* TAB 1: General Settings (Simplified for HR / Non-Technical Users) */}
           {activeTab === 'details' && (
             <div className="space-y-6">
               
@@ -224,31 +281,36 @@ export const TicketTypeFormPage: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-slate-900">Basic Information</h2>
-                    <p className="text-xs text-slate-500">Configure ticket title, department, and description</p>
+                    <p className="text-xs text-slate-500">
+                      Configure the ticket name, handling department, and employee guidance
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Title */}
                   <div>
-                    <label htmlFor="title" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
-                      Title <span className="text-rose-500">*</span>
+                    <label htmlFor="title" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Ticket Name <span className="text-rose-500">*</span>
                     </label>
                     <input
                       id="title"
                       type="text"
                       required
-                      placeholder="e.g. Laptop Replacement Request"
+                      placeholder="e.g. Vacation Request, Hardware Replacement, Payroll Inquiry"
                       value={title || ''}
                       onChange={(e) => setTitle(e.target.value)}
                       className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
                     />
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      The descriptive name shown to employees in the service catalog.
+                    </p>
                   </div>
 
                   {/* Department */}
                   <div>
-                    <label htmlFor="departmentId" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
-                      Department <span className="text-rose-500">*</span>
+                    <label htmlFor="departmentId" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Handling Department <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <select
@@ -258,43 +320,49 @@ export const TicketTypeFormPage: React.FC = () => {
                         onChange={(e) => setDepartmentId(e.target.value)}
                         className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-800 transition-all outline-none focus:ring-2 focus:ring-indigo-100 appearance-none cursor-pointer"
                       >
-                        <option value="" disabled>Select a department</option>
+                        <option value="" disabled>Select the department responsible</option>
                         {departments.map((dep) => (
                           <option key={dep.id} value={dep.id}>{dep.name}</option>
                         ))}
                       </select>
                       <Building2 className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Tickets created under this type will be assigned to this department.
+                    </p>
                   </div>
 
                   {/* Description */}
                   <div className="md:col-span-2">
-                    <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
-                      Description
+                    <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Instructions & Policy for Employees
                     </label>
                     <textarea
                       id="description"
-                      placeholder="Provide helpful guidance for users submitting this ticket..."
+                      placeholder="e.g. Please submit this form at least 48 hours prior to your requested leave dates..."
                       value={description || ''}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
                       className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100 leading-relaxed"
                     />
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Clear instructions or eligibility criteria displayed to employees before filling out the form.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* FOLDER LOCATION CARD (File Explorer Navigation instead of dropdown) */}
+              {/* FOLDER LOCATION CARD (Interactive File Explorer Navigation) */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 lg:p-8">
-                <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
                       <FolderTree className="w-4 h-4" />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">Folder & Category Location</h2>
+                      <h2 className="text-base font-bold text-slate-900">Catalog Category Location</h2>
                       <p className="text-xs text-slate-500">
-                        Organize where this ticket type appears in the folder hierarchy
+                        Choose which catalog folder employees browse to find this ticket
                       </p>
                     </div>
                   </div>
@@ -302,10 +370,10 @@ export const TicketTypeFormPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsFolderModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition-colors cursor-pointer self-start sm:self-auto"
                   >
                     <FolderOpen className="w-3.5 h-3.5" />
-                    <span>{folderId ? 'Change / Move Folder' : 'Select Folder'}</span>
+                    <span>{folderId ? 'Change Category Folder' : 'Select Category Folder'}</span>
                   </button>
                 </div>
 
@@ -318,7 +386,7 @@ export const TicketTypeFormPage: React.FC = () => {
 
                     <div className="truncate">
                       <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium overflow-x-auto whitespace-nowrap mb-0.5">
-                        <span>Drive</span>
+                        <span>Catalog</span>
                         {currentFolderPath.map((segment, idx) => (
                           <React.Fragment key={idx}>
                             <span>/</span>
@@ -340,7 +408,7 @@ export const TicketTypeFormPage: React.FC = () => {
                     onClick={() => setIsFolderModalOpen(true)}
                     className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline shrink-0 cursor-pointer self-start sm:self-auto"
                   >
-                    Browse Folder Explorer →
+                    Open Folder Navigator →
                   </button>
                 </div>
               </div>
@@ -349,9 +417,9 @@ export const TicketTypeFormPage: React.FC = () => {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Active Status</h3>
+                    <h3 className="text-sm font-bold text-slate-900">Available to Employees</h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      When enabled, users will see this ticket type in the catalog and can submit tickets.
+                      When enabled, employees will see this ticket in the service catalog and can submit requests.
                     </p>
                   </div>
 
@@ -380,8 +448,8 @@ export const TicketTypeFormPage: React.FC = () => {
                     <Layers className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-slate-900">Form Schema Builder</h2>
-                    <p className="text-xs text-slate-500">Design custom dynamic fields and validations for this ticket form</p>
+                    <h2 className="text-base font-bold text-slate-900">Form Questions Builder</h2>
+                    <p className="text-xs text-slate-500">Design the custom questions employees answer when submitting this ticket</p>
                   </div>
                 </div>
               </div>
@@ -390,8 +458,8 @@ export const TicketTypeFormPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 3: SLA Configuration */}
-          {activeTab === 'sla' && isEditMode && ticketTypeId && (
+          {/* TAB 3: SLA Configuration (Available in both Create & Edit mode!) */}
+          {activeTab === 'sla' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 lg:p-8">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -399,11 +467,19 @@ export const TicketTypeFormPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-slate-900">SLA Policy Configuration</h2>
-                  <p className="text-xs text-slate-500">Define resolution targets and working schedules for each priority level</p>
+                  <p className="text-xs text-slate-500">
+                    {isEditMode
+                      ? 'Define resolution targets and working schedules for each priority level'
+                      : 'Configure SLA resolution policies for this new ticket type. They will be saved when created.'}
+                  </p>
                 </div>
               </div>
 
-              <SlaConfigSection ticketTypeId={ticketTypeId} />
+              <SlaConfigSection
+                ticketTypeId={ticketTypeId}
+                stagedConfigs={stagedSlas}
+                onStagedConfigsChange={setStagedSlas}
+              />
             </div>
           )}
 
@@ -436,8 +512,8 @@ export const TicketTypeFormPage: React.FC = () => {
           onSelect={handleFolderSelect}
           currentFolderId={folderId}
           treeData={treeData}
-          title="Select Folder Location"
-          description={`Choose the folder where "${title || 'this ticket type'}" should be organized.`}
+          title="Select Category Folder"
+          description={`Choose where "${title || 'this ticket type'}" should appear in the employee catalog.`}
           allowRoot={false}
         />
       </div>

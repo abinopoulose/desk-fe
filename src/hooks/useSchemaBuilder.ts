@@ -2,10 +2,10 @@ import { useReducer, useCallback } from 'react';
 import type { FormSchema, FormField, FieldType } from '../types/formSchema';
 
 export const FIELD_TYPE_OPTIONS: { label: string; value: FieldType }[] = [
-  { label: 'Text', value: 'text' },
-  { label: 'Textarea', value: 'textarea' },
-  { label: 'Select', value: 'select' },
-  { label: 'Checkbox', value: 'checkbox' },
+  { label: 'Short Text', value: 'text' },
+  { label: 'Paragraph / Long Text', value: 'textarea' },
+  { label: 'Dropdown List', value: 'select' },
+  { label: 'Checkbox (Yes / No)', value: 'checkbox' },
   { label: 'Number', value: 'number' },
   { label: 'Date', value: 'date' },
 ];
@@ -124,11 +124,26 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     draggedIndex: null,
   });
 
-  const addField = useCallback(() => {
+  const addField = useCallback((fieldType: FieldType = 'text', customLabel?: string) => {
+    const defaultLabels: Record<FieldType, string> = {
+      text: 'Short Text Question',
+      textarea: 'Detailed Explanation',
+      select: 'Dropdown Question',
+      checkbox: 'Confirmation Checkbox',
+      number: 'Numeric Value',
+      date: 'Date Selection',
+    };
+    const label = customLabel || defaultLabels[fieldType] || 'New Question';
+    const slug = label
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 16);
     const newField: FormField = {
-      name: `field_${Date.now()}`,
-      label: 'New Field',
-      type: 'text',
+      name: `${slug || 'field'}_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`,
+      label,
+      type: fieldType,
+      options: fieldType === 'select' ? ['Option 1', 'Option 2'] : undefined,
     };
     dispatch({ type: 'ADD_FIELD', field: newField });
   }, []);
