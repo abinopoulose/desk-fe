@@ -32,9 +32,17 @@ export interface UserProfileResponse {
   title?: string;
   profilePictureUrl?: string;
   manager: UserSummaryDTO | null;
+  managerId?: string | null;
   reportees: UserSummaryDTO[];
   roles: string[];
   isActive: boolean;
+}
+
+export interface UpdateUserProfilePayload {
+  fullName: string;
+  title?: string;
+  managerId?: string | null;
+  isActive?: boolean;
 }
 
 export interface OrgNode {

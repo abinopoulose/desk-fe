@@ -51,7 +51,10 @@ export function useUserProfile(userId: string | undefined) {
 
   const startEdit = useCallback(() => {
     if (profile) {
-      setEditForm(profile);
+      setEditForm({
+        ...profile,
+        managerId: profile.manager?.id ?? null,
+      });
       setIsEditing(true);
       setError(null);
     }
@@ -79,15 +82,25 @@ export function useUserProfile(userId: string | undefined) {
     setSaving(true);
     setError(null);
     try {
-      const updated = await updateUserProfile(userId, editForm);
-      setProfile(updated);
+      const payload = {
+        fullName: editForm.fullName ?? profile.fullName,
+        title: editForm.title ?? profile.title,
+        managerId: editForm.managerId !== undefined ? editForm.managerId : (profile.manager?.id ?? null),
+        isActive: editForm.isActive !== undefined ? editForm.isActive : profile.isActive,
+      };
+      const updated = await updateUserProfile(userId, payload);
+      if (updated && updated.id) {
+        setProfile(updated);
+      } else {
+        await fetchProfile(userId);
+      }
       setIsEditing(false);
     } catch {
       setError('Failed to update profile');
     } finally {
       setSaving(false);
     }
-  }, [userId, profile, editForm]);
+  }, [userId, profile, editForm, fetchProfile]);
 
   const refetch = useCallback(() => {
     if (userId) {

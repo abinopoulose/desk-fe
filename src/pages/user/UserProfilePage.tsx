@@ -14,8 +14,11 @@ import {
   X,
   ExternalLink,
   CheckCircle2,
+  ChevronDown,
 } from 'lucide-react';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { getOrgUsers } from '../../api/employeeApi';
+import type { User } from '../../types/user';
 import { ROUTES } from '../../constants';
 
 export const UserProfilePage: React.FC = () => {
@@ -38,6 +41,29 @@ export const UserProfilePage: React.FC = () => {
 
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const [orgUsers, setOrgUsers] = useState<User[]>([]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    getOrgUsers()
+      .then((users) => {
+        if (isMounted && Array.isArray(users)) {
+          setOrgUsers(users);
+        }
+      })
+      .catch(() => {
+        // Silently ignore if fails in tests or offline
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const availableManagers = React.useMemo(() => {
+    if (!profile) return orgUsers;
+    const reporteeIds = new Set((profile.reportees || []).map((r) => r.id));
+    return orgUsers.filter((u) => u.id !== profile.id && !reporteeIds.has(u.id));
+  }, [orgUsers, profile]);
 
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
@@ -258,14 +284,24 @@ export const UserProfilePage: React.FC = () => {
           
           {/* 1. Reporting Manager Card */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Users className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Reporting Manager</h2>
+                  <p className="text-[11px] text-slate-500">Direct supervisor in organizational hierarchy</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Reporting Manager</h2>
-                <p className="text-[11px] text-slate-500">Direct supervisor in organizational hierarchy</p>
-              </div>
+              <button
+                type="button"
+                onClick={startEdit}
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline cursor-pointer"
+              >
+                <Pencil className="w-3 h-3" />
+                <span>{profile.manager ? 'Change' : 'Assign'}</span>
+              </button>
             </div>
 
             {profile.manager ? (
@@ -291,7 +327,15 @@ export const UserProfilePage: React.FC = () => {
             ) : (
               <div className="p-6 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                 <p className="text-xs font-semibold text-slate-600">No Manager Assigned</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">This user is at root level of the org chart</p>
+                <p className="text-[11px] text-slate-400 mt-0.5 mb-3">This user is at root level of the org chart</p>
+                <button
+                  type="button"
+                  onClick={startEdit}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                  <span>Assign Manager</span>
+                </button>
               </div>
             )}
           </div>
@@ -462,6 +506,31 @@ export const UserProfilePage: React.FC = () => {
                   placeholder="e.g. user@example.com"
                   className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Reporting Manager
+                </label>
+                <div className="relative">
+                  <select
+                    aria-label="Reporting Manager"
+                    value={editForm.managerId !== undefined ? (editForm.managerId ?? '') : (profile.manager?.id ?? '')}
+                    onChange={(e) => setField('managerId', e.target.value ? e.target.value : null)}
+                    className="w-full bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none appearance-none cursor-pointer"
+                  >
+                    <option value="">-- No Manager (Root / Head of Org) --</option>
+                    {availableManagers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.fullName} {m.title ? `— ${m.title}` : ''} ({m.email})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Supervisor who approves requests and oversees this employee.
+                </p>
               </div>
 
               {/* Active Account Status Toggle */}

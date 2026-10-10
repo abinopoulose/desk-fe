@@ -148,4 +148,41 @@ describe('UserProfilePage Component', () => {
     fireEvent.click(saveButton);
     expect(mockSave).toHaveBeenCalledTimes(1);
   });
+
+  it('allows changing reporting manager in edit modal', () => {
+    vi.spyOn(userHook, 'useUserProfile').mockReturnValue({
+      profile: mockProfile,
+      loading: false,
+      saving: false,
+      error: null,
+      isEditing: true,
+      editForm: {
+        fullName: 'Jane Developer',
+        title: 'Senior Software Engineer',
+        email: 'jane.dev@example.com',
+        managerId: 'mgr-123',
+        isActive: true,
+      },
+      startEdit: mockStartEdit,
+      cancelEdit: mockCancelEdit,
+      setField: mockSetField,
+      save: mockSave,
+      uploadPicture: mockUploadPicture,
+      refetch: mockRefetch,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/users/c08a3dab-2946-46a6-98b0-7d632d3a58d8']}>
+        <Routes>
+          <Route path="/users/:userId" element={<UserProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const managerSelect = screen.getByLabelText('Reporting Manager');
+    expect(managerSelect).toBeDefined();
+
+    fireEvent.change(managerSelect, { target: { value: '' } });
+    expect(mockSetField).toHaveBeenCalledWith('managerId', null);
+  });
 });

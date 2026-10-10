@@ -1,13 +1,16 @@
 import { API_PATHS } from '../constants';
 import axiosInstance from './axiosInstance';
-import type { UserProfileResponse, OrgNode } from '../types/user';
+import type { UserProfileResponse, OrgNode, UpdateUserProfilePayload } from '../types/user';
 
 export const getUserProfile = async (userId: string): Promise<UserProfileResponse> => {
   const response = await axiosInstance.get(API_PATHS.USERS.PROFILE(userId));
   return response.data;
 };
 
-export const updateUserProfile = async (userId: string, data: Partial<UserProfileResponse>): Promise<UserProfileResponse> => {
+export const updateUserProfile = async (
+  userId: string,
+  data: Partial<UserProfileResponse> | UpdateUserProfilePayload
+): Promise<UserProfileResponse> => {
   const response = await axiosInstance.put(API_PATHS.USERS.PROFILE(userId), data);
   return response.data;
 };
