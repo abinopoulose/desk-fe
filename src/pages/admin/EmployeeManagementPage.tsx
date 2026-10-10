@@ -380,15 +380,22 @@ export const EmployeeManagementPage: React.FC = () => {
 
                               <div className="min-w-0">
                                 <Link
-                                  to={ROUTES.USERS.PROFILE(user.id)}
+                                  to={ROUTES.USERS.PROFILE(user.displayId || user.id)}
                                   className="font-bold text-slate-900 hover:text-indigo-600 transition-colors truncate block"
                                 >
                                   {user.fullName}
                                 </Link>
-                                <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                                  <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
-                                  <span>{user.title || 'Staff Member'}</span>
-                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  {user.displayId && (
+                                    <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                                      {user.displayId}
+                                    </span>
+                                  )}
+                                  <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+                                    <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <span>{user.title || 'Staff Member'}</span>
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -478,7 +485,7 @@ export const EmployeeManagementPage: React.FC = () => {
                             )}
 
                             <Link
-                              to={ROUTES.USERS.PROFILE(user.id)}
+                              to={ROUTES.USERS.PROFILE(user.displayId || user.id)}
                               className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
                             >
                               <span>View Profile</span>

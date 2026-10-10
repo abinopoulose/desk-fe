@@ -31,7 +31,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
     if (onCopyId) {
       onCopyId();
     } else {
-      navigator.clipboard.writeText(ticket.id);
+      navigator.clipboard.writeText(ticket.displayId || ticket.id);
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -41,8 +41,8 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div className="space-y-2">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
-            #{ticket.id.substring(0, 8).toUpperCase()}
+          <span className="font-mono text-xs font-bold bg-indigo-50/80 px-2.5 py-1 rounded-lg border border-indigo-200 text-indigo-700">
+            {ticket.displayId || `#${ticket.id.substring(0, 8).toUpperCase()}`}
           </span>
 
           <button
@@ -79,7 +79,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
           <span>•</span>
           <div className="flex items-center gap-1">
             <User className="w-3.5 h-3.5 text-slate-400" />
-            <Link to={`/users/${ticket.requester.id}`} className="font-semibold text-slate-700 hover:text-indigo-600 hover:underline">
+            <Link to={`/users/${ticket.requester.displayId || ticket.requester.id}`} className="font-semibold text-slate-700 hover:text-indigo-600 hover:underline">
               {ticket.requester.fullName}
             </Link>
           </div>

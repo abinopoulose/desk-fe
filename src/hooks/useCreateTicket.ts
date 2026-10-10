@@ -56,7 +56,7 @@ export function useCreateTicket() {
         priority,
         formData: stagedFormData,
       });
-      navigate(ROUTES.TICKETS.DETAILS(result.id));
+      navigate(ROUTES.TICKETS.DETAILS(result.displayId || result.id));
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       setShowConfirmModal(false);

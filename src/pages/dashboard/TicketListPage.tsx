@@ -307,7 +307,7 @@ export const TicketListPage: React.FC = () => {
                     return (
                       <tr
                         key={t.id}
-                        onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
+                        onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id))}
                         className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                       >
                         {/* Title & Short ID */}
@@ -317,8 +317,8 @@ export const TicketListPage: React.FC = () => {
                               {t.ticketTypeTitle}
                             </span>
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-[10px] text-slate-400">
-                                #{t.id.substring(0, 8).toUpperCase()}
+                              <span className="font-mono text-[10px] text-slate-500 font-bold">
+                                {t.displayId || `#${t.id.substring(0, 8).toUpperCase()}`}
                               </span>
                               {t.slaBreached && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">

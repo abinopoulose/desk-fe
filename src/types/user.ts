@@ -2,6 +2,7 @@ export type Role = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'ADMIN' | 'IT_SUPPORT' | 'AGENT
 
 export interface User {
   id: string;
+  displayId?: string;
   email: string;
   fullName: string;
   title?: string;
@@ -20,6 +21,7 @@ export interface InviteEmployeeRequest {
 
 export interface UserSummaryDTO {
   id: string;
+  displayId?: string;
   fullName: string;
   email: string;
   title?: string;
@@ -27,6 +29,7 @@ export interface UserSummaryDTO {
 
 export interface UserProfileResponse {
   id: string;
+  displayId?: string;
   email: string;
   fullName: string;
   title?: string;
@@ -47,6 +50,7 @@ export interface UpdateUserProfilePayload {
 
 export interface OrgNode {
   id: string;
+  displayId?: string;
   fullName: string;
   title?: string;
   email: string;

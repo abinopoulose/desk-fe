@@ -139,7 +139,7 @@ export const TicketDetailsPage: React.FC = () => {
     );
   }
 
-  const shortId = ticket.id.substring(0, 8).toUpperCase();
+  const displayReference = ticket.displayId || `#${ticket.id.substring(0, 8).toUpperCase()}`;
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
@@ -163,7 +163,7 @@ export const TicketDetailsPage: React.FC = () => {
                 Queue
               </Link>
               <ChevronRight className="w-3 h-3 text-slate-300" />
-              <span className="font-mono text-slate-700 font-semibold">#{shortId}</span>
+              <span className="font-mono text-slate-700 font-semibold">{displayReference}</span>
             </nav>
           </div>
         </div>

@@ -14,7 +14,11 @@ const getInitials = (name: string) => {
 const matchesFilter = (node: OrgNode, filterText: string): boolean => {
   if (!filterText) return false;
   const text = filterText.toLowerCase();
-  return node.fullName.toLowerCase().includes(text) || (node.title?.toLowerCase().includes(text) ?? false);
+  return (
+    node.fullName.toLowerCase().includes(text) ||
+    (node.title?.toLowerCase().includes(text) ?? false) ||
+    (node.displayId?.toLowerCase().includes(text) ?? false)
+  );
 };
 
 const hasMatchingChild = (node: OrgNode, filterText: string): boolean => {
@@ -49,7 +53,7 @@ const TreeNode = React.memo(({
       <div className="relative">
         {/* Node Card */}
         <div 
-          onClick={() => onSelectUser?.(node.id)}
+          onClick={() => onSelectUser?.(node.displayId || node.id)}
           data-no-pan="true"
           className={`relative z-10 flex flex-col items-center justify-center p-4 w-52 border rounded-xl bg-white cursor-pointer shadow-xs hover:shadow-md transition-all ${
             matched
@@ -62,6 +66,11 @@ const TreeNode = React.memo(({
             {getInitials(node.fullName)}
           </div>
           <div className="font-semibold text-slate-900 text-center text-sm truncate w-full">{node.fullName}</div>
+          {node.displayId && (
+            <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 mt-1">
+              {node.displayId}
+            </span>
+          )}
           {node.title && <div className="text-xs text-slate-500 text-center mt-1 truncate w-full">{node.title}</div>}
           {hasChildren && (
             <div className="mt-2 text-2xs font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200/60">

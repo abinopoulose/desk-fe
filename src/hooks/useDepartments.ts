@@ -15,10 +15,12 @@ export function useDepartments() {
       name: dept.name,
       description: dept.description || '',
       managerId: '',
+      alphaTags: dept.alphaTags || [],
     }),
     mapFormStateToPayload: (formState) => ({
       name: formState.name,
       description: formState.description,
+      alphaTags: formState.alphaTags,
     }),
     getId: (dept) => dept.id,
   });

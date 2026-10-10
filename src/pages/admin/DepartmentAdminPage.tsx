@@ -31,6 +31,7 @@ export const DepartmentAdminPage: React.FC = () => {
   } = useDepartments();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tagsInput, setTagsInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,12 +51,14 @@ export const DepartmentAdminPage: React.FC = () => {
 
   const openCreateModal = () => {
     setActionError(null);
+    setTagsInput('');
     startEdit();
     setIsModalOpen(true);
   };
 
   const openEditModal = (dept: DepartmentDTO) => {
     setActionError(null);
+    setTagsInput((dept.alphaTags || []).join(', '));
     startEdit(dept);
     setIsModalOpen(true);
   };
@@ -225,9 +228,20 @@ export const DepartmentAdminPage: React.FC = () => {
                               <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
                                 {dept.name}
                               </span>
-                              <span className="block text-[10px] text-slate-400 font-mono">
-                                #{dept.id.slice(0, 8)}
-                              </span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] text-slate-500 font-mono font-semibold">
+                                  {dept.displayId || `#${dept.id.slice(0, 8)}`}
+                                </span>
+                                {dept.alphaTags && dept.alphaTags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {dept.alphaTags.map((tag) => (
+                                      <span key={tag} className="px-1.5 py-0.2 text-[9px] font-bold font-mono rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -335,6 +349,28 @@ export const DepartmentAdminPage: React.FC = () => {
                     rows={3}
                     className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100 leading-relaxed"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="dept-tags" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Alpha Tags (Comma-separated)
+                  </label>
+                  <input
+                    id="dept-tags"
+                    type="text"
+                    placeholder="e.g. AWS, GCP, IT, HR"
+                    value={tagsInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTagsInput(val);
+                      const parsed = val.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+                      setFormField('alphaTags', parsed);
+                    }}
+                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Alpha tags serve as prefixes for Ticket Types (e.g. AWS-1). Admins select from these tags when configuring ticket types.
+                  </p>
                 </div>
 
                 {/* Modal Footer */}

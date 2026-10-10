@@ -4,11 +4,13 @@ export interface TicketType {
   departmentId: string;
   title: string;
   description?: string;
+  alphaTag?: string;
   formSchema: Record<string, unknown>;
 }
 
 export interface Ticket {
   id: string;
+  displayId?: string;
   ticketTypeId: string;
   requesterId: string;
   assigneeId?: string;
@@ -25,6 +27,7 @@ export interface TicketTypeSummaryDTO {
   departmentId: string;
   departmentName?: string;
   description?: string;
+  alphaTag?: string;
   folderPath: string; // From requirements
   isActive: boolean;
   active?: boolean;
@@ -41,6 +44,7 @@ export interface CreateTicketTypeRequest {
   description?: string;
   folderId: string;
   departmentId: string;
+  alphaTag?: string;
   formSchema: Record<string, unknown>;
   isActive?: boolean;
   active?: boolean;
@@ -76,11 +80,13 @@ export interface FormSchemaResponse {
   description: string;
   departmentId: string;
   folderId: string;
+  alphaTag?: string;
   formSchema: Record<string, unknown>;
 }
 
 export interface TicketDTO {
   id: string;
+  displayId?: string;
   ticketTypeId: string;
   ticketTypeTitle: string;
   requesterId: string;
@@ -101,9 +107,10 @@ export interface TicketDTO {
 
 export interface TicketDetailResponse {
   id: string;
-  ticketType: { id: string; title: string };
-  requester: { id: string; fullName: string; email: string };
-  assignee?: { id: string; fullName: string; email: string };
+  displayId?: string;
+  ticketType: { id: string; title: string; alphaTag?: string };
+  requester: { id: string; displayId?: string; fullName: string; email: string };
+  assignee?: { id: string; displayId?: string; fullName: string; email: string };
   currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };
   priority: number;
   formData: Record<string, unknown>;
@@ -119,7 +126,7 @@ export interface TicketDetailResponse {
 export interface CommentDTO {
   id: string;
   ticketId: string;
-  author: { id: string; fullName: string; email: string; avatarUrl?: string };
+  author: { id: string; displayId?: string; fullName: string; email: string; avatarUrl?: string };
   content: string;
   attachments?: string[];
   createdAt: string;
@@ -167,6 +174,7 @@ export interface PaginatedResponse<T> {
 
 export interface TicketSummaryDTO {
   id: string;
+  displayId?: string;
   ticketTypeTitle: string;
   departmentName: string;
   requesterName: string;

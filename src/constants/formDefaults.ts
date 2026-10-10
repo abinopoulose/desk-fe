@@ -41,6 +41,7 @@ export const DEFAULT_TICKET_TYPE_VALUES = {
   description: '',
   folderId: '',
   departmentId: '',
+  alphaTag: '',
   formSchema: { fields: [] },
   isActive: true,
 };

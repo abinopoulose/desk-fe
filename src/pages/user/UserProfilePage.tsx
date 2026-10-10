@@ -252,10 +252,10 @@ export const UserProfilePage: React.FC = () => {
 
                 <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/80">
                   <span className="text-[10px] text-slate-400 font-semibold uppercase">ID</span>
-                  <span className="font-mono text-slate-700 text-[11px]">#{profile.id.slice(0, 8)}</span>
+                  <span className="font-mono text-slate-700 font-semibold text-[11px]">{profile.displayId || `#${profile.id.slice(0, 8)}`}</span>
                   <button
                     type="button"
-                    onClick={() => handleCopyId(profile.id)}
+                    onClick={() => handleCopyId(profile.displayId || profile.id)}
                     title="Copy Full ID"
                     className="text-slate-400 hover:text-indigo-600 transition-colors ml-1 cursor-pointer"
                   >
@@ -306,7 +306,7 @@ export const UserProfilePage: React.FC = () => {
 
             {profile.manager ? (
               <Link
-                to={ROUTES.USERS.PROFILE(profile.manager.id)}
+                to={ROUTES.USERS.PROFILE(profile.manager.displayId || profile.manager.id)}
                 className="group flex items-center justify-between p-3.5 bg-slate-50/80 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
@@ -396,7 +396,7 @@ export const UserProfilePage: React.FC = () => {
                 {profile.reportees.map((reportee) => (
                   <Link
                     key={reportee.id}
-                    to={ROUTES.USERS.PROFILE(reportee.id)}
+                    to={ROUTES.USERS.PROFILE(reportee.displayId || reportee.id)}
                     className="group p-3.5 bg-slate-50/80 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all flex items-center justify-between cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">

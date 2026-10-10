@@ -11,7 +11,9 @@ import {
   Save, 
   Clock, 
   FolderCheck,
-  FolderOpen
+  FolderOpen,
+  Tag,
+  AlertTriangle
 } from 'lucide-react';
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { ROUTES } from '../../constants';
@@ -87,6 +89,9 @@ export const TicketTypeFormPage: React.FC = () => {
     setFolderId,
     departmentId,
     setDepartmentId,
+    alphaTag,
+    setAlphaTag,
+    originalAlphaTag,
     formSchema,
     setFormSchema,
     isActive,
@@ -116,6 +121,29 @@ export const TicketTypeFormPage: React.FC = () => {
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'form' | 'sla'>('details');
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  const selectedDepartment = useMemo(() => {
+    return departments.find((d) => d.id === departmentId);
+  }, [departments, departmentId]);
+
+  const availableAlphaTags = useMemo(() => {
+    return selectedDepartment?.alphaTags || [];
+  }, [selectedDepartment]);
+
+  const handleSaveClick = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isEditMode && originalAlphaTag && alphaTag && originalAlphaTag.trim().toUpperCase() !== alphaTag.trim().toUpperCase()) {
+      setShowWarningModal(true);
+      return;
+    }
+    handleSubmit(e);
+  };
+
+  const handleConfirmTagMutation = async () => {
+    setShowWarningModal(false);
+    await handleSubmit();
+  };
 
   // Derive folder path breadcrumbs and folder name
   const currentFolderPath = useMemo(() => {
@@ -196,7 +224,7 @@ export const TicketTypeFormPage: React.FC = () => {
               
               <button
                 type="button"
-                onClick={(e) => handleSubmit(e)}
+                onClick={handleSaveClick}
                 disabled={submitting}
                 className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
               >
@@ -317,7 +345,14 @@ export const TicketTypeFormPage: React.FC = () => {
                         id="departmentId"
                         required
                         value={departmentId || ''}
-                        onChange={(e) => setDepartmentId(e.target.value)}
+                        onChange={(e) => {
+                          const newDeptId = e.target.value;
+                          setDepartmentId(newDeptId);
+                          const dept = departments.find(d => d.id === newDeptId);
+                          if (dept?.alphaTags && dept.alphaTags.length > 0 && (!alphaTag || !dept.alphaTags.includes(alphaTag))) {
+                            setAlphaTag(dept.alphaTags[0]);
+                          }
+                        }}
                         className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-800 transition-all outline-none focus:ring-2 focus:ring-indigo-100 appearance-none cursor-pointer"
                       >
                         <option value="" disabled>Select the department responsible</option>
@@ -329,6 +364,58 @@ export const TicketTypeFormPage: React.FC = () => {
                     </div>
                     <p className="text-[11px] text-slate-500 mt-1">
                       Tickets created under this type will be assigned to this department.
+                    </p>
+                  </div>
+
+                  {/* Alpha Tag (Dynamic Ticket Display ID Prefix) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="alphaTag" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                        Alpha Tag (ID Prefix) <span className="text-rose-500">*</span>
+                      </label>
+                      {isEditMode && originalAlphaTag && alphaTag && originalAlphaTag !== alphaTag && (
+                        <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                          ID Mutation Warning
+                        </span>
+                      )}
+                    </div>
+                    {availableAlphaTags.length > 0 ? (
+                      <div className="relative">
+                        <select
+                          id="alphaTag"
+                          required
+                          value={alphaTag || ''}
+                          onChange={(e) => setAlphaTag(e.target.value)}
+                          className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 transition-all outline-none focus:ring-2 focus:ring-indigo-100 appearance-none cursor-pointer"
+                        >
+                          <option value="" disabled>Select an Alpha Tag from {selectedDepartment?.name}</option>
+                          {availableAlphaTags.map((tag) => (
+                            <option key={tag} value={tag}>
+                              {tag} (e.g. {tag}-1, {tag}-2)
+                            </option>
+                          ))}
+                          {alphaTag && !availableAlphaTags.includes(alphaTag) && (
+                            <option value={alphaTag}>{alphaTag} (Custom/Current)</option>
+                          )}
+                        </select>
+                        <Tag className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <input
+                          id="alphaTag"
+                          type="text"
+                          required
+                          placeholder="e.g. AWS, GCP, IT, HR"
+                          value={alphaTag || ''}
+                          onChange={(e) => setAlphaTag(e.target.value.toUpperCase())}
+                          className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                        />
+                        <Tag className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      </div>
+                    )}
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Tickets raised under this type will have Display IDs formatted as <strong className="font-mono text-indigo-600">{alphaTag || 'TAG'}-1</strong>.
                     </p>
                   </div>
 
@@ -495,7 +582,7 @@ export const TicketTypeFormPage: React.FC = () => {
 
             <button
               type="button"
-              onClick={(e) => handleSubmit(e)}
+              onClick={handleSaveClick}
               disabled={submitting}
               className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -504,6 +591,85 @@ export const TicketTypeFormPage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* CRITICAL - ADMIN WARNING POPUP (Tag Mutation Confirmation Modal) */}
+        {showWarningModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+            <div 
+              className="bg-white rounded-2xl max-w-lg w-full border border-rose-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="tag-mutation-title"
+            >
+              <div className="bg-rose-50 border-b border-rose-100 p-6 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 bg-rose-100/80 px-2.5 py-0.5 rounded-full border border-rose-200">
+                    Critical Display ID Mutation
+                  </span>
+                  <h2 id="tag-mutation-title" className="text-lg font-bold text-slate-900 mt-1">
+                    Mutate All Historical Ticket IDs?
+                  </h2>
+                  <p className="text-xs text-rose-700 mt-0.5 font-medium">
+                    This change impacts historical Display IDs across the entire workspace.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 text-xs text-slate-600 leading-relaxed">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-500">Original Prefix:</span>
+                    <span className="font-mono bg-slate-200/80 text-slate-800 px-2 py-0.5 rounded">
+                      {originalAlphaTag} (e.g. {originalAlphaTag}-33)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-500">New Prefix:</span>
+                    <span className="font-mono bg-rose-100 text-rose-800 px-2 py-0.5 rounded border border-rose-200 font-bold">
+                      {alphaTag} (e.g. {alphaTag}-33)
+                    </span>
+                  </div>
+                </div>
+
+                <p>
+                  You are changing the Ticket Type Alpha Tag from <strong className="font-mono text-slate-900">{originalAlphaTag}</strong> to <strong className="font-mono text-rose-700">{alphaTag}</strong>.
+                </p>
+
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+                  <p className="font-semibold flex items-center gap-1.5 mb-1 text-amber-950">
+                    <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                    Widespread ID Mutation Warning
+                  </p>
+                  <p>
+                    Because ticket display IDs are dynamically resolved, changing this tag will <strong>instantly mutate the Display IDs of all existing tickets</strong> raised under this type! Every historical ticket like <span className="font-mono font-semibold">{originalAlphaTag}-1</span> will now render as <span className="font-mono font-semibold">{alphaTag}-1</span> across the dashboard, APIs, emails, and links.
+                  </p>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowWarningModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel & Keep {originalAlphaTag}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmTagMutation}
+                  disabled={submitting}
+                  className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5 font-bold"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>{submitting ? 'Mutating IDs...' : 'I Understand, Mutate Historical IDs'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FOLDER EXPLORER MODAL (Real File Explorer Navigator) */}
         <FolderExplorerModal
