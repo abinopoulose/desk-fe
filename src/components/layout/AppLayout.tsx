@@ -263,62 +263,6 @@ export function AppLayout() {
         ))}
       </nav>
 
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-slate-200/80 shrink-0 bg-white">
-        {isSidebarOpen ? (
-          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/60">
-            <div
-              onClick={() => user && navigate(`/users/${user.id}`)}
-              className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1 mr-1"
-              title="View profile"
-            >
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-slate-900 truncate">
-                  {user?.fullName || 'User'}
-                </div>
-                <div className="text-2xs text-slate-500 truncate">
-                  {user?.email || ''}
-                </div>
-              </div>
-            </div>
-            <Tooltip title="Log out">
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                aria-label="Log out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1.5">
-            <Tooltip title={user?.fullName || 'My Profile'} placement="right" arrow>
-              <button
-                type="button"
-                onClick={() => user && navigate(`/users/${user.id}`)}
-                className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-2xs hover:ring-2 hover:ring-indigo-300 transition-all cursor-pointer"
-              >
-                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-              </button>
-            </Tooltip>
-            <Tooltip title="Log out" placement="right" arrow>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                aria-label="Log out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
-        )}
-      </div>
     </div>
   );
 
