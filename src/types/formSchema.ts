@@ -16,6 +16,7 @@ export interface FormField {
   min?: number;
   max?: number;
   conditionalOn?: ConditionalRule;
+  fullWidth?: boolean;
 }
 
 export interface FormSchema {

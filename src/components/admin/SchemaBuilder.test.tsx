@@ -153,7 +153,7 @@ describe('SchemaBuilder Component', () => {
     fireEvent.click(projNameItems[0]);
 
     // Verify Advanced Settings accordion is present and shows active condition badge
-    expect(screen.getByText('Advanced Settings: Conditional Visibility')).toBeDefined();
+    expect(screen.getByText('Advanced Settings')).toBeDefined();
     expect(screen.getByText('Rule Active')).toBeDefined();
 
     // The conditional value dropdown for boolean shows "Checked (Yes / True)" and "Unchecked (No / False)"
@@ -162,5 +162,26 @@ describe('SchemaBuilder Component', () => {
     expect(valueSelect.tagName.toLowerCase()).toBe('select');
     expect(screen.getByText('Checked (Yes / True)')).toBeDefined();
     expect(screen.getByText('Unchecked (No / False)')).toBeDefined();
+  });
+
+  it('allows specifying whether a field takes up full screen width in advanced settings', () => {
+    const handleChange = vi.fn();
+    render(<SchemaBuilder schema={initialSchema} onChange={handleChange} />);
+
+    // Select first question (Employee Department - select)
+    const questionItems = screen.getAllByText('Employee Department');
+    fireEvent.click(questionItems[0]);
+
+    // Open Advanced Settings accordion
+    fireEvent.click(screen.getByText('Advanced Settings'));
+
+    // Check full width toggle
+    const fullWidthToggle = screen.getByLabelText('Take up full screen width') as HTMLInputElement;
+    expect(fullWidthToggle).toBeDefined();
+    expect(fullWidthToggle.checked).toBe(false); // default for select is false
+
+    // Toggle full width to true
+    fireEvent.click(fullWidthToggle);
+    expect(fullWidthToggle.checked).toBe(true);
   });
 });

@@ -155,7 +155,10 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
       <Grid container spacing={3}>
         {schema.fields.map((field) => {
           if (!isFieldVisible(field)) return null;
-          const isFullWidth = field.type === 'textarea' || field.type === 'checkbox';
+          const isFullWidth =
+            field.fullWidth !== undefined
+              ? field.fullWidth
+              : field.type === 'textarea' || field.type === 'checkbox';
           return (
             <Grid size={{ xs: 12, md: isFullWidth ? 12 : 6 }} key={field.name}>
               {renderField(field)}
