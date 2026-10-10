@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "../common/PageTransition";
 import { useState, useEffect } from 'react';
 import type { MouseEvent, ComponentType } from 'react';
@@ -8,23 +8,16 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
 import { useAuth } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import {
-  Menu, ChevronLeft, ChevronRight,
+  Menu, ChevronLeft,
   LogOut, ShieldCheck, AlertTriangle,
-  PlusCircle, ChevronDown, ChevronUp, UserCircle, Search, Bell
+  PlusCircle, ChevronDown, UserCircle, Search, Bell
 } from 'lucide-react';
 import { 
   SwipeableDrawer, Drawer, useMediaQuery, useTheme, IconButton, 
-  Collapse, Button, Divider, Breadcrumbs, Link as MuiLink, 
+  Collapse, Divider, Breadcrumbs, Link as MuiLink, 
   Avatar, Menu as MuiMenu, MenuItem, Tooltip, Badge, InputBase, Box
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
-
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-3 group ${
-    isActive 
-      ? 'bg-indigo-50 text-indigo-700 font-medium' 
-      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-  }`;
 
 interface NavItemProps {
   to: string;
@@ -34,20 +27,54 @@ interface NavItemProps {
 }
 
 function NavItem({ to, icon: Icon, label, isSidebarOpen }: NavItemProps) {
-  return (
-    <motion.div layout>
-      <NavLink to={to} className={navLinkClass}>
+  const linkNode = (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `relative transition-all duration-150 flex items-center group ${
+          isSidebarOpen
+            ? `px-3 py-2 rounded-xl text-xs gap-3 font-medium ${
+                isActive
+                  ? 'bg-indigo-50/90 text-indigo-700 font-semibold border border-indigo-100/90 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+              }`
+            : `w-10 h-10 mx-auto justify-center rounded-xl ${
+                isActive
+                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+              }`
+        }`
+      }
+    >
       {({ isActive }) => (
         <>
-          <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
-          <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-            {label}
-          </span>
+          {isActive && isSidebarOpen && (
+            <span className="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 rounded-r-full" />
+          )}
+          <Icon
+            className={`w-4 h-4 shrink-0 transition-colors ${
+              isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+            }`}
+          />
+          {isSidebarOpen && (
+            <span className="truncate whitespace-nowrap text-xs">
+              {label}
+            </span>
+          )}
         </>
       )}
     </NavLink>
-    </motion.div>
   );
+
+  if (!isSidebarOpen) {
+    return (
+      <Tooltip title={label} placement="right" arrow>
+        <div className="flex justify-center w-full my-0.5">{linkNode}</div>
+      </Tooltip>
+    );
+  }
+
+  return <div className="w-full my-0.5">{linkNode}</div>;
 }
 
 function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGroup, isSidebarOpen: boolean, hasPrivilege: (p: string) => boolean }) {
@@ -68,10 +95,10 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
   if (visibleItems.length === 0) return null;
 
   return (
-    <div className="mb-4">
-      {isSidebarOpen && (
+    <div className="mb-3">
+      {isSidebarOpen ? (
         <div 
-          className={`flex items-center justify-between px-3 py-2 mb-1 ${group.collapsible ? 'cursor-pointer hover:bg-slate-50 rounded-md transition-colors' : ''}`}
+          className={`flex items-center justify-between px-3 py-1.5 mb-1 select-none ${group.collapsible ? 'cursor-pointer hover:bg-slate-50 rounded-lg transition-colors' : ''}`}
           onClick={handleToggle}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleToggle(); }}
           tabIndex={group.collapsible ? 0 : undefined}
@@ -79,16 +106,18 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
           role={group.collapsible ? 'button' : undefined}
           aria-label={group.collapsible ? `Toggle ${group.label}` : undefined}
         >
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">
             {group.label}
           </span>
           {group.collapsible && (
-            open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} />
           )}
         </div>
+      ) : (
+        <div className="w-8 mx-auto h-px bg-slate-100 my-2" />
       )}
       <Collapse in={open || !isSidebarOpen} timeout="auto" unmountOnExit>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {visibleItems.map(item => (
             <NavItem key={item.to} to={item.to} icon={item.icon} label={item.label} isSidebarOpen={isSidebarOpen} />
           ))}
@@ -159,53 +188,137 @@ export function AppLayout() {
   };
 
   const drawerContent = (
-    <div className={`h-full bg-white flex flex-col transition-all duration-300`} style={{ width: isSidebarOpen ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH }}>
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0">
-        <div className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <ShieldCheck className="w-5 h-5 text-white" />
+    <div
+      className="h-full bg-white flex flex-col transition-all duration-300 select-none"
+      style={{ width: isSidebarOpen ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH }}
+    >
+      {/* Brand Header */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200/80 shrink-0 bg-white">
+        {isSidebarOpen ? (
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+              <ShieldCheck className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
+                Desk
+              </span>
+              <span className="text-2xs font-semibold text-indigo-600 tracking-wider uppercase leading-none">
+                Enterprise Hub
+              </span>
+            </div>
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-indigo-500 whitespace-nowrap">
-            Desk App
-          </span>
-        </div>
-        {!isMobile && (
+        ) : (
+          <Tooltip title="Expand sidebar" placement="right" arrow>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="w-9 h-9 mx-auto rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-600 text-white flex items-center justify-center shadow-xs hover:shadow transition-all cursor-pointer"
+            >
+              <ShieldCheck className="w-5 h-5 text-white" />
+            </button>
+          </Tooltip>
+        )}
+        {!isMobile && isSidebarOpen && (
           <button 
+            type="button"
             onClick={toggleSidebar} 
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
-            aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
           >
-            {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+            <ChevronLeft className="w-4 h-4" />
           </button>
         )}
       </div>
       
-      <div className="p-3">
-        <Button
-          variant="contained"
-          fullWidth
-          startIcon={isSidebarOpen ? <PlusCircle size={20} /> : undefined}
-          onClick={() => navigate(ROUTES.TICKETS.NEW)}
-          sx={{ 
-            justifyContent: isSidebarOpen ? 'flex-start' : 'center',
-            minWidth: isSidebarOpen ? undefined : '36px',
-            px: isSidebarOpen ? 2 : 0,
-            py: 1,
-            textTransform: 'none',
-            borderRadius: '8px',
-            boxShadow: 'none',
-            '&:hover': { boxShadow: 'none' }
-          }}
-        >
-          {isSidebarOpen ? 'Create Ticket' : <PlusCircle size={20} />}
-        </Button>
+      {/* Primary Action Button */}
+      <div className="p-3 shrink-0">
+        {isSidebarOpen ? (
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.TICKETS.NEW)}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4 transition-transform group-hover:rotate-90 duration-200" />
+            <span>Create Ticket</span>
+          </button>
+        ) : (
+          <Tooltip title="Create Ticket" placement="right" arrow>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.TICKETS.NEW)}
+              className="w-10 h-10 mx-auto flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
+            >
+              <PlusCircle className="w-5 h-5 transition-transform group-hover:rotate-90 duration-200" />
+            </button>
+          </Tooltip>
+        )}
       </div>
 
-      <nav className="px-3 flex flex-col flex-1 overflow-y-auto no-scrollbar pb-4">
+      {/* Navigation Groups */}
+      <nav className="px-3 flex flex-col flex-1 overflow-y-auto no-scrollbar pb-2">
         {navConfig.map(group => (
           <NavGroupRenderer key={group.label} group={group} isSidebarOpen={isSidebarOpen} hasPrivilege={hasPrivilege} />
         ))}
       </nav>
+
+      {/* Sidebar Footer */}
+      <div className="p-3 border-t border-slate-200/80 shrink-0 bg-white">
+        {isSidebarOpen ? (
+          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/60">
+            <div
+              onClick={() => user && navigate(`/users/${user.id}`)}
+              className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1 mr-1"
+              title="View profile"
+            >
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold text-slate-900 truncate">
+                  {user?.fullName || 'User'}
+                </div>
+                <div className="text-2xs text-slate-500 truncate">
+                  {user?.email || ''}
+                </div>
+              </div>
+            </div>
+            <Tooltip title="Log out">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                aria-label="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </Tooltip>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <Tooltip title={user?.fullName || 'My Profile'} placement="right" arrow>
+              <button
+                type="button"
+                onClick={() => user && navigate(`/users/${user.id}`)}
+                className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-2xs hover:ring-2 hover:ring-indigo-300 transition-all cursor-pointer"
+              >
+                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+              </button>
+            </Tooltip>
+            <Tooltip title="Log out" placement="right" arrow>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                aria-label="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </Tooltip>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -219,7 +332,14 @@ export function AppLayout() {
           onClose={() => setSidebarOpen(false)}
           onOpen={() => setSidebarOpen(true)}
           ModalProps={{ keepMounted: true }}
-          sx={{ '& .MuiDrawer-paper': { width: LAYOUT.SIDEBAR_WIDTH } }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: LAYOUT.SIDEBAR_WIDTH,
+              borderRight: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              backgroundColor: '#ffffff'
+            }
+          }}
         >
           {drawerContent}
         </SwipeableDrawer>
@@ -227,7 +347,20 @@ export function AppLayout() {
         <Drawer
           variant="permanent"
           open={isSidebarOpen}
-          sx={{ '& .MuiDrawer-paper': { width: isSidebarOpen ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH, position: 'relative', overflowX: 'hidden', transition: theme.transitions.create('width', { easing: theme.transitions.easing.sharp, duration: theme.transitions.duration.enteringScreen }) } }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: isSidebarOpen ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH,
+              position: 'relative',
+              overflowX: 'hidden',
+              borderRight: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: 'none',
+              backgroundColor: '#ffffff',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen
+              })
+            }
+          }}
         >
           {drawerContent}
         </Drawer>
