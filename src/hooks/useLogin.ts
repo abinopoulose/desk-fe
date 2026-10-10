@@ -43,7 +43,7 @@ export function useLogin() {
           email: formState.email,
           password: formState.password,
         });
-        loginAction(response.token, response.user, response.user.roles || []);
+        loginAction(response.token, response.user, response.privileges || []);
 
         const state = location.state as { from?: { pathname: string } } | null;
         const from = state?.from?.pathname || ROUTES.DASHBOARD;

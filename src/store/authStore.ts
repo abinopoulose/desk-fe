@@ -2,6 +2,7 @@ import { ROUTES } from '../constants';
 import { create } from 'zustand';
 import type { UserDTO } from '../types/auth';
 import { tokenStorage } from '../utils/tokenStorage';
+import { getCurrentUser } from '../api/authApi';
 
 export interface AuthState {
   user: UserDTO | null;
@@ -61,25 +62,24 @@ export const DEFAULT_ROLE_PRIVILEGES: Record<string, string[]> = {
   ],
   EMPLOYEE: [
     'USER_READ', 'TICKET_READ', 'TICKET_WRITE',
-    'TICKET_TYPE_READ', 'FOLDER_READ'
+    'TICKET_TYPE_READ', 'FOLDER_READ', 'DEPARTMENT_READ'
+  ],
+  USER: [
+    'USER_READ', 'TICKET_READ', 'TICKET_WRITE',
+    'TICKET_TYPE_READ', 'FOLDER_READ', 'DEPARTMENT_READ'
   ]
 };
 
 export function resolvePrivileges(roles: string[] = [], explicitPrivileges: string[] = []): string[] {
-  if (explicitPrivileges.length > 0) {
+  if (explicitPrivileges && explicitPrivileges.length > 0) {
     const privs = new Set<string>(explicitPrivileges);
-    for (const p of explicitPrivileges) {
-      const rolePrivs = DEFAULT_ROLE_PRIVILEGES[p];
-      if (rolePrivs) {
-        rolePrivs.forEach((rp) => privs.add(rp));
-      }
-    }
     return Array.from(privs);
   }
 
-  const privs = new Set<string>(roles);
+  const privs = new Set<string>();
   for (const role of roles) {
-    const rolePrivs = DEFAULT_ROLE_PRIVILEGES[role];
+    const roleUpper = role.toUpperCase();
+    const rolePrivs = DEFAULT_ROLE_PRIVILEGES[roleUpper];
     if (rolePrivs) {
       rolePrivs.forEach((p) => privs.add(p));
     }
@@ -118,6 +118,20 @@ export const useAuthStore = create<AuthState>((set) => ({
           privileges = resolvePrivileges(user.roles || [], []);
         }
         set({ token, user, isAuthenticated: true, privileges });
+
+        // Background sync user & authoritative privileges with backend
+        getCurrentUser().then((res) => {
+          if (res.user) {
+            const freshPrivs = res.privileges && res.privileges.length > 0
+              ? res.privileges
+              : resolvePrivileges(res.user.roles || [], []);
+            tokenStorage.setUser(res.user);
+            tokenStorage.setPrivileges(freshPrivs);
+            set({ user: res.user, privileges: freshPrivs });
+          }
+        }).catch(() => {
+          // Keep existing credentials if network fails
+        });
       } else {
         tokenStorage.clearAll();
         set({ user: null, token: null, isAuthenticated: false, privileges: [] });
@@ -140,7 +154,8 @@ export const useAuth = () => {
   return {
     hasPrivilege: (p: string) => isSuperAdmin || privileges.includes(p),
     user,
-    isAuthenticated
+    isAuthenticated,
+    isSuperAdmin
   };
 };
 useAuthStore.getState().initialize();

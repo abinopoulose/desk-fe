@@ -2,6 +2,7 @@ export const API_PATHS = {
   AUTH: {
     LOGIN: '/api/v1/auth/login',
     SET_PASSWORD: '/api/v1/auth/set-password',
+    ME: '/api/v1/auth/me',
   },
   ORGANIZATIONS: {
     REGISTER: '/api/v1/organizations/register',

@@ -4,6 +4,7 @@ export interface UserDTO {
   fullName: string;
   title?: string;
   roles: string[];
+  privileges?: string[];
   organizationId?: string;
   organizationName?: string;
   profilePictureUrl?: string;
@@ -12,6 +13,7 @@ export interface UserDTO {
 export interface AuthResponse {
   token: string;
   user: UserDTO;
+  privileges?: string[];
 }
 
 export interface LoginRequest {

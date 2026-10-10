@@ -20,6 +20,7 @@ import { RoleAdminPage } from './pages/admin/RoleAdminPage';
 import { EmployeeManagementPage } from './pages/admin/EmployeeManagementPage';
 import { PageErrorBoundary } from './components/errors/PageErrorBoundary';
 import { NotFoundPage } from './pages/errors/NotFoundPage';
+import { UnauthorizedPage } from './pages/errors/UnauthorizedPage';
 import { useAuth } from './store/authStore';
 
 function App() {
@@ -33,21 +34,25 @@ function App() {
           <Route path={ROUTES.AUTH.REGISTER} element={<OrgSignupPage />} />
           <Route path={ROUTES.AUTH.SET_PASSWORD} element={<SetPasswordPage />} />
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            {/* Workspace Routes (Accessible to all authenticated firm members) */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
             <Route path={ROUTES.TICKETS.NEW} element={<CreateTicketPage />} />
             <Route path={ROUTES.TICKETS.DETAILS_PATH} element={<TicketDetailsPage />} />
             <Route path={ROUTES.TICKETS.BASE} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-            <Route path={ROUTES.ADMIN.TICKET_TYPES} element={<BrowseFoldersPage isAdminMode={true} />} />
-            <Route path={ROUTES.ADMIN.TICKET_TYPE_NEW} element={<TicketTypeFormPage />} />
-            <Route path={ROUTES.ADMIN.TICKET_TYPE_EDIT_PATH} element={<TicketTypeFormPage />} />
-            <Route path={ROUTES.ADMIN.TICKET_STATUSES_PATH} element={<TicketStatusManager />} />
-            <Route path={ROUTES.ADMIN.DEPARTMENTS} element={<DepartmentAdminPage />} />
-            <Route path={ROUTES.ADMIN.ROLES} element={<RoleAdminPage />} />
-            <Route path={ROUTES.ADMIN.EMPLOYEES} element={<PrivilegeGate requiredPrivilege="USER_INVITE"><EmployeeManagementPage /></PrivilegeGate>} />
-            <Route path={ROUTES.METRICS} element={<PrivilegeGate requiredPrivilege="METRICS_READ"><MetricsDashboardPage /></PrivilegeGate>} />
             <Route path={ROUTES.ORG_CHART} element={<OrgChartPage />} />
             <Route path={ROUTES.USERS.PROFILE_PATH} element={<UserProfilePage />} />
+
+            {/* Administration Routes (Protected by PrivilegeGate) */}
+            <Route path={ROUTES.ADMIN.TICKET_TYPES} element={<PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE" fallback={<UnauthorizedPage />}><BrowseFoldersPage isAdminMode={true} /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.TICKET_TYPE_NEW} element={<PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE" fallback={<UnauthorizedPage />}><TicketTypeFormPage /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.TICKET_TYPE_EDIT_PATH} element={<PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE" fallback={<UnauthorizedPage />}><TicketTypeFormPage /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.TICKET_STATUSES_PATH} element={<PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE" fallback={<UnauthorizedPage />}><TicketStatusManager /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.DEPARTMENTS} element={<PrivilegeGate requiredPrivilege="DEPARTMENT_WRITE" fallback={<UnauthorizedPage />}><DepartmentAdminPage /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.ROLES} element={<PrivilegeGate requiredPrivilege="ROLE_WRITE" fallback={<UnauthorizedPage />}><RoleAdminPage /></PrivilegeGate>} />
+            <Route path={ROUTES.ADMIN.EMPLOYEES} element={<PrivilegeGate requiredPrivilege="USER_INVITE" fallback={<UnauthorizedPage />}><EmployeeManagementPage /></PrivilegeGate>} />
+            <Route path={ROUTES.METRICS} element={<PrivilegeGate requiredPrivilege="METRICS_READ" fallback={<UnauthorizedPage />}><MetricsDashboardPage /></PrivilegeGate>} />
+
             {isAuthenticated && <Route path="*" element={<NotFoundPage />} />}
           </Route>
           <Route path="*" element={<NotFoundPage />} />

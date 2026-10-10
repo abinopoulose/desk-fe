@@ -11,3 +11,9 @@ export const setPassword = async (request: SetPasswordRequest): Promise<AuthResp
   const response = await axiosInstance.post<AuthResponse>(API_PATHS.AUTH.SET_PASSWORD, request);
   return response.data;
 };
+
+export const getCurrentUser = async (): Promise<AuthResponse> => {
+  const response = await axiosInstance.get<AuthResponse>(API_PATHS.AUTH.ME);
+  return response.data;
+};
+

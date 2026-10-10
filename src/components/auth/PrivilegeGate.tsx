@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../store/authStore';
 
 export interface PrivilegeGateProps {
   requiredPrivilege?: string;
@@ -16,7 +16,7 @@ export const PrivilegeGate: React.FC<PrivilegeGateProps> = ({
   children,
   fallback = null,
 }) => {
-  const privileges = useAuthStore((state) => state.privileges);
+  const { hasPrivilege } = useAuth();
 
   const reqPrivs = requiredPrivileges || (requiredPrivilege ? [requiredPrivilege] : []);
 
@@ -25,8 +25,8 @@ export const PrivilegeGate: React.FC<PrivilegeGateProps> = ({
   }
 
   const hasAccess = requireAll
-    ? reqPrivs.every((p) => privileges.includes(p))
-    : reqPrivs.some((p) => privileges.includes(p));
+    ? reqPrivs.every((p) => hasPrivilege(p))
+    : reqPrivs.some((p) => hasPrivilege(p));
 
   if (hasAccess) {
     return <>{children}</>;
