@@ -66,7 +66,7 @@ export const CreateTicketPage: React.FC = () => {
 
   if (loadingSchema) {
     return (
-      <div className="p-8 max-w-4xl mx-auto space-y-6">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
         <PageHeaderSkeleton />
         <CardSkeleton />
       </div>
@@ -75,7 +75,7 @@ export const CreateTicketPage: React.FC = () => {
 
   if (error && !schemaResponse) {
     return (
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
         <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-2xl flex items-start gap-3 shadow-xs" role="alert">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div>
@@ -106,7 +106,7 @@ export const CreateTicketPage: React.FC = () => {
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       {/* Top Header Card */}
       <div className="bg-white border-b border-slate-200/80 shadow-2xs">
-        <div className="max-w-4xl mx-auto px-6 py-5">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 py-5">
           <div className="flex items-center gap-3 mb-3">
             <button
               type="button"
@@ -153,7 +153,7 @@ export const CreateTicketPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
         {/* Error notification banner */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center gap-3 text-sm shadow-xs" role="alert">
@@ -166,13 +166,13 @@ export const CreateTicketPage: React.FC = () => {
         )}
 
         {/* Priority Selection Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 lg:p-7">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 lg:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Ticket Priority</h2>
               <p className="text-xs text-slate-500 mt-0.5">Select urgency to ensure appropriate response and SLA resolution time</p>
             </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full self-start sm:self-auto">
               Level {priority}
             </span>
           </div>
@@ -211,7 +211,7 @@ export const CreateTicketPage: React.FC = () => {
         </div>
 
         {/* Dynamic Details Form Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 lg:p-7">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 lg:p-8">
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <FileText className="w-4 h-4" />

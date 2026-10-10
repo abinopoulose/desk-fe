@@ -124,4 +124,43 @@ describe('SchemaBuilder Component', () => {
     expect(screen.getByText('Live Employee Preview')).toBeDefined();
     expect(screen.getByText('How employees will see this form')).toBeDefined();
   });
+
+  it('handles conditional visibility in advanced settings with dynamic dropdowns for boolean and select dependencies', () => {
+    const conditionalSchema: FormSchema = {
+      fields: [
+        {
+          name: 'client_proj',
+          label: 'For Client Project?',
+          type: 'checkbox',
+          required: false,
+        },
+        {
+          name: 'proj_name',
+          label: 'Project Name',
+          type: 'text',
+          required: true,
+          conditionalOn: {
+            field: 'client_proj',
+            value: true,
+          },
+        },
+      ],
+    };
+    render(<SchemaBuilder schema={conditionalSchema} onChange={vi.fn()} />);
+
+    // Click on Project Name to edit it
+    const projNameItems = screen.getAllByText('Project Name');
+    fireEvent.click(projNameItems[0]);
+
+    // Verify Advanced Settings accordion is present and shows active condition badge
+    expect(screen.getByText('Advanced Settings: Conditional Visibility')).toBeDefined();
+    expect(screen.getByText('Rule Active')).toBeDefined();
+
+    // The conditional value dropdown for boolean shows "Checked (Yes / True)" and "Unchecked (No / False)"
+    const valueSelect = screen.getByLabelText('Has this specific answer') as HTMLSelectElement;
+    expect(valueSelect).toBeDefined();
+    expect(valueSelect.tagName.toLowerCase()).toBe('select');
+    expect(screen.getByText('Checked (Yes / True)')).toBeDefined();
+    expect(screen.getByText('Unchecked (No / False)')).toBeDefined();
+  });
 });

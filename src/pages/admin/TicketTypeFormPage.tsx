@@ -143,8 +143,8 @@ export const TicketTypeFormPage: React.FC = () => {
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         
-        {/* Sticky Top Header */}
-        <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
+        {/* Top Header */}
+        <div className="bg-white border-b border-slate-200/80 shadow-2xs">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             
             <div className="flex items-center gap-3">

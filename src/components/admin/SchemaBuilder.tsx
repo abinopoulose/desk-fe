@@ -96,7 +96,14 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
   } = useSchemaBuilder(schema);
 
   const [newOptionInput, setNewOptionInput] = useState('');
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (selectedField?.conditionalOn?.field) {
+      setIsAdvancedOpen(true);
+    }
+  }, [selectedField]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -468,89 +475,178 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
               </label>
             </div>
 
-            {/* Conditional Display (Friendly Logic for HR) */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Conditional Visibility (Optional)</span>
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    Show this question only when a specific answer is given to another question
-                  </span>
-                </div>
-
-                {activeField.conditionalOn && (
+            {/* Advanced Settings: Conditional Visibility */}
+            {(() => {
+              const dependentFieldObj = fields.find((f) => f.name === activeField.conditionalOn?.field);
+              return (
+                <div className="border border-slate-200/80 rounded-xl overflow-hidden bg-white shadow-2xs">
                   <button
                     type="button"
-                    onClick={() => updateField(editingIndex, { conditionalOn: undefined })}
-                    className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                    onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                    className="w-full px-4 py-3 bg-slate-50/80 hover:bg-slate-100/80 flex items-center justify-between text-left transition-colors cursor-pointer"
                   >
-                    Clear Condition
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+                      <span className="text-xs font-bold text-slate-900">
+                        Advanced Settings: Conditional Visibility
+                      </span>
+                      {activeField.conditionalOn?.field && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          Rule Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      <span className="text-[11px] font-medium text-slate-400">
+                        {isAdvancedOpen ? 'Hide' : 'Configure'}
+                      </span>
+                      {isAdvancedOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </div>
                   </button>
-                )}
-              </div>
 
-              {candidateConditionalFields.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">
-                  Add more questions to set up conditional rules based on previous responses.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Show when this question:
-                    </label>
-                    <select
-                      value={activeField.conditionalOn?.field || ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (!val) {
-                          updateField(editingIndex, { conditionalOn: undefined });
-                        } else {
-                          updateField(editingIndex, {
-                            conditionalOn: { field: val, value: activeField.conditionalOn?.value || '' },
-                          });
-                        }
-                      }}
-                      className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-800 outline-none"
-                    >
-                      <option value="">-- Always Show (No Condition) --</option>
-                      {candidateConditionalFields.map((f, i) => (
-                        <option key={f.name || i} value={f.name}>
-                          {f.label || `Question #${i + 1}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {isAdvancedOpen && (
+                    <div className="p-4 bg-slate-50/40 border-t border-slate-100 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-slate-500">
+                          Show this question only when a specific answer is given to another question.
+                        </p>
 
-                  {activeField.conditionalOn?.field && (
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Has this specific answer:
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Yes, Hardware, Urgent"
-                        value={(activeField.conditionalOn?.value as string) || ''}
-                        onChange={(e) => {
-                          if (activeField.conditionalOn?.field) {
-                            updateField(editingIndex, {
-                              conditionalOn: {
-                                field: activeField.conditionalOn.field,
-                                value: e.target.value,
-                              },
-                            });
-                          }
-                        }}
-                        className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-800 outline-none"
-                      />
+                        {activeField.conditionalOn && (
+                          <button
+                            type="button"
+                            onClick={() => updateField(editingIndex, { conditionalOn: undefined })}
+                            className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                          >
+                            Clear Condition
+                          </button>
+                        )}
+                      </div>
+
+                      {candidateConditionalFields.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic">
+                          Add more questions to set up conditional rules based on previous responses.
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                              Show when this question:
+                            </label>
+                            <div className="relative">
+                              <select
+                                aria-label="Show when this question"
+                                value={activeField.conditionalOn?.field || ''}
+                                onChange={(e) => {
+                                  const depName = e.target.value;
+                                  if (!depName) {
+                                    updateField(editingIndex, { conditionalOn: undefined });
+                                  } else {
+                                    const targetField = fields.find((f) => f.name === depName);
+                                    let initialVal: any = '';
+                                    if (targetField?.type === 'checkbox') {
+                                      initialVal = true;
+                                    } else if (targetField?.type === 'select' && targetField.options?.length) {
+                                      initialVal = targetField.options[0];
+                                    }
+                                    updateField(editingIndex, {
+                                      conditionalOn: { field: depName, value: initialVal },
+                                    });
+                                  }
+                                }}
+                                className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 pr-8 text-xs text-slate-800 outline-none appearance-none cursor-pointer"
+                              >
+                                <option value="">-- Always Show (No Condition) --</option>
+                                {candidateConditionalFields.map((f, i) => (
+                                  <option key={f.name || i} value={f.name}>
+                                    {f.label || `Question #${i + 1}`} ({getTypeMeta(f.type).shortLabel})
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
+                          </div>
+
+                          {activeField.conditionalOn?.field && (
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                Has this specific answer:
+                              </label>
+
+                              {/* 1. If dependent field is a boolean checkbox */}
+                              {dependentFieldObj?.type === 'checkbox' ? (
+                                <div className="relative">
+                                  <select
+                                    aria-label="Has this specific answer"
+                                    value={String(activeField.conditionalOn.value === true || String(activeField.conditionalOn.value).toLowerCase() === 'true')}
+                                    onChange={(e) => {
+                                      updateField(editingIndex, {
+                                        conditionalOn: {
+                                          field: activeField.conditionalOn!.field,
+                                          value: e.target.value === 'true',
+                                        },
+                                      });
+                                    }}
+                                    className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 pr-8 text-xs text-slate-800 outline-none appearance-none cursor-pointer"
+                                  >
+                                    <option value="true">Checked (Yes / True)</option>
+                                    <option value="false">Unchecked (No / False)</option>
+                                  </select>
+                                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                              ) : dependentFieldObj?.type === 'select' ? (
+                                /* 2. If dependent field is a dropdown choices select */
+                                <div className="relative">
+                                  <select
+                                    aria-label="Has this specific answer"
+                                    value={String(activeField.conditionalOn.value ?? '')}
+                                    onChange={(e) => {
+                                      updateField(editingIndex, {
+                                        conditionalOn: {
+                                          field: activeField.conditionalOn!.field,
+                                          value: e.target.value,
+                                        },
+                                      });
+                                    }}
+                                    className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 pr-8 text-xs text-slate-800 outline-none appearance-none cursor-pointer"
+                                  >
+                                    <option value="">-- Select Choice Option --</option>
+                                    {(dependentFieldObj.options || []).map((opt, i) => (
+                                      <option key={i} value={opt}>
+                                        {opt}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                              ) : (
+                                /* 3. Text, number, date or other types */
+                                <input
+                                  type="text"
+                                  aria-label="Has this specific answer"
+                                  placeholder="e.g. Yes, Hardware, Urgent"
+                                  value={activeField.conditionalOn?.value !== undefined ? String(activeField.conditionalOn.value) : ''}
+                                  onChange={(e) => {
+                                    if (activeField.conditionalOn?.field) {
+                                      updateField(editingIndex, {
+                                        conditionalOn: {
+                                          field: activeField.conditionalOn.field,
+                                          value: e.target.value,
+                                        },
+                                      });
+                                    }
+                                  }}
+                                  className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-800 outline-none"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
           </div>
         )}
@@ -559,7 +655,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
 
       {/* RIGHT COLUMN: Live Employee Form Preview */}
       <div className={`lg:col-span-5 ${!isPreview ? 'hidden lg:block' : 'block'}`}>
-        <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <div className="sticky top-6 z-10 bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
           
           <div className="bg-slate-50/80 px-5 py-4 border-b border-slate-200/80 flex items-center justify-between">
             <div className="flex items-center gap-2">

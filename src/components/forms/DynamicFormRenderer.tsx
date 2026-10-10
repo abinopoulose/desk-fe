@@ -50,7 +50,49 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   const isFieldVisible = (field: FormField): boolean => {
     if (!field.conditionalOn) return true;
     const { field: depField, value: depValue } = field.conditionalOn;
-    return values[depField] === depValue;
+    const currentVal = values[depField];
+
+    // If current value is undefined or null
+    if (currentVal === undefined || currentVal === null) {
+      if (depValue === false || String(depValue).toLowerCase() === 'false') {
+        return true;
+      }
+      return false;
+    }
+
+    // Boolean current value (e.g. checkbox)
+    if (typeof currentVal === 'boolean') {
+      const boolDep =
+        depValue === true ||
+        String(depValue).toLowerCase() === 'true' ||
+        String(depValue).toLowerCase() === 'yes' ||
+        depValue === 1 ||
+        depValue === '1';
+      return currentVal === boolDep;
+    }
+
+    // Boolean expected value (e.g. depValue is boolean but currentVal is string/number)
+    if (typeof depValue === 'boolean') {
+      const boolCur =
+        currentVal === true ||
+        String(currentVal).toLowerCase() === 'true' ||
+        String(currentVal).toLowerCase() === 'yes' ||
+        currentVal === 1 ||
+        currentVal === '1';
+      return boolCur === depValue;
+    }
+
+    // String comparison (trimmed, case-insensitive)
+    if (typeof currentVal === 'string' && typeof depValue === 'string') {
+      return currentVal.trim().toLowerCase() === depValue.trim().toLowerCase();
+    }
+
+    // Number comparison
+    if (typeof currentVal === 'number' || typeof depValue === 'number') {
+      return Number(currentVal) === Number(depValue);
+    }
+
+    return String(currentVal).trim().toLowerCase() === String(depValue).trim().toLowerCase();
   };
 
   const handleChange = (name: string, value: any) => {

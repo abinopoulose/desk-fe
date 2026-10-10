@@ -311,8 +311,8 @@ export function AppLayout() {
              )}
           </div>
         </header>
-        <main id="main-content" className="flex-1 p-6 md:p-8 overflow-y-auto no-scrollbar pb-24 w-full" tabIndex={-1}>
-          <div className="max-w-7xl mx-auto w-full">
+        <main id="main-content" className="flex-1 overflow-y-auto no-scrollbar w-full" tabIndex={-1}>
+          <div className="w-full min-h-full">
             <AnimatePresence mode="wait"><PageTransition pathname={location.pathname}><Outlet /></PageTransition></AnimatePresence>
           </div>
         </main>
