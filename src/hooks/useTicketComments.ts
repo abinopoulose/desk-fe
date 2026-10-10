@@ -149,7 +149,7 @@ export function useTicketComments(
       try {
         const newComment = await ticketApi.addComment(ticketId, text);
         if (isMountedRef.current) {
-          setInternalComments((prev) => [...prev, newComment]);
+          setInternalComments((prev) => [newComment, ...prev]);
           setCommentText('');
         }
         onCommentAdded?.(newComment);

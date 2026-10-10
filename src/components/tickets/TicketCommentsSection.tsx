@@ -1,12 +1,16 @@
-import React from 'react';
-import { MessageSquare, Send, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { MessageSquare, Send, Loader2, ChevronDown } from 'lucide-react';
 import type { CommentDTO } from '../../types/ticket';
 
 const MAX_CHARS = 500;
+const INITIAL_VISIBLE_COUNT = 10;
+const LOAD_MORE_STEP = 20;
 
 /** Relative time helper */
-const relativeTime = (dateStr: string): string => {
+const relativeTime = (dateStr?: string): string => {
+  if (!dateStr) return 'just now';
   const diff = Date.now() - new Date(dateStr).getTime();
+  if (isNaN(diff)) return 'just now';
   const secs = Math.floor(diff / 1000);
   if (secs < 60) return 'just now';
   const mins = Math.floor(secs / 60);
@@ -35,6 +39,29 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
   onSubmit,
   canWrite,
 }) => {
+  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_COUNT);
+
+  // Always show latest comments first
+  const sortedComments = useMemo(() => {
+    return [...comments].sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [comments]);
+
+  const visibleComments = useMemo(() => {
+    return sortedComments.slice(0, visibleCount);
+  }, [sortedComments, visibleCount]);
+
+  const hasMore = sortedComments.length > visibleCount;
+  const remainingCount = sortedComments.length - visibleCount;
+  const nextBatchCount = Math.min(LOAD_MORE_STEP, remainingCount);
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + LOAD_MORE_STEP);
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
       {/* Header */}
@@ -45,49 +72,17 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900">Activity & Comments</h3>
-            <p className="text-xs text-slate-400">Communication history on this request</p>
+            <p className="text-xs text-slate-400">Communication history on this request (newest first)</p>
           </div>
         </div>
         <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-          {comments.length} {comments.length === 1 ? 'message' : 'messages'}
+          {sortedComments.length} {sortedComments.length === 1 ? 'message' : 'messages'}
         </span>
       </div>
 
-      {/* Comments Timeline */}
-      <div className="space-y-4">
-        {comments.length === 0 ? (
-          <div className="py-8 text-center text-slate-400 text-xs">
-            No updates or comments have been posted yet. Start the conversation below.
-          </div>
-        ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                {comment.author?.fullName ? comment.author.fullName.charAt(0).toUpperCase() : 'U'}
-              </div>
-
-              <div className="flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-slate-800">
-                    {comment.author?.fullName || 'User'}
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    {relativeTime(comment.createdAt)}
-                  </span>
-                </div>
-
-                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Reply Input Form */}
+      {/* Reply Input Form placed at the top for instant visibility of new comments */}
       {canWrite ? (
-        <form onSubmit={onSubmit} className="pt-2 border-t border-slate-100 space-y-3">
+        <form onSubmit={onSubmit} className="pb-2 border-b border-slate-100 space-y-3">
           <div className="relative">
             <textarea
               rows={3}
@@ -121,6 +116,55 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
       ) : (
         <div className="p-3 bg-slate-50 text-slate-400 text-xs text-center rounded-xl border border-slate-100">
           You don't have write permissions to comment on this request.
+        </div>
+      )}
+
+      {/* Comments Timeline */}
+      <div className="space-y-4">
+        {visibleComments.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-xs">
+            No updates or comments have been posted yet. Start the conversation above.
+          </div>
+        ) : (
+          visibleComments.map((comment) => (
+            <div key={comment.id} className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                {comment.author?.fullName ? comment.author.fullName.charAt(0).toUpperCase() : 'U'}
+              </div>
+
+              <div className="flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-800">
+                    {comment.author?.fullName || 'User'}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {relativeTime(comment.createdAt)}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
+          <span className="text-xs text-slate-500">
+            Showing <span className="font-semibold text-slate-700">{visibleComments.length}</span> of <span className="font-semibold text-slate-700">{sortedComments.length}</span> comments
+          </span>
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            className="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+            <span>Load {nextBatchCount} More Comments</span>
+          </button>
         </div>
       )}
     </div>
