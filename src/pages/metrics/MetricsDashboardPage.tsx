@@ -30,7 +30,7 @@ interface Department {
 }
 
 export const MetricsDashboardPage: React.FC = () => {
-  const { metrics, chartData, loading, error, filters, setFilter, refetch } = useMetrics({});
+  const { metrics, chartData, loading, error, filters, setFilter, setMultipleFilters, refetch } = useMetrics({});
   const [departments, setDepartments] = useState<Department[]>([]);
   const [dateRange, setDateRange] = useState<string>('30d');
 
@@ -47,22 +47,21 @@ export const MetricsDashboardPage: React.FC = () => {
     setDateRange(newRange);
     
     const now = new Date();
-    let start = '';
-    const end = '';
+    const end = now.toISOString();
+    const start = new Date();
     
     if (newRange === '7d') {
-      now.setDate(now.getDate() - 7);
-      start = now.toISOString();
+      start.setDate(now.getDate() - 7);
     } else if (newRange === '30d') {
-      now.setDate(now.getDate() - 30);
-      start = now.toISOString();
+      start.setDate(now.getDate() - 30);
     } else if (newRange === '90d') {
-      now.setDate(now.getDate() - 90);
-      start = now.toISOString();
+      start.setDate(now.getDate() - 90);
     }
 
-    setFilter('startDate', start);
-    setFilter('endDate', end);
+    setMultipleFilters({
+      startDate: start.toISOString(),
+      endDate: end,
+    });
   };
 
   const downloadCsv = (data: any[], filename: string) => {

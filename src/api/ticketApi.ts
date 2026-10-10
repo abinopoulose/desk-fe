@@ -32,12 +32,15 @@ export const ticketApi = {
   },
 
   updateTicketStatus: async (ticketId: string, statusId: string): Promise<TicketDTO> => {
-    const response = await axiosInstance.patch<TicketDTO>(API_PATHS.TICKETS.STATUS(ticketId), { statusId });
+    const response = await axiosInstance.put<TicketDTO>(API_PATHS.TICKETS.STATUS(ticketId), {
+      newStatusId: statusId,
+      statusId,
+    });
     return response.data;
   },
 
   assignTicket: async (ticketId: string, assigneeId: string | null): Promise<TicketDTO> => {
-    const response = await axiosInstance.patch<TicketDTO>(API_PATHS.TICKETS.ASSIGN(ticketId), { assigneeId });
+    const response = await axiosInstance.put<TicketDTO>(API_PATHS.TICKETS.ASSIGN(ticketId), { assigneeId });
     return response.data;
   },
 

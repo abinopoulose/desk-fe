@@ -11,7 +11,7 @@ export const API_PATHS = {
     BY_ID: (id: string) => `/api/v1/tickets/${id}`,
     SCHEMA: (typeId: string) => `/api/v1/ticket-types/${typeId}/schema`,
     STATUS: (id: string) => `/api/v1/tickets/${id}/status`,
-    ASSIGN: (id: string) => `/api/v1/tickets/${id}/assign`,
+    ASSIGN: (id: string) => `/api/v1/tickets/${id}/assignee`,
     COMMENTS: (id: string) => `/api/v1/tickets/${id}/comments`,
   },
   DEPARTMENTS: {

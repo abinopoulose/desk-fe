@@ -13,6 +13,11 @@ import {
   TicketAuditHistoryCard,
 } from '../../components/tickets';
 
+import { ticketTypeApi } from '../../api/ticketTypeApi';
+import { getOrgUsers } from '../../api/employeeApi';
+import type { TicketStatusDTO } from '../../types/ticket';
+import type { User } from '../../types/user';
+
 export const TicketDetailsPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
@@ -29,6 +34,29 @@ export const TicketDetailsPage: React.FC = () => {
     assignTicket,
     setTicket,
   } = useTicketDetails(ticketId);
+
+  const [availableStatuses, setAvailableStatuses] = React.useState<TicketStatusDTO[]>([]);
+  const [availableAssignees, setAvailableAssignees] = React.useState<User[]>([]);
+
+  React.useEffect(() => {
+    if (ticket?.ticketType?.id) {
+      ticketTypeApi.getTicketStatuses(ticket.ticketType.id)
+        .then((res) => {
+          if (Array.isArray(res)) setAvailableStatuses(res);
+        })
+        .catch(() => {});
+    }
+  }, [ticket?.ticketType?.id]);
+
+  React.useEffect(() => {
+    if (canManage) {
+      getOrgUsers()
+        .then((res) => {
+          if (Array.isArray(res)) setAvailableAssignees(res);
+        })
+        .catch(() => {});
+    }
+  }, [canManage]);
 
   const {
     comments,
@@ -164,6 +192,8 @@ export const TicketDetailsPage: React.FC = () => {
             <TicketManagementCard
               currentStatus={ticket.currentStatus}
               assignee={ticket.assignee}
+              availableStatuses={availableStatuses}
+              availableAssignees={availableAssignees}
               canManage={canManage}
               onStatusChange={handleStatusChange}
               onAssigneeChange={handleAssigneeChange}

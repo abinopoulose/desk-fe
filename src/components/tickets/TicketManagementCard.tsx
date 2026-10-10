@@ -1,11 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { Settings, CheckCircle2, User } from 'lucide-react';
+import { Settings, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME } from '../../constants';
+
+import type { TicketStatusDTO } from '../../types/ticket';
+import type { User } from '../../types/user';
 
 export interface TicketManagementCardProps {
   currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };
   assignee?: { id: string; fullName: string; email: string };
+  availableStatuses?: TicketStatusDTO[];
+  availableAssignees?: User[];
   canManage: boolean;
   onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onAssigneeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -14,6 +19,8 @@ export interface TicketManagementCardProps {
 export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
   currentStatus,
   assignee,
+  availableStatuses,
+  availableAssignees,
   canManage,
   onStatusChange,
   onAssigneeChange,
@@ -41,9 +48,19 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
             value={currentStatus.id}
             onChange={onStatusChange}
           >
-            <option value={currentStatus.id}>{currentStatus.name}</option>
-            {currentStatus.id !== DEFAULT_CLOSED_STATUS_ID && (
-              <option value={DEFAULT_CLOSED_STATUS_ID}>{DEFAULT_CLOSED_STATUS_NAME}</option>
+            {availableStatuses && availableStatuses.length > 0 ? (
+              availableStatuses.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.mappedState})
+                </option>
+              ))
+            ) : (
+              <>
+                <option value={currentStatus.id}>{currentStatus.name}</option>
+                {currentStatus.id !== DEFAULT_CLOSED_STATUS_ID && (
+                  <option value={DEFAULT_CLOSED_STATUS_ID}>{DEFAULT_CLOSED_STATUS_NAME}</option>
+                )}
+              </>
             )}
           </select>
         ) : (
@@ -66,11 +83,19 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
             onChange={onAssigneeChange}
           >
             <option value="">Unassigned</option>
-            <option value={assignee?.id || 'agent-1'}>{assignee?.fullName || 'Current Specialist'}</option>
+            {availableAssignees && availableAssignees.length > 0 ? (
+              availableAssignees.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.fullName} {u.title ? `— ${u.title}` : ''}
+                </option>
+              ))
+            ) : assignee ? (
+              <option value={assignee.id}>{assignee.fullName}</option>
+            ) : null}
           </select>
         ) : (
           <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
-            <User className="w-3.5 h-3.5 text-slate-400" />
+            <UserIcon className="w-3.5 h-3.5 text-slate-400" />
             {assignee ? (
               <Link to={`/users/${assignee.id}`} className="hover:text-indigo-600 hover:underline">
                 {assignee.fullName}

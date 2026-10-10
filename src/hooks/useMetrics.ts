@@ -34,6 +34,20 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
     }));
   }, []);
 
+  const setMultipleFilters = useCallback((updates: Partial<MetricsFilterParams>) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      for (const [k, v] of Object.entries(updates)) {
+        if (v === '' || v === undefined) {
+          delete (next as any)[k];
+        } else {
+          (next as any)[k] = v;
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const refetch = useCallback(() => {
     void fetchMetrics(filters);
   }, [filters, fetchMetrics]);
@@ -57,6 +71,7 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
     error,
     filters,
     setFilter: handleFilterChange,
+    setMultipleFilters,
     refetch,
   };
 }

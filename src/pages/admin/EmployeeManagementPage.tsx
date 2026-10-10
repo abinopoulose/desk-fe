@@ -47,13 +47,13 @@ export const EmployeeManagementPage: React.FC = () => {
     email: '',
     fullName: '',
     title: '',
-    roles: ['USER'],
+    roles: ['EMPLOYEE'],
   });
 
   const availableRoles = [
-    { id: 'USER', label: 'User', desc: 'Standard staff access to browse services & raise tickets' },
-    { id: 'AGENT', label: 'Support Agent', desc: 'Can respond to, assign, and resolve department tickets' },
-    { id: 'ADMIN', label: 'Administrator', desc: 'Full administrative access to manage master data & settings' },
+    { id: 'EMPLOYEE', label: 'Employee', desc: 'Standard staff access to browse services & raise tickets' },
+    { id: 'IT_SUPPORT', label: 'Support Agent', desc: 'Can respond to, assign, and resolve department tickets' },
+    { id: 'MANAGER', label: 'Department Manager', desc: 'Can oversee departmental queues and direct reports' },
   ];
 
   // Stats calculations
@@ -62,7 +62,7 @@ export const EmployeeManagementPage: React.FC = () => {
     const active = users.filter((u) => (u.status || 'ACTIVE') === 'ACTIVE').length;
     const pending = users.filter((u) => u.status === 'PENDING').length;
     const adminsAndAgents = users.filter((u) =>
-      u.roles?.some((r) => ['ADMIN', 'SUPER_ADMIN', 'AGENT'].includes(r))
+      u.roles?.some((r) => ['ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'AGENT', 'IT_SUPPORT'].includes(r))
     ).length;
     return { total, active, pending, adminsAndAgents };
   }, [users]);
@@ -84,7 +84,19 @@ export const EmployeeManagementPage: React.FC = () => {
       if (statusFilter !== 'ALL' && userStatus !== statusFilter) return false;
 
       // Role filter
-      if (roleFilter !== 'ALL' && !user.roles.includes(roleFilter as any)) return false;
+      if (roleFilter !== 'ALL') {
+        const matchesRole = user.roles?.some((r) => {
+          if (r === roleFilter) return true;
+          if (roleFilter === 'ADMIN' && (r === 'ORG_ADMIN' || r === 'SUPER_ADMIN')) return true;
+          if (roleFilter === 'AGENT' && r === 'IT_SUPPORT') return true;
+          if (roleFilter === 'USER' && r === 'EMPLOYEE') return true;
+          if (roleFilter === 'EMPLOYEE' && r === 'USER') return true;
+          if (roleFilter === 'IT_SUPPORT' && r === 'AGENT') return true;
+          if (roleFilter === 'ORG_ADMIN' && r === 'ADMIN') return true;
+          return false;
+        });
+        if (!matchesRole) return false;
+      }
 
       return true;
     });
@@ -113,7 +125,7 @@ export const EmployeeManagementPage: React.FC = () => {
     e.preventDefault();
     try {
       await handleInvite(inviteForm);
-      setInviteForm({ email: '', fullName: '', title: '', roles: ['USER'] });
+      setInviteForm({ email: '', fullName: '', title: '', roles: ['EMPLOYEE'] });
     } catch {
       // error handled by hook
     }
@@ -279,9 +291,10 @@ export const EmployeeManagementPage: React.FC = () => {
                 className="bg-slate-50 hover:bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none cursor-pointer"
               >
                 <option value="ALL">All Roles</option>
-                <option value="ADMIN">Admin</option>
-                <option value="AGENT">Agent</option>
-                <option value="USER">User</option>
+                <option value="EMPLOYEE">Employee</option>
+                <option value="IT_SUPPORT">Support Agent</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMIN">Administrator</option>
               </select>
             </div>
           </div>

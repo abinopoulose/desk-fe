@@ -268,14 +268,19 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
           parentId: targetFolderId === 'root' ? undefined : targetFolderId,
         });
       } else {
+        if (targetFolderId === 'root') {
+          alert('Ticket types must be placed inside a specific folder, not the root level.');
+          setIsActionLoading(false);
+          return;
+        }
         const full = await ticketTypeApi.getTicketTypeById(moveItem.id);
         await ticketTypeApi.updateTicketType(moveItem.id, {
           title: full.title,
           description: full.description,
-          folderId: targetFolderId === 'root' ? '' : targetFolderId,
+          folderId: targetFolderId,
           departmentId: full.departmentId,
-          formSchema: full.formSchema as Record<string, unknown>,
-          isActive: full.isActive,
+          formSchema: (full.formSchema || {}) as Record<string, unknown>,
+          isActive: full.isActive ?? full.active ?? true,
         });
       }
       setIsMoveModalOpen(false);
