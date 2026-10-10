@@ -311,8 +311,12 @@ export function AppLayout() {
              )}
           </div>
         </header>
-        <main id="main-content" className="flex-1 overflow-y-auto no-scrollbar w-full" tabIndex={-1}>
-          <div className="w-full min-h-full">
+        <main
+          id="main-content"
+          className={`flex-1 ${location.pathname === ROUTES.ORG_CHART ? 'overflow-hidden' : 'overflow-y-auto'} no-scrollbar w-full flex flex-col`}
+          tabIndex={-1}
+        >
+          <div className="w-full flex-1 flex flex-col min-h-full">
             <AnimatePresence mode="wait"><PageTransition pathname={location.pathname}><Outlet /></PageTransition></AnimatePresence>
           </div>
         </main>

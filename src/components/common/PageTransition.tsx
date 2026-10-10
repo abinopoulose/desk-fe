@@ -16,7 +16,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children, pathna
       animate={{ opacity: 1, y: 0 }}
       exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="w-full h-full"
+      className="w-full h-full flex-1 flex flex-col"
     >
       {children}
     </motion.div>

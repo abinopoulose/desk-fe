@@ -50,16 +50,21 @@ const TreeNode = React.memo(({
         {/* Node Card */}
         <div 
           onClick={() => onSelectUser?.(node.id)}
-          className={`relative z-10 flex flex-col items-center justify-center p-4 w-48 border-2 rounded-lg bg-white cursor-pointer shadow-sm transition-colors ${matched ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+          data-no-pan="true"
+          className={`relative z-10 flex flex-col items-center justify-center p-4 w-52 border rounded-xl bg-white cursor-pointer shadow-xs hover:shadow-md transition-all ${
+            matched
+              ? 'border-indigo-500 ring-2 ring-indigo-200 bg-indigo-50/40'
+              : 'border-slate-200/90 hover:border-indigo-300'
+          }`}
           data-testid={`node-${node.id}`}
         >
-          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold mb-2">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200/70 flex items-center justify-center text-indigo-700 font-bold mb-2 shadow-2xs">
             {getInitials(node.fullName)}
           </div>
-          <div className="font-semibold text-gray-800 text-center text-sm truncate w-full">{node.fullName}</div>
-          {node.title && <div className="text-xs text-gray-500 text-center mt-1 truncate w-full">{node.title}</div>}
+          <div className="font-semibold text-slate-900 text-center text-sm truncate w-full">{node.fullName}</div>
+          {node.title && <div className="text-xs text-slate-500 text-center mt-1 truncate w-full">{node.title}</div>}
           {hasChildren && (
-            <div className="mt-2 text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+            <div className="mt-2 text-2xs font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200/60">
               {node.children!.length} reportees
             </div>
           )}
@@ -67,15 +72,17 @@ const TreeNode = React.memo(({
 
         {hasChildren && (
           <button
+            type="button"
+            data-no-pan="true"
             onClick={(e) => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
             }}
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white border border-gray-300 rounded-full flex items-center justify-center text-xs hover:bg-gray-50 focus:outline-none"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 w-6 h-6 bg-white border border-slate-300 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 shadow-2xs hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-300 focus:outline-none transition-colors"
             title={expanded ? "Collapse" : "Expand"}
             data-testid={`toggle-${node.id}`}
           >
-            {expanded ? '-' : '+'}
+            {expanded ? '−' : '+'}
           </button>
         )}
       </div>
@@ -83,7 +90,7 @@ const TreeNode = React.memo(({
       {expanded && hasChildren && (
         <div className="relative flex pt-8">
           {/* Vertical line from parent down to the horizontal connector */}
-          <div className="absolute top-0 left-1/2 w-px h-8 bg-gray-300 -translate-x-1/2"></div>
+          <div className="absolute top-0 left-1/2 w-px h-8 bg-slate-300 -translate-x-1/2"></div>
           
           {node.children!.map((child, index) => {
             const isFirst = index === 0;
@@ -95,7 +102,7 @@ const TreeNode = React.memo(({
                 {/* Horizontal line */}
                 {!isOnly && (
                   <div 
-                    className={`absolute top-0 h-px bg-gray-300 ${
+                    className={`absolute top-0 h-px bg-slate-300 ${
                       isFirst ? 'left-1/2 right-0' : 
                       isLast ? 'left-0 right-1/2' : 
                       'left-0 right-0'
@@ -103,7 +110,7 @@ const TreeNode = React.memo(({
                   ></div>
                 )}
                 {/* Vertical line from horizontal connector down to child */}
-                <div className="w-px h-8 bg-gray-300"></div>
+                <div className="w-px h-8 bg-slate-300"></div>
                 
                 <TreeNode
                   node={child}
