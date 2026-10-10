@@ -1,75 +1,62 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { Warning, AccessTime, CheckCircle, AssignmentLate } from "@mui/icons-material";
-import { DataGridSkeleton } from '../../components/common/Skeletons';
-import { EmptyState } from '../../components/common/EmptyState';
-import { Inbox as InboxIcon, Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
-import {
-  Box, TextField, InputAdornment, Chip, Card, CardActionArea,
-  Stack, Typography, useMediaQuery, useTheme, Button, IconButton,
-  Select, MenuItem, FormControl, InputLabel,
-} from '@mui/material';
-import { ROUTES } from '../../constants';
 import React from 'react';
 import { useNavigate } from 'react-router';
+import { 
+  Search, 
+  Plus, 
+  Sparkles, 
+  Inbox, 
+  X, 
+  ChevronLeft, 
+  ChevronRight, 
+  Clock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  ArrowUpDown
+} from 'lucide-react';
+import { DataGridSkeleton } from '../../components/common/Skeletons';
+import { ROUTES, APP_CONFIG } from '../../constants';
 import { useAuth } from '../../store/authStore';
 import { useTicketList } from '../../hooks';
-import { APP_CONFIG } from '../../constants';
-import type { TicketDTO } from '../../types/ticket';
 
-const PriorityChip: React.FC<{ priority: number }> = ({ priority }) => {
-  const map: Record<number, { label: string; color: 'error' | 'warning' | 'info' | 'default'; icon?: React.ReactElement }> = {
-    1: { label: 'Critical', color: 'error', icon: <Warning fontSize="small" /> },
-    2: { label: 'High', color: 'warning', icon: <AccessTime fontSize="small" /> },
-    3: { label: 'Medium', color: 'info', icon: <AccessTime fontSize="small" /> },
-    4: { label: 'Low', color: 'default', icon: <AccessTime fontSize="small" /> },
-  };
-  const cfg = map[priority] || { label: `P${priority}`, color: 'default' as const, icon: <AccessTime fontSize="small" /> };
-  return <Chip size="small" label={cfg.label} color={cfg.color} variant="outlined" icon={cfg.icon} />;
+const getPriorityBadge = (priority: number) => {
+  switch (priority) {
+    case 1:
+      return {
+        label: 'Critical',
+        bg: 'bg-rose-50',
+        text: 'text-rose-700',
+        border: 'border-rose-200',
+        dot: 'bg-rose-500',
+      };
+    case 2:
+      return {
+        label: 'High',
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200',
+        dot: 'bg-amber-500',
+      };
+    case 3:
+      return {
+        label: 'Medium',
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        dot: 'bg-blue-500',
+      };
+    default:
+      return {
+        label: 'Low',
+        bg: 'bg-slate-100',
+        text: 'text-slate-700',
+        border: 'border-slate-200',
+        dot: 'bg-slate-400',
+      };
+  }
 };
-
-const StatusChip: React.FC<{ name: string; state: string }> = ({ name, state }) => (
-  <Chip
-    size="small"
-    label={`${name} (${state})`} icon={state === 'CLOSED' ? <CheckCircle fontSize="small" /> : <AccessTime fontSize="small" />}
-    color={state === 'OPEN' ? 'primary' : 'default'}
-    variant="filled"
-  />
-);
-
-const MobileTicketCard: React.FC<{ ticket: TicketDTO; onClick: () => void }> = ({ ticket: t, onClick }) => (
-  <Card variant="outlined" sx={{ mb: 1 }}>
-    <CardActionArea onClick={onClick} role="link" sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-        <Typography variant="subtitle2" noWrap sx={{ flex: 1, mr: 1 }}>
-          {t.ticketTypeTitle}
-        </Typography>
-        <PriorityChip priority={t.priority} />
-      </Box>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-        {t.id.substring(0, 8)}… · {t.requesterName}
-      </Typography>
-      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-        <StatusChip name={t.currentStatusName} state={t.mappedState} />
-        {t.assigneeName ? (
-          <Chip size="small" label={t.assigneeName} variant="outlined" />
-        ) : (
-          <Chip size="small" label="Unassigned" sx={{ bgcolor: 'grey.200' }} />
-        )}
-        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-          {new Date(t.createdAt).toLocaleDateString()}
-        </Typography>
-      </Box>
-      {t.slaBreached && (
-        <Chip size="small" label="SLA Breached" color="error" sx={{ mt: 1 }} icon={<AssignmentLate fontSize="small" />} />
-      )}
-    </CardActionArea>
-  </Card>
-);
 
 export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { hasPrivilege } = useAuth();
   const canManage = hasPrivilege('TICKET_MANAGEMENT');
 
@@ -78,17 +65,16 @@ export const TicketListPage: React.FC = () => {
     loading,
     filters,
     setFilter,
-    sort,
     handleSort,
     pagination,
   } = useTicketList();
-  const shouldReduceMotion = useReducedMotion();
-  const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };
-  const itemVariants = { hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 10 }, show: { opacity: 1, y: 0 } };
 
   const hasActiveFilters =
-    !!filters.search || !!filters.status || !!filters.assigneeId ||
-    filters.mappedState !== '' || filters.priority !== '';
+    Boolean(filters.search) ||
+    Boolean(filters.status) ||
+    Boolean(filters.assigneeId) ||
+    filters.mappedState !== '' ||
+    filters.priority !== '';
 
   const clearAllFilters = () => {
     setFilter('search', '');
@@ -98,192 +84,358 @@ export const TicketListPage: React.FC = () => {
     setFilter('priority', '');
   };
 
-  const renderSortIcon = (field: string) => {
-    const [currentField, currentDir] = sort.split(',');
-    if (currentField !== field) return null;
-    return <span>{currentDir === 'asc' ? ' ▲' : ' ▼'}</span>;
-  };
+  const tabs: { key: 'my' | 'assigned' | 'all'; label: string }[] = [
+    { key: 'my', label: 'My Requests' },
+    { key: 'assigned', label: 'Assigned to Me' },
+    ...(canManage ? [{ key: 'all' as const, label: 'All Company Tickets' }] : []),
+  ];
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { sm: 'center' }, gap: 2, mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>Ticket Dashboard</Typography>
-        <Button variant="contained" onClick={() => navigate(ROUTES.TICKETS.NEW)} size={isMobile ? 'small' : 'medium'}>
-          New Ticket
-        </Button>
-      </Box>
+    <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
+      {/* Top Header Card */}
+      <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-xs">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                Service Queue
+              </span>
+              <span className="text-xs text-slate-400 font-medium">
+                • {pagination.totalElements} Total Requests
+              </span>
+            </div>
 
-      {/* Tabs */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2, borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap' }}>
-        {[
-          { key: 'my', label: 'My Tickets' },
-          { key: 'assigned', label: 'Assigned to Me' },
-          ...(canManage ? [{ key: 'all', label: 'All Tickets' }] : []),
-        ].map((tab) => (
-          <Button
-            key={tab.key}
-            size="small"
-            onClick={() => setFilter('tab', tab.key as 'my' | 'assigned' | 'all')}
-            sx={{
-              borderBottom: filters.tab === tab.key ? 2 : 0,
-              borderColor: 'primary.main',
-              borderRadius: 0,
-              fontWeight: filters.tab === tab.key ? 700 : 400,
-              pb: 1,
-            }}
-          >
-            {tab.label}
-          </Button>
-        ))}
-      </Box>
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
+              Support Requests
+            </h1>
+            <p className="text-slate-500 text-sm mt-1 max-w-xl">
+              Track, triage, and fulfill workplace service requests across your organization.
+            </p>
+          </div>
 
-      {/* Search & Filters */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
-        <TextField
-          size="small"
-          placeholder="Search by ID or Requester"
-          value={filters.search}
-          onChange={(e) => setFilter('search', e.target.value)}
-          aria-label="Search tickets"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            },
-          }}
-          sx={{ minWidth: 220 }}
-        />
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.TICKETS.NEW)}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Request</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>State</InputLabel>
-          <Select value={filters.mappedState} onChange={(e) => setFilter('mappedState', e.target.value)} label="State">
-            {APP_CONFIG.TICKETS.STATE_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+        
+        {/* Navigation Tabs & Filters Bar */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col gap-4">
+          
+          {/* Top row: Tab pills & State switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {tabs.map((tab) => {
+                const isActive = filters.tab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setFilter('tab', tab.key)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
 
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Priority</InputLabel>
-          <Select value={filters.priority} onChange={(e) => setFilter('priority', e.target.value)} label="Priority">
-            {APP_CONFIG.TICKETS.PRIORITY_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <InputLabel>Per page</InputLabel>
-          <Select value={pagination.size} onChange={(e) => pagination.setSize(Number(e.target.value))} label="Per page">
-            {APP_CONFIG.TICKETS.PAGE_SIZE_OPTIONS.map((sz) => (
-              <MenuItem key={sz} value={sz}>{sz}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {hasActiveFilters && (
-          <IconButton size="small" onClick={clearAllFilters} color="error" aria-label="Clear all filters">
-            <ClearIcon fontSize="small" />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* Content */}
-      {loading ? (
-        <DataGridSkeleton rows={8} columns={6} />
-      ) : tickets.length === 0 ? (
-        <EmptyState
-          icon={<InboxIcon />}
-          title="No tickets found"
-          description="There are no tickets matching your current filters."
-          action={hasActiveFilters ? { label: 'Clear Filters', onClick: clearAllFilters } : undefined}
-        />
-      ) : isMobile ? (
-        /* Mobile: Card Layout */
-        <Stack spacing={1}>
-          {tickets.map((t) => (
-            <motion.div key={t.id} variants={itemVariants}><MobileTicketCard ticket={t} onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))} /></motion.div>
-          ))}
-        </Stack>
-      ) : (
-        /* Desktop: Table */
-        <Box sx={{ overflowX: 'auto' }}>
-          <table className="min-w-full bg-white border" style={{ borderCollapse: 'collapse' }}>
-            <thead className="bg-gray-100">
-              <motion.tr>
-                <th className="py-2 px-4 border text-left">ID</th>
-                <th className="py-2 px-4 border text-left">Type</th>
-                <th className="py-2 px-4 border text-left">Requester</th>
-                <th className="py-2 px-4 border text-left">Assignee</th>
-                <th className="py-2 px-4 border text-left">Status</th>
-                <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('priority')}>
-                  Priority {renderSortIcon('priority')}
-                </th>
-                <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('slaDueAt')}>
-                  SLA {renderSortIcon('slaDueAt')}
-                </th>
-                <th className="py-2 px-4 border text-left cursor-pointer" onClick={() => handleSort('createdAt')}>
-                  Created {renderSortIcon('createdAt')}
-                </th>
-              </motion.tr>
-            </thead>
-            <motion.tbody initial="hidden" animate="show" variants={containerVariants}>
-              {tickets.map((t) => (
-                <motion.tr
-                  key={t.id} variants={itemVariants}
-                  onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.TICKETS.DETAILS(t.id))}
+            {/* State filter: All / Open / Closed */}
+            <div className="flex items-center gap-1 self-start sm:self-auto bg-slate-100/80 p-1 rounded-xl">
+              {[
+                { value: '', label: 'All' },
+                { value: 'OPEN', label: 'Open' },
+                { value: 'CLOSED', label: 'Closed' },
+              ].map((st) => (
+                <button
+                  key={st.value}
+                  type="button"
+                  onClick={() => setFilter('mappedState', st.value)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    filters.mappedState === st.value
+                      ? 'bg-white text-slate-800 shadow-2xs font-semibold'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
                 >
-                  <td className="py-2 px-4 border">{t.id.substring(0, 8)}...</td>
-                  <td className="py-2 px-4 border">{t.ticketTypeTitle}</td>
-                  <td className="py-2 px-4 border">{t.requesterName}</td>
-                  <td className="py-2 px-4 border">
-                    {t.assigneeName || <Chip size="small" label="Unassigned" sx={{ bgcolor: 'grey.200' }} />}
-                  </td>
-                  <td className="py-2 px-4 border">
-                    <StatusChip name={t.currentStatusName} state={t.mappedState} />
-                  </td>
-                  <td className="py-2 px-4 border"><PriorityChip priority={t.priority} /></td>
-                  <td className="py-2 px-4 border">
-                    {t.slaBreached ? (
-                      <Chip size="small" label="Breached" color="error" icon={<AssignmentLate fontSize="small" />} />
-                    ) : (
-                      <span>{t.slaDueAt ? new Date(t.slaDueAt).toLocaleString() : ''}</span>
-                    )}
-                  </td>
-                  <td className="py-2 px-4 border">{new Date(t.createdAt).toLocaleString()}</td>
-                </motion.tr>
+                  {st.label}
+                </button>
               ))}
-            </motion.tbody>
-          </table>
-        </Box>
-      )}
+            </div>
+          </div>
 
-      {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3, flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {pagination.totalElements === 0 ? 0 : pagination.page * pagination.size + 1}-
-          {Math.min((pagination.page + 1) * pagination.size, pagination.totalElements)} of{' '}
-          {pagination.totalElements} tickets
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Button size="small" variant="outlined" disabled={pagination.page === 0} onClick={pagination.prevPage}>
-            Previous
-          </Button>
-          <Typography variant="body2">
-            Page {pagination.totalPages > 0 ? pagination.page + 1 : 0} of {pagination.totalPages}
-          </Typography>
-          <Button size="small" variant="outlined" disabled={pagination.page >= pagination.totalPages - 1} onClick={pagination.nextPage}>
-            Next
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+          {/* Bottom row: Search input & Priority filter */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* Search input */}
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search requests by title, reference #, or person..."
+                value={filters.search}
+                onChange={(e) => setFilter('search', e.target.value)}
+                className="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+              {filters.search && (
+                <button
+                  type="button"
+                  onClick={() => setFilter('search', '')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Priority Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                aria-label="Filter by priority"
+                value={filters.priority}
+                onChange={(e) => setFilter('priority', e.target.value)}
+                className="px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+              >
+                <option value="">All Priorities</option>
+                <option value="1">Critical (P1)</option>
+                <option value="2">High (P2)</option>
+                <option value="3">Medium (P3)</option>
+                <option value="4">Low (P4)</option>
+              </select>
+
+              {/* Per page size */}
+              <select
+                aria-label="Items per page"
+                value={pagination.size}
+                onChange={(e) => pagination.setSize(Number(e.target.value))}
+                className="px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+              >
+                {APP_CONFIG.TICKETS.PAGE_SIZE_OPTIONS.map((sz) => (
+                  <option key={sz} value={sz}>{sz} / page</option>
+                ))}
+              </select>
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl border border-rose-200/60 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Reset</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tickets Content Table / Cards */}
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+            <DataGridSkeleton rows={6} columns={6} />
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-slate-200/90 p-8 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-4">
+              <Inbox className="w-7 h-7 text-indigo-600" />
+            </div>
+            <h3 className="text-base font-semibold text-slate-900 mb-1">No requests found</h3>
+            <p className="text-sm text-slate-500 max-w-sm mb-6">
+              {hasActiveFilters 
+                ? "No support requests matched your filters. Try clearing your search parameters."
+                : "You don't have any support requests in this queue yet."}
+            </p>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all cursor-pointer"
+              >
+                Clear Filters
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.TICKETS.NEW)}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Submit First Request</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <th className="py-3 px-5">Request Reference</th>
+                    <th className="py-3 px-4">Priority</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Requester</th>
+                    <th className="py-3 px-4">Assignee</th>
+                    <th 
+                      className="py-3 px-4 cursor-pointer hover:text-slate-600 select-none"
+                      onClick={() => handleSort('createdAt')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Submitted</span>
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {tickets.map((t) => {
+                    const priorityCfg = getPriorityBadge(t.priority);
+                    const isOpen = t.mappedState === 'OPEN';
+
+                    return (
+                      <tr
+                        key={t.id}
+                        onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      >
+                        {/* Title & Short ID */}
+                        <td className="py-3.5 px-5">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                              {t.ticketTypeTitle}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] text-slate-400">
+                                #{t.id.substring(0, 8).toUpperCase()}
+                              </span>
+                              {t.slaBreached && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
+                                  <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
+                                  <span>SLA Breached</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Priority */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${priorityCfg.bg} ${priorityCfg.text} ${priorityCfg.border}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${priorityCfg.dot}`} />
+                            <span>{priorityCfg.label}</span>
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                            isOpen
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}>
+                            {isOpen ? (
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Clock className="w-3 h-3 text-slate-400" />
+                            )}
+                            <span>{t.currentStatusName}</span>
+                          </span>
+                        </td>
+
+                        {/* Requester */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">
+                              {t.requesterName ? t.requesterName.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <span className="text-xs text-slate-700 font-medium">
+                              {t.requesterName || 'Unknown'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Assignee */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {t.assigneeName ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                                {t.assigneeName.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="text-xs text-slate-700 font-medium">
+                                {t.assigneeName}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">
+                              Unassigned
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Created Date */}
+                        <td className="py-3.5 px-4 whitespace-nowrap text-xs text-slate-500">
+                          {new Date(t.createdAt).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination footer */}
+            <div className="bg-slate-50/50 border-t border-slate-100 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+              <span>
+                Showing <strong className="text-slate-800">{pagination.totalElements === 0 ? 0 : pagination.page * pagination.size + 1}</strong> to{' '}
+                <strong className="text-slate-800">{Math.min((pagination.page + 1) * pagination.size, pagination.totalElements)}</strong> of{' '}
+                <strong className="text-slate-800">{pagination.totalElements}</strong> requests
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={pagination.page === 0}
+                  onClick={pagination.prevPage}
+                  className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Previous</span>
+                </button>
+
+                <span className="px-2 font-medium text-slate-600">
+                  Page {pagination.totalPages > 0 ? pagination.page + 1 : 0} of {pagination.totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={pagination.page >= pagination.totalPages - 1}
+                  onClick={pagination.nextPage}
+                  className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

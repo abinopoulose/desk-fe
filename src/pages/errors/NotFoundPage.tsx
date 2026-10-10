@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { Box, Typography, Button } from '@mui/material';
-import { SearchOff as SearchOffIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../store/authStore';
 import { ROUTES } from '../../constants';
+import { ArrowRight, Home, Compass } from 'lucide-react';
 
 export const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,53 +23,62 @@ export const NotFoundPage: React.FC = () => {
   };
 
   return (
-    <Box
-      component={motion.div}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: isAuthenticated ? 'calc(100vh - 120px)' : '100vh',
-        textAlign: 'center',
-        p: 3,
-        bgcolor: isAuthenticated ? 'transparent' : 'background.default',
-      }}
+    <div
+      className={`min-h-[80vh] flex items-center justify-center p-6 ${
+        isAuthenticated ? 'bg-slate-50' : 'bg-slate-50 min-h-screen'
+      }`}
     >
-      <Box
-        sx={{
-          bgcolor: 'primary.50',
-          p: 3,
-          borderRadius: '50%',
-          mb: 3,
-        }}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 sm:p-10 text-center"
       >
-        <SearchOffIcon sx={{ fontSize: 64, color: 'primary.main' }} />
-      </Box>
+        {/* Visual Icon Badge */}
+        <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-2xs">
+          <Compass className="w-8 h-8" />
+        </div>
 
-      <Typography variant="h1" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, fontSize: { xs: '4rem', md: '6rem' } }}>
-        404
-      </Typography>
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 mb-3">
+          404 Not Found
+        </span>
 
-      <Typography variant="h4" sx={{ fontWeight: 600, color: 'text.secondary', mb: 2 }}>
-        Page not found
-      </Typography>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
+          Page Not Found
+        </h1>
 
-      <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 400, mb: 4, mx: 'auto' }}>
-        The page you're looking for ({location.pathname}) doesn't exist or has been moved.
-      </Typography>
+        <p className="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">
+          The page you requested{' '}
+          <span className="font-mono text-2xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 break-all">
+            {location.pathname}
+          </span>{' '}
+          could not be found or may have been relocated.
+        </p>
 
-      <Button
-        variant="contained"
-        size="large"
-        onClick={handleAction}
-        sx={{ borderRadius: 2, textTransform: 'none', px: 4, py: 1.5 }}
-      >
-        {isAuthenticated ? 'Go to Dashboard' : 'Go to Login'}
-      </Button>
-    </Box>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={handleAction}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            {isAuthenticated ? 'Go to Dashboard' : 'Back to Login'}
+          </button>
+
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.TICKETS.NEW)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-2xs transition-colors"
+            >
+              <span>Service Catalog</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 };
+
+export default NotFoundPage;

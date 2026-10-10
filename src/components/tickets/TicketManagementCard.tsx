@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { Settings, CheckCircle2, User } from 'lucide-react';
 import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME } from '../../constants';
 
 export interface TicketManagementCardProps {
@@ -18,14 +19,25 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
   onAssigneeChange,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-4">
-      <h3 className="text-lg font-semibold border-b pb-2">Management</h3>
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-5">
+      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+        <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <Settings className="w-4 h-4" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-slate-900">Request Actions</h3>
+          <p className="text-xs text-slate-400">Manage status and assignee</p>
+        </div>
+      </div>
 
+      {/* Status control */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+          Status
+        </label>
         {canManage ? (
           <select
-            className="w-full border rounded p-2"
+            className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
             value={currentStatus.id}
             onChange={onStatusChange}
           >
@@ -35,29 +47,36 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
             )}
           </select>
         ) : (
-          <div className="p-2 bg-gray-50 rounded border text-sm">{currentStatus.name}</div>
+          <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
+            <span>{currentStatus.name}</span>
+          </div>
         )}
       </div>
 
+      {/* Assignee control */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
+        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+          Assigned Specialist
+        </label>
         {canManage ? (
           <select
-            className="w-full border rounded p-2"
+            className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
             value={assignee?.id || ''}
             onChange={onAssigneeChange}
           >
             <option value="">Unassigned</option>
-            <option value={assignee?.id || 'agent-1'}>{assignee?.fullName || 'Current Agent'}</option>
+            <option value={assignee?.id || 'agent-1'}>{assignee?.fullName || 'Current Specialist'}</option>
           </select>
         ) : (
-          <div className="p-2 bg-gray-50 rounded border text-sm">
+          <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
+            <User className="w-3.5 h-3.5 text-slate-400" />
             {assignee ? (
-              <Link to={`/users/${assignee.id}`} className="text-blue-600 hover:underline">
+              <Link to={`/users/${assignee.id}`} className="hover:text-indigo-600 hover:underline">
                 {assignee.fullName}
               </Link>
             ) : (
-              'Unassigned'
+              <span className="text-slate-400 italic">Unassigned</span>
             )}
           </div>
         )}

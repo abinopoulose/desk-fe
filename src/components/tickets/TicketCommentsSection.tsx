@@ -1,26 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router';
-import {
-  Box, Typography, Avatar, TextField, Button, CircularProgress, Stack,
-} from '@mui/material';
-import { Comment as CommentIcon, Send as SendIcon } from '@mui/icons-material';
-import { EmptyState } from '../common/EmptyState';
+import { MessageSquare, Send, Loader2 } from 'lucide-react';
 import type { CommentDTO } from '../../types/ticket';
 
 const MAX_CHARS = 500;
 
-/** Deterministic colour from a string */
-const stringToColor = (str: string): string => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  const colours = [
-    '#1976d2', '#388e3c', '#d32f2f', '#7b1fa2', '#f57c00',
-    '#0288d1', '#c2185b', '#455a64', '#5d4037', '#00796b',
-  ];
-  return colours[Math.abs(hash) % colours.length];
-};
-
-/** Relative time helper (no external deps) */
+/** Relative time helper */
 const relativeTime = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const secs = Math.floor(diff / 1000);
@@ -31,7 +15,7 @@ const relativeTime = (dateStr: string): string => {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 };
 
 export interface TicketCommentsSectionProps {
@@ -44,7 +28,7 @@ export interface TicketCommentsSectionProps {
 }
 
 export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
-  comments,
+  comments = [],
   commentText,
   onCommentTextChange,
   submitting,
@@ -52,92 +36,93 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
   canWrite,
 }) => {
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1, p: 3 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, borderBottom: 1, borderColor: 'divider', pb: 1 }}>
-        Comments
-      </Typography>
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Activity & Comments</h3>
+            <p className="text-xs text-slate-400">Communication history on this request</p>
+          </div>
+        </div>
+        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+          {comments.length} {comments.length === 1 ? 'message' : 'messages'}
+        </span>
+      </div>
 
-      <Stack spacing={2.5} sx={{ mb: 3 }} aria-live="polite">
+      {/* Comments Timeline */}
+      <div className="space-y-4">
         {comments.length === 0 ? (
-          <EmptyState
-            icon={<CommentIcon />}
-            title="No comments yet"
-            description="Be the first to add a comment."
-          />
+          <div className="py-8 text-center text-slate-400 text-xs">
+            No updates or comments have been posted yet. Start the conversation below.
+          </div>
         ) : (
           comments.map((comment) => (
-            <Box key={comment.id} sx={{ display: 'flex', gap: 2 }}>
-              <Avatar
-                sx={{
-                  bgcolor: stringToColor(comment.author.fullName),
-                  width: 36,
-                  height: 36,
-                  fontSize: 14,
-                  flexShrink: 0,
-                }}
-              >
-                {comment.author.fullName.charAt(0).toUpperCase()}
-              </Avatar>
-              <Box
-                sx={{
-                  flex: 1,
-                  borderLeft: 3,
-                  borderColor: 'primary.main',
-                  pl: 2,
-                  py: 0.5,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-                  <Link
-                    to={`/users/${comment.author.id}`}
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}>
-                      {comment.author.fullName}
-                    </Typography>
-                  </Link>
-                  <Typography variant="caption" color="text.secondary">
+            <div key={comment.id} className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                {comment.author?.fullName ? comment.author.fullName.charAt(0).toUpperCase() : 'U'}
+              </div>
+
+              <div className="flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-800">
+                    {comment.author?.fullName || 'User'}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
                     {relativeTime(comment.createdAt)}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                   {comment.content}
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
           ))
         )}
-      </Stack>
+      </div>
 
-      {canWrite && (
-        <Box component="form" onSubmit={onSubmit}>
-          <TextField
-            value={commentText}
-            onChange={(e) => onCommentTextChange(e.target.value.slice(0, MAX_CHARS))}
-            placeholder="Write a comment…"
-            multiline
-            minRows={3}
-            maxRows={6}
-            fullWidth
-            disabled={submitting}
-            size="small"
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">
+      {/* Reply Input Form */}
+      {canWrite ? (
+        <form onSubmit={onSubmit} className="pt-2 border-t border-slate-100 space-y-3">
+          <div className="relative">
+            <textarea
+              rows={3}
+              maxLength={MAX_CHARS}
+              placeholder="Leave a comment or update for the team..."
+              value={commentText}
+              onChange={(e) => onCommentTextChange(e.target.value)}
+              className="w-full p-3 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-slate-400">
               {commentText.length} / {MAX_CHARS} characters
-            </Typography>
-            <Button
+            </span>
+
+            <button
               type="submit"
-              variant="contained"
-              size="small"
-              disabled={!commentText.trim() || submitting}
-              startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <SendIcon fontSize="small" />}
+              disabled={submitting || !commentText.trim()}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              {submitting ? 'Posting…' : 'Post Comment'}
-            </Button>
-          </Box>
-        </Box>
+              {submitting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5" />
+              )}
+              <span>Post Comment</span>
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="p-3 bg-slate-50 text-slate-400 text-xs text-center rounded-xl border border-slate-100">
+          You don't have write permissions to comment on this request.
+        </div>
       )}
-    </Box>
+    </div>
   );
 };

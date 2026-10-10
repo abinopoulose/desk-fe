@@ -1,11 +1,10 @@
-import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import React from 'react';
-import { useParams, useNavigate, Link as RouterLink } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
+import { ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import { useAuth } from '../../store/authStore';
 import { useTicketDetails, useTicketComments } from '../../hooks';
 import { ROUTES } from '../../constants';
-import { Box, Breadcrumbs, Link, Typography, Button } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import {
   TicketHeader,
   TicketFormDataCard,
@@ -74,73 +73,105 @@ export const TicketDetailsPage: React.FC = () => {
     }
   };
 
-  if (loading) return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <PageHeaderSkeleton />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <CardSkeleton />
-          <CardSkeleton />
+  if (loading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        <PageHeaderSkeleton />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+          <div className="space-y-6">
+            <CardSkeleton />
+          </div>
         </div>
-        <div className="space-y-6">
-          <CardSkeleton />
+      </div>
+    );
+  }
+
+  if (error || !ticket) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-2xl flex items-start gap-3 shadow-xs" role="alert">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-sm">Request Not Found</h3>
+            <p className="text-xs text-red-700 mt-1">{error || 'This support ticket could not be found.'}</p>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.TICKETS.BASE)}
+              className="mt-3 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-900 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Back to Requests
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const shortId = ticket.id.substring(0, 8).toUpperCase();
+
+  return (
+    <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
+      {/* Top Header & Breadcrumbs Bar */}
+      <div className="bg-white border-b border-slate-200/80 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.TICKETS.BASE)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors group cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span>Back to Requests</span>
+            </button>
+
+            <span className="text-slate-300">•</span>
+
+            <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+              <Link to={ROUTES.TICKETS.BASE} className="hover:text-slate-600 transition-colors">
+                Queue
+              </Link>
+              <ChevronRight className="w-3 h-3 text-slate-300" />
+              <span className="font-mono text-slate-700 font-semibold">#{shortId}</span>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+        <TicketHeader ticket={ticket} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <TicketFormDataCard formData={ticket.formData} />
+            <TicketCommentsSection
+              comments={comments}
+              commentText={commentText}
+              onCommentTextChange={setCommentText}
+              submitting={submitting}
+              onSubmit={handleCommentSubmit}
+              canWrite={canWrite}
+            />
+          </div>
+
+          {/* Sidebar Column */}
+          <div className="space-y-6">
+            <TicketManagementCard
+              currentStatus={ticket.currentStatus}
+              assignee={ticket.assignee}
+              canManage={canManage}
+              onStatusChange={handleStatusChange}
+              onAssigneeChange={handleAssigneeChange}
+            />
+            <TicketAuditHistoryCard history={ticket.history} />
+          </div>
         </div>
       </div>
     </div>
-  );
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
-  if (!ticket) return <div className="p-8">Ticket not found</div>;
-
-  const shortId = ticket.id.substring(0, 8);
-
-  return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Breadcrumbs + Back */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Button
-          size="small"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(ROUTES.TICKETS.BASE)}
-          sx={{ textTransform: 'none' }}
-        >
-          Back to Tickets
-        </Button>
-        <Breadcrumbs aria-label="breadcrumb" sx={{ flex: 1 }}>
-          <Link component={RouterLink} to={ROUTES.TICKETS.BASE} underline="hover" color="inherit">
-            Tickets
-          </Link>
-          <Typography color="text.primary">Ticket #{shortId}</Typography>
-        </Breadcrumbs>
-      </Box>
-
-      <TicketHeader ticket={ticket} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Main Content Column */}
-        <div className="md:col-span-2 space-y-6">
-          <TicketFormDataCard formData={ticket.formData} />
-          <TicketCommentsSection
-            comments={comments}
-            commentText={commentText}
-            onCommentTextChange={setCommentText}
-            submitting={submitting}
-            onSubmit={handleCommentSubmit}
-            canWrite={canWrite}
-          />
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <TicketManagementCard
-            currentStatus={ticket.currentStatus}
-            assignee={ticket.assignee}
-            canManage={canManage}
-            onStatusChange={handleStatusChange}
-            onAssigneeChange={handleAssigneeChange}
-          />
-          <TicketAuditHistoryCard history={ticket.history} />
-        </div>
-      </div>
-    </Box>
   );
 };

@@ -1,5 +1,5 @@
-import { CheckCircle, Warning, AccessTime } from "@mui/icons-material";
 import React, { useEffect, useState } from 'react';
+import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 
 export interface SLAIndicatorProps {
   createdAt: string;
@@ -21,7 +21,7 @@ export const SLAIndicator: React.FC<SLAIndicatorProps> = ({
   });
 
   useEffect(() => {
-    if (statusState === 'CLOSED') return;
+    if (statusState === 'CLOSED' || !dueAt) return;
 
     const calculateTime = () => {
       const now = new Date().getTime();
@@ -34,36 +34,46 @@ export const SLAIndicator: React.FC<SLAIndicatorProps> = ({
       };
     };
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimeLeft(calculateTime());
     const interval = setInterval(() => setTimeLeft(calculateTime()), 60000);
     return () => clearInterval(interval);
   }, [dueAt, statusState]);
 
   if (statusState === 'CLOSED') {
-    return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium flex items-center gap-1"><CheckCircle fontSize="small" /> Closed</span>;
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-semibold border border-slate-200">
+        <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
+        <span>Resolved</span>
+      </span>
+    );
   }
 
   if (breached || timeLeft.totalMs < 0) {
     return (
-      <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-        Breached by {timeLeft.hours}h {timeLeft.mins}m <Warning fontSize="small" />
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-xs font-semibold border border-rose-200">
+        <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+        <span>Overdue by {timeLeft.hours}h {timeLeft.mins}m</span>
       </span>
     );
+  }
+
+  if (!dueAt) {
+    return null;
   }
 
   const created = new Date(createdAt).getTime();
   const due = new Date(dueAt).getTime();
   const totalDuration = due - created;
-  const isYellow = timeLeft.totalMs < totalDuration / 2;
+  const isUrgent = timeLeft.totalMs < totalDuration / 2;
 
   return (
-    <span
-      className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-        isYellow ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-      }`}
-    >
-      <AccessTime fontSize="small" /> Due in {timeLeft.hours}h {timeLeft.mins}m
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+      isUrgent
+        ? 'bg-amber-50 text-amber-700 border-amber-200'
+        : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+    }`}>
+      <Clock className={`w-3.5 h-3.5 ${isUrgent ? 'text-amber-600' : 'text-indigo-600'}`} />
+      <span>{timeLeft.hours}h {timeLeft.mins}m remaining</span>
     </span>
   );
 };
