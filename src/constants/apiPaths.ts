@@ -6,6 +6,7 @@ export const API_PATHS = {
   },
   ORGANIZATIONS: {
     REGISTER: '/api/v1/organizations/register',
+    RESOLVE: (subdomain: string) => `/api/v1/organizations/resolve/${subdomain}`,
   },
   TICKETS: {
     BASE: '/api/v1/tickets',

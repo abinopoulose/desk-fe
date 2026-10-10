@@ -29,11 +29,30 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getSubdomain } from '../../utils/subdomain';
+import { resolveOrganization, type OrganizationDTO } from '../../api/organizationApi';
 
 export const LoginPage: React.FC = () => {
   const { formState, setField, submit, loading, error } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
+  const currentSubdomain = getSubdomain();
+  const [tenantOrg, setTenantOrg] = useState<OrganizationDTO | null>(null);
+  const [tenantError, setTenantError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentSubdomain) {
+      resolveOrganization(currentSubdomain)
+        .then((res) => {
+          setTenantOrg(res.data);
+          setTenantError(null);
+        })
+        .catch(() => {
+          setTenantError(`Workspace "${currentSubdomain}" was not found. Please check your domain URL.`);
+        });
+    }
+  }, [currentSubdomain]);
 
   // Load saved email if previously remembered
   useEffect(() => {
@@ -185,13 +204,40 @@ export const LoginPage: React.FC = () => {
 
           {/* Form Header */}
           <div className="mb-6">
+            {currentSubdomain && (
+              <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-medium">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                <span>Workspace: <strong className="text-white capitalize">{tenantOrg?.name || currentSubdomain}</strong></span>
+              </div>
+            )}
+
             <h2 className="text-2xl font-bold tracking-tight text-white mb-1.5">
-              Welcome back
+              {tenantOrg ? `Welcome to ${tenantOrg.name}` : 'Welcome back'}
             </h2>
             <p className="text-sm text-slate-400">
-              Sign in with your organization email to access your workspace.
+              {tenantOrg
+                ? `Sign in with your ${tenantOrg.domain || currentSubdomain} email to access this workspace.`
+                : 'Sign in with your organization email to access your workspace.'}
             </p>
           </div>
+
+          {tenantError && (
+            <div className="mb-5">
+              <Alert
+                severity="warning"
+                variant="filled"
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: 'rgba(245, 158, 11, 0.15)',
+                  color: '#fcd34d',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  '& .MuiAlert-icon': { color: '#f59e0b' },
+                }}
+              >
+                {tenantError}
+              </Alert>
+            </div>
+          )}
 
           {/* Error Alert */}
           {error && (

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { handleApiError } from '../utils/apiErrorHandler';
 import { useAppStore } from '../store/appStore';
+import { getSubdomain } from '../utils/subdomain';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -13,6 +14,10 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem('desk_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const subdomain = getSubdomain();
+    if (subdomain && config.headers) {
+      config.headers['X-Tenant-Subdomain'] = subdomain;
     }
     return config;
   },
