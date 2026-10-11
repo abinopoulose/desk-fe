@@ -11,7 +11,6 @@ import {
   Link,
   Checkbox,
   FormControlLabel,
-  Tooltip,
 } from '@mui/material';
 import {
   Mail,
@@ -26,7 +25,6 @@ import {
   Clock,
   Sparkles,
   CheckCircle2,
-  KeyRound,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSubdomain, buildTenantUrl } from '../../utils/subdomain';
@@ -80,11 +78,6 @@ export const LoginPage: React.FC = () => {
       localStorage.removeItem('desk_remembered_email');
     }
     await submit(e);
-  };
-
-  const handleQuickFill = (email: string, pass: string) => {
-    setField('email', email);
-    setField('password', pass);
   };
 
   return (
@@ -272,37 +265,6 @@ export const LoginPage: React.FC = () => {
               </Alert>
             </motion.div>
           )}
-
-          {/* Quick Demo Credentials Helper */}
-          <div className="mb-5 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <KeyRound className="w-4 h-4 text-indigo-400 shrink-0" />
-              <div className="text-xs truncate">
-                <span className="text-slate-400">Dev Admin: </span>
-                <span className="text-slate-200 font-mono">abinopoulose@abino.in</span>
-              </div>
-            </div>
-            <Tooltip title="Auto-fill developer admin credentials for quick testing" arrow>
-              <Button
-                size="small"
-                variant="text"
-                onClick={() => handleQuickFill('abinopoulose@abino.in', 'password123')}
-                sx={{
-                  fontSize: '11px',
-                  textTransform: 'none',
-                  py: 0.25,
-                  px: 1,
-                  minWidth: 'auto',
-                  color: '#818cf8',
-                  bgcolor: 'rgba(99, 102, 241, 0.1)',
-                  borderRadius: 1.5,
-                  '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' },
-                }}
-              >
-                Auto-fill
-              </Button>
-            </Tooltip>
-          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate>
