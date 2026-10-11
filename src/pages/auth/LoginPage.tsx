@@ -29,17 +29,27 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getSubdomain } from '../../utils/subdomain';
+import { getSubdomain, buildTenantUrl } from '../../utils/subdomain';
 import { resolveOrganization, type OrganizationDTO } from '../../api/organizationApi';
+import { useAuthStore } from '../../store/authStore';
 
 export const LoginPage: React.FC = () => {
   const { formState, setField, submit, loading, error } = useLogin();
+  const { isAuthenticated, user, token } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
   const currentSubdomain = getSubdomain();
   const [tenantOrg, setTenantOrg] = useState<OrganizationDTO | null>(null);
   const [tenantError, setTenantError] = useState<string | null>(null);
+
+  // If already authenticated and visiting root login, redirect to workspace
+  useEffect(() => {
+    const firmSubdomain = user?.organizationSubdomain;
+    if (isAuthenticated && firmSubdomain && !currentSubdomain) {
+      window.location.href = buildTenantUrl(firmSubdomain, ROUTES.DASHBOARD, token || undefined);
+    }
+  }, [isAuthenticated, user, token, currentSubdomain]);
 
   useEffect(() => {
     if (currentSubdomain) {

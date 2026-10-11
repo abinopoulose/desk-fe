@@ -7,6 +7,8 @@ export interface UserDTO {
   privileges?: string[];
   organizationId?: string;
   organizationName?: string;
+  organizationSubdomain?: string;
+  organizationSlug?: string;
   profilePictureUrl?: string;
 }
 

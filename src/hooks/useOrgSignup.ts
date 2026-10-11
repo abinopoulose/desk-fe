@@ -4,6 +4,7 @@ import { registerOrganization } from '../api/organizationApi';
 import { useAuthStore } from '../store/authStore';
 import type { CreateOrgRequest } from '../types/auth';
 import { ROUTES } from '../constants';
+import { getSubdomain, buildTenantUrl } from '../utils/subdomain';
 
 export const useOrgSignup = () => {
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,16 @@ export const useOrgSignup = () => {
         password: formState.password,
       };
       const response = await registerOrganization(payload);
+      const firmSubdomain = response.data.user.organizationSubdomain;
+      const currentSub = getSubdomain();
+
       login(response.data.token, response.data.user);
+
+      if (firmSubdomain && (!currentSub || currentSub.toLowerCase() !== firmSubdomain.toLowerCase())) {
+        window.location.href = buildTenantUrl(firmSubdomain, ROUTES.DASHBOARD, response.data.token);
+        return;
+      }
+
       navigate(ROUTES.DASHBOARD);
     } catch (err: unknown) {
       const errorObj = err as {

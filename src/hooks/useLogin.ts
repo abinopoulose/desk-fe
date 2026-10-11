@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { login as loginApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ROUTES, VALIDATION_MESSAGES } from '../constants';
+import { getSubdomain, buildTenantUrl } from '../utils/subdomain';
 
 export interface LoginFormState {
   email: string;
@@ -43,10 +44,23 @@ export function useLogin() {
           email: formState.email,
           password: formState.password,
         });
-        loginAction(response.token, response.user, response.privileges || []);
+        const currentSub = getSubdomain();
+        const firmSubdomain = response.user.organizationSubdomain ||
+          (response.user.organizationName ? response.user.organizationName.toLowerCase().replace(/[^a-z0-9]/g, '') : null);
 
         const state = location.state as { from?: { pathname: string } } | null;
         const from = state?.from?.pathname || ROUTES.DASHBOARD;
+
+        // Save local session state
+        loginAction(response.token, response.user, response.privileges || []);
+
+        // If at root or another subdomain, redirect to tenant workspace (firmname.localhost or firmname.desk.abino)
+        if (firmSubdomain && (!currentSub || currentSub.toLowerCase() !== firmSubdomain.toLowerCase())) {
+          const targetUrl = buildTenantUrl(firmSubdomain, from, response.token);
+          window.location.href = targetUrl;
+          return true;
+        }
+
         navigate(from, { replace: true });
         return true;
       } catch (err: unknown) {

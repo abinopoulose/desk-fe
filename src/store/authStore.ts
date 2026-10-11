@@ -87,6 +87,8 @@ export function resolvePrivileges(roles: string[] = [], explicitPrivileges: stri
   return Array.from(privs);
 }
 
+import { extractSsoToken } from '../utils/subdomain';
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
@@ -108,12 +110,38 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   initialize: () => {
+    // 1. Consume any token passed via cross-domain redirect (hash or search)
+    const ssoToken = extractSsoToken();
+    if (ssoToken && isTokenValid(ssoToken)) {
+      tokenStorage.setToken(ssoToken);
+    }
+
     const token = tokenStorage.getToken();
     if (token) {
       if (isTokenValid(token)) {
-        const user = tokenStorage.getUser();
+        let user = tokenStorage.getUser();
         let privileges = tokenStorage.getPrivileges() || [];
-        
+
+        // Fallback user extraction directly from JWT payload if not yet in storage
+        if (!user) {
+          try {
+            const parts = token.split('.');
+            if (parts.length === 3) {
+              const payload = JSON.parse(atob(parts[1]));
+              user = {
+                id: payload.sub || '',
+                email: payload.email || '',
+                fullName: payload.email?.split('@')[0] || 'User',
+                roles: payload.roles || [],
+                organizationId: payload.organizationId,
+              };
+              tokenStorage.setUser(user);
+            }
+          } catch {
+            // ignore
+          }
+        }
+
         if (user && privileges.length === 0) {
           privileges = resolvePrivileges(user.roles || [], []);
         }

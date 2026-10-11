@@ -1,20 +1,138 @@
 /**
+ * Known root domain hostnames that have no tenant subdomain.
+ */
+const ROOT_HOSTNAMES = new Set(['localhost', '127.0.0.1', 'desk.abino', 'desk.abino.in']);
+
+/**
  * Extracts tenant subdomain from the current window hostname.
  * Examples:
  * - "abino.localhost" -> "abino"
+ * - "firmname.desk.abino" -> "firmname"
+ * - "firmname.desk.abino.in" -> "firmname"
  * - "tenant1.desk.example.com" -> "tenant1"
  * - "localhost" -> null
  * - "127.0.0.1" -> null
+ * - "desk.abino" -> null
+ * - "desk.abino.in" -> null
  */
 export function getSubdomain(): string | null {
   if (typeof window === 'undefined') return null;
-  const hostname = window.location.hostname;
+  const hostname = window.location.hostname.toLowerCase();
+
+  // 1. Plain root hosts
+  if (ROOT_HOSTNAMES.has(hostname)) {
+    return null;
+  }
+
+  // 2. Check localhost subdomains: firmname.localhost
+  if (hostname.endsWith('.localhost')) {
+    const sub = hostname.slice(0, -'.localhost'.length);
+    if (sub && sub !== 'www') {
+      return sub;
+    }
+    return null;
+  }
+
+  // 3. Check desk.abino subdomains: firmname.desk.abino
+  if (hostname.endsWith('.desk.abino')) {
+    const sub = hostname.slice(0, -'.desk.abino'.length);
+    if (sub && sub !== 'www') {
+      return sub;
+    }
+    return null;
+  }
+
+  // 4. Check desk.abino.in subdomains: firmname.desk.abino.in
+  if (hostname.endsWith('.desk.abino.in')) {
+    const sub = hostname.slice(0, -'.desk.abino.in'.length);
+    if (sub && sub !== 'www') {
+      return sub;
+    }
+    return null;
+  }
+
+  // 5. General fallback for domain with subdomains (e.g. tenant1.desk.example.com)
   const parts = hostname.split('.');
-  if (parts.length > 1) {
-    const sub = parts[0].toLowerCase();
-    if (sub !== 'www' && sub !== 'localhost' && sub !== '127') {
+  if (parts.length > 2) {
+    const sub = parts[0];
+    if (sub !== 'www' && sub !== 'desk' && sub !== 'app') {
       return sub;
     }
   }
+
+  return null;
+}
+
+/**
+ * Builds the URL to redirect the user to their tenant workspace.
+ * In dev: firmname.localhost (e.g. http://firmname.localhost:5173/dashboard#token=...)
+ * In prod: firmname.desk.abino (e.g. https://firmname.desk.abino/dashboard#token=...)
+ */
+export function buildTenantUrl(tenantSubdomain: string, path: string = '/', token?: string): string {
+  if (typeof window === 'undefined') {
+    return path;
+  }
+
+  const { protocol, hostname, port } = window.location;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const portPart = port ? `:${port}` : '';
+  const cleanHost = hostname.toLowerCase();
+  let targetHost = '';
+
+  if (cleanHost === 'localhost' || cleanHost === '127.0.0.1' || cleanHost.endsWith('.localhost')) {
+    targetHost = `${tenantSubdomain}.localhost${portPart}`;
+  } else if (cleanHost === 'desk.abino' || cleanHost.endsWith('.desk.abino')) {
+    targetHost = `${tenantSubdomain}.desk.abino${portPart}`;
+  } else if (cleanHost === 'desk.abino.in' || cleanHost.endsWith('.desk.abino.in')) {
+    targetHost = `${tenantSubdomain}.desk.abino.in${portPart}`;
+  } else {
+    const currentSub = getSubdomain();
+    if (currentSub) {
+      targetHost = cleanHost.replace(new RegExp(`^${currentSub}\\.`), `${tenantSubdomain}.`) + portPart;
+    } else {
+      targetHost = `${tenantSubdomain}.${cleanHost}${portPart}`;
+    }
+  }
+
+  const hashPart = token ? `#token=${encodeURIComponent(token)}` : '';
+  return `${protocol}//${targetHost}${cleanPath}${hashPart}`;
+}
+
+/**
+ * Extracts and consumes SSO / login redirect token from URL hash or query params,
+ * then cleans the URL to prevent token leakage in history or address bar.
+ */
+export function extractSsoToken(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  let token: string | null = null;
+
+  // 1. Check hash fragment: #token=... or #sso_token=...
+  if (window.location.hash) {
+    const hashStr = window.location.hash.replace(/^#/, '');
+    const hashParams = new URLSearchParams(hashStr);
+    token = hashParams.get('token') || hashParams.get('sso_token');
+    if (token) {
+      // Remove hash from URL without page reload
+      const cleanUrl = window.location.pathname + (window.location.search || '');
+      window.history.replaceState(null, document.title, cleanUrl);
+      return token;
+    }
+  }
+
+  // 2. Check query params: ?token=... or ?sso_token=...
+  if (window.location.search) {
+    const searchParams = new URLSearchParams(window.location.search);
+    token = searchParams.get('token') || searchParams.get('sso_token');
+    if (token) {
+      searchParams.delete('token');
+      searchParams.delete('sso_token');
+      const newQuery = searchParams.toString();
+      const cleanUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '') + (window.location.hash || '');
+      window.history.replaceState(null, document.title, cleanUrl);
+      return token;
+    }
+  }
+
   return null;
 }
