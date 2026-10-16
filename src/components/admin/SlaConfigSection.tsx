@@ -50,7 +50,8 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
 
   // Schedule preset state: 'standard' | '24_7'
   const [scheduleMode, setScheduleMode] = useState<'standard' | '24_7'>('standard');
-  const [customHours, setCustomHours] = useState<number>(24);
+  const [customHours, setCustomHours] = useState<number | string>(24);
+  const [isCustomResolution, setIsCustomResolution] = useState(false);
 
   const loadSlas = () => {
     if (!ticketTypeId) return;
@@ -92,6 +93,8 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         escalationHooks: item.escalationHooks || null,
       });
 
+      const isPreset = RESOLUTION_PRESETS.some((p) => p.minutes === item.resolutionMinutes);
+      setIsCustomResolution(!isPreset);
       setCustomHours(Math.max(1, Math.round(item.resolutionMinutes / 60)));
 
       // Determine schedule mode
@@ -114,6 +117,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
         escalationHooks: null,
       });
       setScheduleMode('standard');
+      setIsCustomResolution(false);
       setCustomHours(nextPriority === 1 ? 4 : nextPriority === 2 ? 8 : nextPriority === 3 ? 24 : 48);
     }
     setShowForm(true);
@@ -143,10 +147,14 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
     setFormError(null);
     setSaving(true);
 
+    const finalResolutionMinutes = isCustomResolution
+      ? Math.max(1, (parseInt(String(customHours), 10) || 1) * 60)
+      : formData.resolutionMinutes;
+
     try {
       const payload: CreateSlaConfigRequest = {
         priority: formData.priority,
-        resolutionMinutes: formData.resolutionMinutes,
+        resolutionMinutes: finalResolutionMinutes,
         workingDays: scheduleMode === '24_7' ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5],
         workingHoursStart: scheduleMode === '24_7' ? '00:00:00' : '09:00:00',
         workingHoursEnd: scheduleMode === '24_7' ? '23:59:00' : '17:00:00',
@@ -275,9 +283,6 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
     return `${s} – ${e}`;
   };
 
-  const isPresetSelected = RESOLUTION_PRESETS.some(
-    (p) => p.minutes === formData.resolutionMinutes
-  );
 
   return (
     <div className="space-y-6">
@@ -538,13 +543,17 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                 </div>
 
                 <select
-                  value={isPresetSelected ? formData.resolutionMinutes : 'custom'}
+                  value={isCustomResolution ? 'custom' : formData.resolutionMinutes}
                   onChange={(e) => {
                     if (e.target.value === 'custom') {
-                      setFormData({ ...formData, resolutionMinutes: customHours * 60 });
+                      setIsCustomResolution(true);
+                      const currentH = Math.max(1, parseInt(String(customHours), 10) || 1);
+                      setCustomHours(currentH);
+                      setFormData((prev) => ({ ...prev, resolutionMinutes: currentH * 60 }));
                     } else {
+                      setIsCustomResolution(false);
                       const mins = parseInt(e.target.value, 10);
-                      setFormData({ ...formData, resolutionMinutes: mins });
+                      setFormData((prev) => ({ ...prev, resolutionMinutes: mins }));
                       setCustomHours(Math.max(1, Math.round(mins / 60)));
                     }
                   }}
@@ -558,7 +567,7 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                   <option value="custom">Custom Hours...</option>
                 </select>
 
-                {!isPresetSelected && (
+                {isCustomResolution && (
                   <div className="mt-2 flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
                     <span className="text-xs text-slate-500">Target:</span>
                     <input
@@ -566,9 +575,18 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
                       min="1"
                       value={customHours}
                       onChange={(e) => {
-                        const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                        const val = e.target.value;
                         setCustomHours(val);
-                        setFormData({ ...formData, resolutionMinutes: val * 60 });
+                        const parsed = parseInt(val, 10);
+                        if (!isNaN(parsed) && parsed > 0) {
+                          setFormData((prev) => ({ ...prev, resolutionMinutes: parsed * 60 }));
+                        }
+                      }}
+                      onBlur={() => {
+                        const parsed = parseInt(String(customHours), 10);
+                        const fallback = !isNaN(parsed) && parsed > 0 ? parsed : 1;
+                        setCustomHours(fallback);
+                        setFormData((prev) => ({ ...prev, resolutionMinutes: fallback * 60 }));
                       }}
                       className="w-20 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-center font-bold outline-none"
                     />

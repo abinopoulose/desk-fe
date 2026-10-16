@@ -124,4 +124,73 @@ describe('SlaConfigSection Component', () => {
     expect(updated).toHaveLength(1);
     expect(updated[0].priority).toBe(2);
   });
+
+  it('allows setting custom hours when editing an SLA policy', () => {
+    const handleStagedChange = vi.fn();
+
+    render(
+      <SlaConfigSection
+        stagedConfigs={mockStagedConfigs}
+        onStagedConfigsChange={handleStagedChange}
+      />
+    );
+
+    // Click Edit on P1 (which currently has 240 minutes = 4 hours)
+    const editButtons = screen.getAllByText('Edit');
+    fireEvent.click(editButtons[0]);
+
+    expect(screen.getByText('Edit SLA Policy')).toBeDefined();
+
+    // Selects: first combobox is resolution time
+    const resolutionSelect = screen.getAllByRole('combobox')[0];
+    expect(resolutionSelect).toBeDefined();
+
+    // Switch to Custom Hours
+    fireEvent.change(resolutionSelect, { target: { value: 'custom' } });
+
+    // The custom hours number input should now be visible
+    const numberInput = screen.getByRole('spinbutton');
+    expect(numberInput).toBeDefined();
+    expect((numberInput as HTMLInputElement).value).toBe('4');
+
+    // Change custom hours to 6 hours
+    fireEvent.change(numberInput, { target: { value: '6' } });
+    expect((numberInput as HTMLInputElement).value).toBe('6');
+
+    // Submit the form
+    fireEvent.click(screen.getByText('Update Policy'));
+
+    expect(handleStagedChange).toHaveBeenCalledTimes(1);
+    const updated = handleStagedChange.mock.calls[0][0];
+    const editedP1 = updated.find((c: CreateSlaConfigRequest) => c.priority === 1);
+    expect(editedP1).toBeDefined();
+    expect(editedP1.resolutionMinutes).toBe(360); // 6 hours * 60
+  });
+
+  it('automatically opens in custom hours mode when editing an SLA policy with non-preset minutes', () => {
+    const customConfig: CreateSlaConfigRequest[] = [
+      {
+        priority: 1,
+        resolutionMinutes: 300, // 5 hours (not in presets)
+        workingDays: [1, 2, 3, 4, 5],
+        workingHoursStart: '09:00:00',
+        workingHoursEnd: '17:00:00',
+        escalationHooks: null,
+      },
+    ];
+
+    render(
+      <SlaConfigSection
+        stagedConfigs={customConfig}
+        onStagedConfigsChange={vi.fn()}
+      />
+    );
+
+    const editBtn = screen.getByText('Edit');
+    fireEvent.click(editBtn);
+
+    const numberInput = screen.getByRole('spinbutton');
+    expect(numberInput).toBeDefined();
+    expect((numberInput as HTMLInputElement).value).toBe('5');
+  });
 });
