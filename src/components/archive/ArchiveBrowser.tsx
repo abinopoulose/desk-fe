@@ -126,15 +126,14 @@ export const ArchiveBrowser: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
               {currentFolderId !== null && (
-                <motion.button
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
+                <button
+                  type="button"
                   onClick={navigateBack}
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-indigo-600 text-xs font-medium rounded-lg shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                   <span>Return to {parentName}</span>
-                </motion.button>
+                </button>
               )}
 
               {/* Breadcrumb Path */}

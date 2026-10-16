@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router';
+import { useSearchParams, useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -87,8 +87,10 @@ const getDepartmentBadgeStyle = (dept: string = '') => {
 
 export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const folderId = searchParams.get('folderId');
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const rawFolderId = searchParams.get('folderId');
+  const folderId = (rawFolderId && rawFolderId !== 'null' && rawFolderId !== 'undefined') ? rawFolderId : null;
 
   const [treeData, setTreeData] = useState<FolderNodeDTO[]>([]);
   const [allTicketTypes, setAllTicketTypes] = useState<TicketItem[]>([]);
@@ -177,10 +179,9 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
   // Folder Navigation Handlers
   const navigateToFolder = (targetFolderId: string | null) => {
     if (targetFolderId) {
-      setSearchParams({ folderId: targetFolderId });
+      navigate(`${location.pathname}?folderId=${encodeURIComponent(targetFolderId)}`);
     } else {
-      searchParams.delete('folderId');
-      setSearchParams(searchParams);
+      navigate(location.pathname);
     }
   };
 
@@ -393,15 +394,14 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
               <div className="flex items-center gap-3">
                 {folderId !== null && (
-                  <motion.button
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
+                  <button
+                    type="button"
                     onClick={navigateBack}
                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-indigo-600 text-xs font-medium rounded-lg shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
                   >
                     <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                     <span>Return to {parentName}</span>
-                  </motion.button>
+                  </button>
                 )}
 
                 {/* Breadcrumb Path */}
