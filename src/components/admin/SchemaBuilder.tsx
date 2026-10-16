@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import type { FormSchema, FieldType } from '../../types/formSchema';
 import { DynamicFormRenderer } from '../forms/DynamicFormRenderer';
-import { useSchemaBuilder } from '../../hooks/useSchemaBuilder';
+import { useSchemaBuilder, normalizeFormSchema } from '../../hooks/useSchemaBuilder';
 
 export interface SchemaBuilderProps {
   schema: FormSchema;
@@ -101,11 +101,15 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
   const [newOptionInput, setNewOptionInput] = useState('');
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const isFirstRender = useRef(true);
-  const lastLoadedSchemaRef = useRef<FormSchema | null>(null);
+  const lastLoadedSchemaRef = useRef<string>(JSON.stringify(normalizeFormSchema(schema)));
+  const lastEmittedSchemaRef = useRef<string>(JSON.stringify(normalizeFormSchema(schema)));
 
   useEffect(() => {
-    if (schema && schema !== lastLoadedSchemaRef.current) {
-      lastLoadedSchemaRef.current = schema;
+    if (!schema) return;
+    const serialized = JSON.stringify(normalizeFormSchema(schema));
+    if (serialized !== lastLoadedSchemaRef.current && serialized !== lastEmittedSchemaRef.current) {
+      lastLoadedSchemaRef.current = serialized;
+      lastEmittedSchemaRef.current = serialized;
       loadSchema(schema);
     }
   }, [schema, loadSchema]);
@@ -121,7 +125,12 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
       isFirstRender.current = false;
       return;
     }
-    onChange(builderSchema);
+    const serialized = JSON.stringify(normalizeFormSchema(builderSchema));
+    if (serialized !== lastEmittedSchemaRef.current) {
+      lastEmittedSchemaRef.current = serialized;
+      lastLoadedSchemaRef.current = serialized;
+      onChange(builderSchema);
+    }
   }, [builderSchema, onChange]);
 
   const activeField = selectedField;

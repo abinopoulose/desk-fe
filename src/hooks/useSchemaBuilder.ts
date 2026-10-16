@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback, useMemo } from 'react';
 import type { FormSchema, FormField, FieldType } from '../types/formSchema';
 
 export const FIELD_TYPE_OPTIONS: { label: string; value: FieldType }[] = [
@@ -131,8 +131,13 @@ const reducer = (state: State, action: Action): State => {
       return { ...state, isPreview: !state.isPreview };
     case 'SET_DRAGGED_INDEX':
       return { ...state, draggedIndex: action.index };
-    case 'LOAD_SCHEMA':
-      return { ...state, schema: normalizeFormSchema(action.schema), selectedIndex: null };
+    case 'LOAD_SCHEMA': {
+      const normalized = normalizeFormSchema(action.schema);
+      if (JSON.stringify(normalized) === JSON.stringify(state.schema)) {
+        return state;
+      }
+      return { ...state, schema: normalized, selectedIndex: null };
+    }
     default:
       return state;
   }
@@ -194,20 +199,23 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     dispatch({ type: 'TOGGLE_PREVIEW' });
   }, []);
 
-  const dragHandlers = {
-    onDragStart: (index: number) => {
-      dispatch({ type: 'SET_DRAGGED_INDEX', index });
-    },
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-    },
-    onDrop: (index: number) => {
-      if (state.draggedIndex !== null && state.draggedIndex !== index) {
-        dispatch({ type: 'REORDER_FIELD', startIndex: state.draggedIndex, endIndex: index });
-      }
-      dispatch({ type: 'SET_DRAGGED_INDEX', index: null });
-    },
-  };
+  const dragHandlers = useMemo(
+    () => ({
+      onDragStart: (index: number) => {
+        dispatch({ type: 'SET_DRAGGED_INDEX', index });
+      },
+      onDragOver: (e: React.DragEvent) => {
+        e.preventDefault();
+      },
+      onDrop: (index: number) => {
+        if (state.draggedIndex !== null && state.draggedIndex !== index) {
+          dispatch({ type: 'REORDER_FIELD', startIndex: state.draggedIndex, endIndex: index });
+        }
+        dispatch({ type: 'SET_DRAGGED_INDEX', index: null });
+      },
+    }),
+    [state.draggedIndex]
+  );
 
   const loadSchema = useCallback((schema: FormSchema) => {
     dispatch({ type: 'LOAD_SCHEMA', schema });
@@ -216,7 +224,7 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
   const safeFields = Array.isArray(state.schema?.fields) ? state.schema.fields : [];
 
   return {
-    schema: { ...state.schema, fields: safeFields },
+    schema: state.schema,
     fields: safeFields,
     selectedField: state.selectedIndex !== null && safeFields[state.selectedIndex] ? safeFields[state.selectedIndex] : null,
     selectedIndex: state.selectedIndex,

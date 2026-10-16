@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { SchemaBuilder } from './SchemaBuilder';
@@ -209,5 +210,24 @@ describe('SchemaBuilder Component', () => {
     fireEvent.click(addShortTextBtn);
 
     expect(screen.getByText('Questions in this Form (1)')).toBeDefined();
+  });
+
+  it('does not cause an infinite update loop when parent synchronizes schema via onChange', () => {
+    const ParentComponent = () => {
+      const [formSchema, setFormSchema] = useState<FormSchema>(initialSchema);
+      return <SchemaBuilder schema={formSchema} onChange={setFormSchema} />;
+    };
+
+    expect(() => {
+      render(<ParentComponent />);
+    }).not.toThrow();
+
+    expect(screen.getByText('Questions in this Form (2)')).toBeDefined();
+
+    // Add another field to trigger onChange -> setFormSchema -> parent re-render -> schema prop update
+    const addShortTextBtn = screen.getByRole('button', { name: /short text/i });
+    fireEvent.click(addShortTextBtn);
+
+    expect(screen.getByText('Questions in this Form (3)')).toBeDefined();
   });
 });
