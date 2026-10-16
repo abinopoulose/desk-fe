@@ -36,16 +36,38 @@ interface State {
   draggedIndex: number | null;
 }
 
+export const normalizeFormSchema = (raw?: unknown): FormSchema => {
+  if (!raw) return { fields: [] };
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return { fields: [] };
+    }
+  }
+  if (Array.isArray(parsed)) {
+    return { fields: parsed as FormField[] };
+  }
+  if (typeof parsed === 'object' && parsed !== null) {
+    const obj = parsed as Record<string, unknown>;
+    const fields = Array.isArray(obj.fields) ? (obj.fields as FormField[]) : [];
+    return { ...obj, fields };
+  }
+  return { fields: [] };
+};
+
 const reducer = (state: State, action: Action): State => {
+  const currentFields = Array.isArray(state.schema?.fields) ? state.schema.fields : [];
   switch (action.type) {
     case 'ADD_FIELD':
       return {
         ...state,
-        schema: { fields: [...state.schema.fields, action.field] },
-        selectedIndex: state.schema.fields.length,
+        schema: { ...state.schema, fields: [...currentFields, action.field] },
+        selectedIndex: currentFields.length,
       };
     case 'REMOVE_FIELD': {
-      const newFields = [...state.schema.fields];
+      const newFields = [...currentFields];
       newFields.splice(action.index, 1);
       let newSelectedIndex = state.selectedIndex;
       if (newSelectedIndex === action.index) {
@@ -55,12 +77,12 @@ const reducer = (state: State, action: Action): State => {
       }
       return {
         ...state,
-        schema: { fields: newFields },
+        schema: { ...state.schema, fields: newFields },
         selectedIndex: newSelectedIndex,
       };
     }
     case 'REORDER_FIELD': {
-      const newFields = [...state.schema.fields];
+      const newFields = [...currentFields];
       const [removed] = newFields.splice(action.startIndex, 1);
       newFields.splice(action.endIndex, 0, removed);
       
@@ -83,24 +105,24 @@ const reducer = (state: State, action: Action): State => {
       
       return {
         ...state,
-        schema: { fields: newFields },
+        schema: { ...state.schema, fields: newFields },
         selectedIndex: newSelectedIndex,
       };
     }
     case 'UPDATE_FIELD': {
-      const newFields = [...state.schema.fields];
+      const newFields = [...currentFields];
       newFields[action.index] = { ...newFields[action.index], ...action.updates };
       return {
         ...state,
-        schema: { fields: newFields },
+        schema: { ...state.schema, fields: newFields },
       };
     }
     case 'SET_VALIDATION': {
-      const newFields = [...state.schema.fields];
+      const newFields = [...currentFields];
       newFields[action.index] = { ...newFields[action.index], ...action.validation };
       return {
         ...state,
-        schema: { fields: newFields },
+        schema: { ...state.schema, fields: newFields },
       };
     }
     case 'SELECT_FIELD':
@@ -110,7 +132,7 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_DRAGGED_INDEX':
       return { ...state, draggedIndex: action.index };
     case 'LOAD_SCHEMA':
-      return { ...state, schema: action.schema, selectedIndex: null };
+      return { ...state, schema: normalizeFormSchema(action.schema), selectedIndex: null };
     default:
       return state;
   }
@@ -118,7 +140,7 @@ const reducer = (state: State, action: Action): State => {
 
 export const useSchemaBuilder = (initialSchema?: FormSchema) => {
   const [state, dispatch] = useReducer(reducer, {
-    schema: initialSchema || { fields: [] },
+    schema: normalizeFormSchema(initialSchema),
     selectedIndex: null,
     isPreview: false,
     draggedIndex: null,
@@ -187,10 +209,16 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     },
   };
 
+  const loadSchema = useCallback((schema: FormSchema) => {
+    dispatch({ type: 'LOAD_SCHEMA', schema });
+  }, []);
+
+  const safeFields = Array.isArray(state.schema?.fields) ? state.schema.fields : [];
+
   return {
-    schema: state.schema,
-    fields: state.schema.fields,
-    selectedField: state.selectedIndex !== null ? state.schema.fields[state.selectedIndex] : null,
+    schema: { ...state.schema, fields: safeFields },
+    fields: safeFields,
+    selectedField: state.selectedIndex !== null && safeFields[state.selectedIndex] ? safeFields[state.selectedIndex] : null,
     selectedIndex: state.selectedIndex,
     selectField,
     addField,
@@ -198,6 +226,7 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     reorderField,
     updateField,
     setValidation,
+    loadSchema,
     isPreview: state.isPreview,
     togglePreview,
     dragHandlers,

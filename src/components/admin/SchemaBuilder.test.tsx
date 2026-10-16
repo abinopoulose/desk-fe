@@ -184,4 +184,30 @@ describe('SchemaBuilder Component', () => {
     fireEvent.click(fullWidthToggle);
     expect(fullWidthToggle.checked).toBe(true);
   });
+
+  it('renders safely without throwing when schema is an empty object {}', () => {
+    // Simulates database form_schema = '{}'::jsonb
+    const emptyDbSchema = {} as unknown as FormSchema;
+    const handleChange = vi.fn();
+
+    expect(() => {
+      render(<SchemaBuilder schema={emptyDbSchema} onChange={handleChange} />);
+    }).not.toThrow();
+
+    expect(screen.getByText('Questions in this Form (0)')).toBeDefined();
+    expect(screen.getByText('No questions added yet')).toBeDefined();
+  });
+
+  it('allows adding a question starting from an empty object {} schema', () => {
+    const emptyDbSchema = {} as unknown as FormSchema;
+    const handleChange = vi.fn();
+
+    render(<SchemaBuilder schema={emptyDbSchema} onChange={handleChange} />);
+
+    // Click quick add "Short Text"
+    const addShortTextBtn = screen.getByRole('button', { name: /short text/i });
+    fireEvent.click(addShortTextBtn);
+
+    expect(screen.getByText('Questions in this Form (1)')).toBeDefined();
+  });
 });

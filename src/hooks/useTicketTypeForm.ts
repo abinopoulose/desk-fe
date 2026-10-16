@@ -4,6 +4,7 @@ import { ticketTypeApi } from '../api/ticketTypeApi';
 import type { FormSchema } from '../types/formSchema';
 import type { TicketTypeDTO } from '../types/ticket';
 import { ROUTES, DEFAULT_TICKET_TYPE_VALUES } from '../constants';
+import { normalizeFormSchema } from './useSchemaBuilder';
 
 export interface TicketTypeFormData {
   title: string;
@@ -36,7 +37,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
     folderId: searchFolderId || DEFAULT_TICKET_TYPE_VALUES.folderId,
     departmentId: DEFAULT_TICKET_TYPE_VALUES.departmentId,
     alphaTag: DEFAULT_TICKET_TYPE_VALUES.alphaTag || '',
-    formSchema: (DEFAULT_TICKET_TYPE_VALUES.formSchema as FormSchema) || { fields: [] },
+    formSchema: normalizeFormSchema(DEFAULT_TICKET_TYPE_VALUES.formSchema),
     isActive: DEFAULT_TICKET_TYPE_VALUES.isActive,
   });
 
@@ -60,7 +61,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
             folderId: data.folderId,
             departmentId: data.departmentId,
             alphaTag: data.alphaTag || '',
-            formSchema: (data.formSchema as unknown as FormSchema) || { fields: [] },
+            formSchema: normalizeFormSchema(data.formSchema),
             isActive: data.isActive ?? data.active ?? false,
           });
           setOriginalAlphaTag(data.alphaTag || '');
@@ -170,7 +171,7 @@ export function useTicketTypeForm(options?: UseTicketTypeFormOptions | string) {
         folderId: searchFolderId || DEFAULT_TICKET_TYPE_VALUES.folderId,
         departmentId: DEFAULT_TICKET_TYPE_VALUES.departmentId,
         alphaTag: DEFAULT_TICKET_TYPE_VALUES.alphaTag || '',
-        formSchema: (DEFAULT_TICKET_TYPE_VALUES.formSchema as FormSchema) || { fields: [] },
+        formSchema: normalizeFormSchema(DEFAULT_TICKET_TYPE_VALUES.formSchema),
         isActive: DEFAULT_TICKET_TYPE_VALUES.isActive,
       }),
   };

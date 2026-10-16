@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Type,
   AlignLeft,
@@ -93,11 +93,22 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
     isPreview,
     togglePreview,
     dragHandlers,
+    loadSchema,
   } = useSchemaBuilder(schema);
+
+  const safeFields = useMemo(() => (Array.isArray(fields) ? fields : []), [fields]);
 
   const [newOptionInput, setNewOptionInput] = useState('');
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const isFirstRender = useRef(true);
+  const lastLoadedSchemaRef = useRef<FormSchema | null>(null);
+
+  useEffect(() => {
+    if (schema && schema !== lastLoadedSchemaRef.current) {
+      lastLoadedSchemaRef.current = schema;
+      loadSchema(schema);
+    }
+  }, [schema, loadSchema]);
 
   useEffect(() => {
     if (selectedField?.conditionalOn?.field || selectedField?.fullWidth) {
@@ -141,7 +152,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
   };
 
   // Other fields available for conditional display logic
-  const candidateConditionalFields = fields.filter((_, idx) => idx !== editingIndex);
+  const candidateConditionalFields = safeFields.filter((_, idx) => idx !== editingIndex);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -196,12 +207,12 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
           <div className="flex items-center justify-between mb-3 px-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
               <Layers className="w-3.5 h-3.5" />
-              <span>Questions in this Form ({fields.length})</span>
+              <span>Questions in this Form ({safeFields.length})</span>
             </h4>
             <span className="text-[11px] text-slate-400">Click a question to edit</span>
           </div>
 
-          {fields.length === 0 ? (
+          {safeFields.length === 0 ? (
             <div className="bg-slate-50/60 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center">
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
                 <Layers className="w-6 h-6" />
@@ -213,7 +224,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
             </div>
           ) : (
             <div className="space-y-2.5">
-              {fields.map((field, index) => {
+              {safeFields.map((field, index) => {
                 const meta = getTypeMeta(field.type);
                 const Icon = meta.icon;
                 const isSelected = editingIndex === index;
@@ -296,7 +307,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                           e.stopPropagation();
                           reorderField(index, index + 1);
                         }}
-                        disabled={index === fields.length - 1}
+                        disabled={index === safeFields.length - 1}
                         title="Move Down"
                         className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center text-slate-600 text-xs transition-colors cursor-pointer"
                       >
@@ -483,7 +494,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
 
             {/* Advanced Settings */}
             {(() => {
-              const dependentFieldObj = fields.find((f) => f.name === activeField.conditionalOn?.field);
+              const dependentFieldObj = safeFields.find((f) => f.name === activeField.conditionalOn?.field);
               const isFieldFullWidth =
                 activeField.fullWidth !== undefined
                   ? activeField.fullWidth
@@ -588,7 +599,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
                                   if (!depName) {
                                     updateField(editingIndex, { conditionalOn: undefined });
                                   } else {
-                                    const targetField = fields.find((f) => f.name === depName);
+                                    const targetField = safeFields.find((f) => f.name === depName);
                                     let initialVal: any = '';
                                     if (targetField?.type === 'checkbox') {
                                       initialVal = true;
@@ -730,7 +741,7 @@ export const SchemaBuilder: React.FC<SchemaBuilderProps> = ({ schema, onChange }
           </div>
 
           <div className="p-6">
-            {builderSchema.fields.length > 0 ? (
+            {safeFields.length > 0 ? (
               <div className="space-y-4">
                 <div className="p-3 bg-amber-50/60 border border-amber-200/70 rounded-xl text-amber-800 text-xs flex items-center gap-2">
                   <Check className="w-3.5 h-3.5 text-amber-600 shrink-0" />
