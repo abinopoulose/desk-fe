@@ -1,4 +1,3 @@
-import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "../common/PageTransition";
 import { useState, useEffect } from 'react';
 import type { MouseEvent, ComponentType } from 'react';
@@ -395,7 +394,7 @@ export function AppLayout() {
           tabIndex={-1}
         >
           <div className="w-full flex-1 flex flex-col min-h-full">
-            <AnimatePresence mode="wait"><PageTransition pathname={location.pathname}><Outlet /></PageTransition></AnimatePresence>
+            <PageTransition pathname={location.pathname}><Outlet /></PageTransition>
           </div>
         </main>
       </div>

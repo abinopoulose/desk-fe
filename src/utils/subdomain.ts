@@ -77,7 +77,7 @@ export function buildTenantUrl(tenantSubdomain: string, path: string = '/', toke
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   const portPart = port ? `:${port}` : '';
   const cleanHost = hostname.toLowerCase();
-  let targetHost = '';
+  let targetHost: string;
 
   if (cleanHost === 'localhost' || cleanHost === '127.0.0.1' || cleanHost.endsWith('.localhost')) {
     targetHost = `${tenantSubdomain}.localhost${portPart}`;
@@ -105,32 +105,30 @@ export function buildTenantUrl(tenantSubdomain: string, path: string = '/', toke
 export function extractSsoToken(): string | null {
   if (typeof window === 'undefined') return null;
 
-  let token: string | null = null;
-
   // 1. Check hash fragment: #token=... or #sso_token=...
   if (window.location.hash) {
     const hashStr = window.location.hash.replace(/^#/, '');
     const hashParams = new URLSearchParams(hashStr);
-    token = hashParams.get('token') || hashParams.get('sso_token');
-    if (token) {
+    const hashToken = hashParams.get('token') || hashParams.get('sso_token');
+    if (hashToken) {
       // Remove hash from URL without page reload
       const cleanUrl = window.location.pathname + (window.location.search || '');
       window.history.replaceState(null, document.title, cleanUrl);
-      return token;
+      return hashToken;
     }
   }
 
   // 2. Check query params: ?token=... or ?sso_token=...
   if (window.location.search) {
     const searchParams = new URLSearchParams(window.location.search);
-    token = searchParams.get('token') || searchParams.get('sso_token');
-    if (token) {
+    const queryToken = searchParams.get('token') || searchParams.get('sso_token');
+    if (queryToken) {
       searchParams.delete('token');
       searchParams.delete('sso_token');
       const newQuery = searchParams.toString();
       const cleanUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '') + (window.location.hash || '');
       window.history.replaceState(null, document.title, cleanUrl);
-      return token;
+      return queryToken;
     }
   }
 

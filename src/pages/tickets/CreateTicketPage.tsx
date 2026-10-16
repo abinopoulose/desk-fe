@@ -53,12 +53,30 @@ export const CreateTicketPage: React.FC = () => {
   const departmentName = useMemo(() => {
     if (!schemaResponse?.departmentId) return null;
     return departments.find((d) => d.id === schemaResponse.departmentId)?.name || null;
-  }, [departments, schemaResponse?.departmentId]);
+  }, [departments, schemaResponse]);
 
   const folderPath = useMemo(() => {
     if (!schemaResponse?.folderId) return [];
     return findFolderPath(treeData, schemaResponse.folderId) || [];
-  }, [treeData, schemaResponse?.folderId]);
+  }, [treeData, schemaResponse]);
+
+  const rawSchema = schemaResponse?.formSchema;
+  const formSchema: FormSchema = useMemo(() => {
+    if (!rawSchema) return { fields: [] };
+    let s: any = rawSchema;
+    if (typeof s === 'string') {
+      try {
+        s = JSON.parse(s);
+      } catch {
+        return { fields: [] };
+      }
+    }
+    if (Array.isArray(s?.fields)) return s as FormSchema;
+    if (Array.isArray(s)) return { fields: s };
+    return { fields: [] };
+  }, [rawSchema]);
+  const fields: FormField[] = formSchema.fields;
+  const selectedPriorityItem = TICKET_PRIORITY_ITEMS.find((p) => p.value === priority) || TICKET_PRIORITY_ITEMS[2];
 
   if (!typeId) {
     return <ArchiveBrowser />;
@@ -97,24 +115,6 @@ export const CreateTicketPage: React.FC = () => {
   if (!schemaResponse) {
     return null;
   }
-
-  const rawSchema = schemaResponse.formSchema;
-  const formSchema: FormSchema = useMemo(() => {
-    if (!rawSchema) return { fields: [] };
-    let s: any = rawSchema;
-    if (typeof s === 'string') {
-      try {
-        s = JSON.parse(s);
-      } catch {
-        return { fields: [] };
-      }
-    }
-    if (Array.isArray(s?.fields)) return s as FormSchema;
-    if (Array.isArray(s)) return { fields: s };
-    return { fields: [] };
-  }, [rawSchema]);
-  const fields: FormField[] = formSchema.fields;
-  const selectedPriorityItem = TICKET_PRIORITY_ITEMS.find((p) => p.value === priority) || TICKET_PRIORITY_ITEMS[2];
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
