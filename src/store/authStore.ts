@@ -2,7 +2,7 @@ import { ROUTES } from '../constants';
 import { create } from 'zustand';
 import type { UserDTO } from '../types/auth';
 import { tokenStorage } from '../utils/tokenStorage';
-import { getCurrentUser } from '../api/authApi';
+import { getCurrentUser, logout as logoutApi } from '../api/authApi';
 
 export interface AuthState {
   user: UserDTO | null;
@@ -102,6 +102,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user, token, isAuthenticated: true, privileges: resolvedPrivileges });
   },
   logout: () => {
+    logoutApi();
     tokenStorage.clearAll();
     set({ user: null, token: null, isAuthenticated: false, privileges: [] });
     // redirect to login if not already on the login page
@@ -157,8 +158,12 @@ export const useAuthStore = create<AuthState>((set) => ({
             tokenStorage.setPrivileges(freshPrivs);
             set({ user: res.user, privileges: freshPrivs });
           }
-        }).catch(() => {
-          // Keep existing credentials if network fails
+        }).catch((err) => {
+          const status = err?.statusCode || err?.response?.status;
+          if (status === 401 || status === 403) {
+            tokenStorage.clearAll();
+            set({ user: null, token: null, isAuthenticated: false, privileges: [] });
+          }
         });
       } else {
         tokenStorage.clearAll();

@@ -17,3 +17,11 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
   return response.data;
 };
 
+export const logout = async (): Promise<void> => {
+  try {
+    await axiosInstance.post(API_PATHS.AUTH.LOGOUT);
+  } catch {
+    // ignore network errors during logout
+  }
+};
+

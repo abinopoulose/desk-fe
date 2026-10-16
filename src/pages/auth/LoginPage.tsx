@@ -27,13 +27,13 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getSubdomain, buildTenantUrl } from '../../utils/subdomain';
+import { getSubdomain } from '../../utils/subdomain';
 import { resolveOrganization, type OrganizationDTO } from '../../api/organizationApi';
 import { useAuthStore } from '../../store/authStore';
+import { tokenStorage } from '../../utils/tokenStorage';
 
 export const LoginPage: React.FC = () => {
   const { formState, setField, submit, loading, error } = useLogin();
-  const { isAuthenticated, user, token } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
@@ -41,13 +41,13 @@ export const LoginPage: React.FC = () => {
   const [tenantOrg, setTenantOrg] = useState<OrganizationDTO | null>(null);
   const [tenantError, setTenantError] = useState<string | null>(null);
 
-  // If already authenticated and visiting root login, redirect to workspace
+  // If user visits root login, ensure root storage doesn't carry stale tenant session
   useEffect(() => {
-    const firmSubdomain = user?.organizationSubdomain;
-    if (isAuthenticated && firmSubdomain && !currentSubdomain) {
-      window.location.href = buildTenantUrl(firmSubdomain, ROUTES.DASHBOARD, token || undefined);
+    if (!currentSubdomain && tokenStorage.getToken()) {
+      tokenStorage.clearAll();
+      useAuthStore.getState().logout();
     }
-  }, [isAuthenticated, user, token, currentSubdomain]);
+  }, [currentSubdomain]);
 
   useEffect(() => {
     if (currentSubdomain) {

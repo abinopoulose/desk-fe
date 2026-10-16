@@ -5,7 +5,7 @@ import type { MouseEvent, ComponentType } from 'react';
 import { ROUTES, navConfig } from '../../constants';
 import type { NavGroup } from '../../constants';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
-import { useAuth } from '../../store/authStore';
+import { useAuth, useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import {
   Menu, ChevronLeft,
@@ -162,6 +162,7 @@ export function AppLayout() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     if (isMobile && isSidebarOpen) {
@@ -176,8 +177,8 @@ export function AppLayout() {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('desk_token');
-    window.location.href = ROUTES.AUTH.LOGIN;
+    handleMenuClose();
+    logout();
   };
 
   const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {

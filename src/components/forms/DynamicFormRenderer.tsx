@@ -31,6 +31,21 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   const [values, setValues] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const fields: FormField[] = React.useMemo(() => {
+    if (!schema) return [];
+    let s: any = schema;
+    if (typeof s === 'string') {
+      try {
+        s = JSON.parse(s);
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(s?.fields)) return s.fields;
+    if (Array.isArray(s)) return s;
+    return [];
+  }, [schema]);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setValues(initialData);
@@ -112,7 +127,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     const submitData: Record<string, unknown> = {};
     let hasErrors = false;
 
-    schema.fields.forEach((field) => {
+    fields.forEach((field) => {
       if (isFieldVisible(field)) {
         const error = validateField(field, values[field.name]);
         if (error) {
@@ -153,18 +168,26 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Grid container spacing={3}>
-        {schema.fields.map((field) => {
-          if (!isFieldVisible(field)) return null;
-          const isFullWidth =
-            field.fullWidth !== undefined
-              ? field.fullWidth
-              : field.type === 'textarea' || field.type === 'checkbox';
-          return (
-            <Grid size={{ xs: 12, md: isFullWidth ? 12 : 6 }} key={field.name}>
-              {renderField(field)}
-            </Grid>
-          );
-        })}
+        {fields.length === 0 ? (
+          <Grid size={{ xs: 12 }}>
+            <p className="text-xs text-slate-500 italic py-2">
+              No additional fields are required for this ticket type. Click Submit to proceed.
+            </p>
+          </Grid>
+        ) : (
+          fields.map((field) => {
+            if (!isFieldVisible(field)) return null;
+            const isFullWidth =
+              field.fullWidth !== undefined
+                ? field.fullWidth
+                : field.type === 'textarea' || field.type === 'checkbox';
+            return (
+              <Grid size={{ xs: 12, md: isFullWidth ? 12 : 6 }} key={field.name}>
+                {renderField(field)}
+              </Grid>
+            );
+          })
+        )}
         <Grid size={{ xs: 12 }}>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit'}

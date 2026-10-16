@@ -4,6 +4,7 @@ import { login as loginApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ROUTES, VALIDATION_MESSAGES } from '../constants';
 import { getSubdomain, buildTenantUrl } from '../utils/subdomain';
+import { tokenStorage } from '../utils/tokenStorage';
 
 export interface LoginFormState {
   email: string;
@@ -51,16 +52,16 @@ export function useLogin() {
         const state = location.state as { from?: { pathname: string } } | null;
         const from = state?.from?.pathname || ROUTES.DASHBOARD;
 
-        // Save local session state
-        loginAction(response.token, response.user, response.privileges || []);
-
         // If at root or another subdomain, redirect to tenant workspace (firmname.localhost or firmname.desk.abino)
         if (firmSubdomain && (!currentSub || currentSub.toLowerCase() !== firmSubdomain.toLowerCase())) {
+          tokenStorage.clearAll();
           const targetUrl = buildTenantUrl(firmSubdomain, from, response.token);
           window.location.href = targetUrl;
           return true;
         }
 
+        // Save local session state
+        loginAction(response.token, response.user, response.privileges || []);
         navigate(from, { replace: true });
         return true;
       } catch (err: unknown) {

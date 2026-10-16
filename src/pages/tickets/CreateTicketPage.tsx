@@ -98,8 +98,22 @@ export const CreateTicketPage: React.FC = () => {
     return null;
   }
 
-  const formSchema = schemaResponse.formSchema as unknown as FormSchema;
-  const fields: FormField[] = formSchema?.fields || [];
+  const rawSchema = schemaResponse.formSchema;
+  const formSchema: FormSchema = useMemo(() => {
+    if (!rawSchema) return { fields: [] };
+    let s: any = rawSchema;
+    if (typeof s === 'string') {
+      try {
+        s = JSON.parse(s);
+      } catch {
+        return { fields: [] };
+      }
+    }
+    if (Array.isArray(s?.fields)) return s as FormSchema;
+    if (Array.isArray(s)) return { fields: s };
+    return { fields: [] };
+  }, [rawSchema]);
+  const fields: FormField[] = formSchema.fields;
   const selectedPriorityItem = TICKET_PRIORITY_ITEMS.find((p) => p.value === priority) || TICKET_PRIORITY_ITEMS[2];
 
   return (
