@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { Settings, CheckCircle2, User as UserIcon } from 'lucide-react';
-import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME } from '../../constants';
+import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME, ROUTES } from '../../constants';
+import { getUserSlug } from '../../utils/userUtils';
 
 import type { TicketStatusDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
@@ -97,7 +98,7 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
           <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
             <UserIcon className="w-3.5 h-3.5 text-slate-400" />
             {assignee ? (
-              <Link to={`/users/${assignee.id}`} className="hover:text-indigo-600 hover:underline">
+              <Link to={ROUTES.USERS.PROFILE(getUserSlug(assignee))} className="hover:text-indigo-600 hover:underline">
                 {assignee.fullName}
               </Link>
             ) : (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { OrgNode } from '../../types/user';
+import { getUserSlug } from '../../utils/userUtils';
 
 export interface OrgChartTreeProps {
   data: OrgNode[];
@@ -53,7 +54,7 @@ const TreeNode = React.memo(({
       <div className="relative">
         {/* Node Card */}
         <div 
-          onClick={() => onSelectUser?.(node.displayId || node.id)}
+          onClick={() => onSelectUser?.(getUserSlug(node))}
           data-no-pan="true"
           className={`relative z-10 flex flex-col items-center justify-center p-4 w-52 border rounded-xl bg-white cursor-pointer shadow-xs hover:shadow-md transition-all ${
             matched

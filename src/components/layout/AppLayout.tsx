@@ -17,6 +17,7 @@ import {
   Avatar, Menu as MuiMenu, MenuItem, Tooltip, Badge, InputBase, Box
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
+import { getUserSlug } from '../../utils/userUtils';
 
 interface NavItemProps {
   to: string;
@@ -137,7 +138,8 @@ function HeaderBreadcrumbs({ pathname }: { pathname: string }) {
       </MuiLink>
       {paths.map((path, index) => {
         const isLast = index === paths.length - 1;
-        const name = path.charAt(0).toUpperCase() + path.slice(1);
+        const isUserSegment = paths[0] === 'users' && index === 1;
+        const name = isUserSegment ? path : path.charAt(0).toUpperCase() + path.slice(1);
         return isLast ? (
           <span key={path} className="font-semibold text-slate-800">
             {name}
@@ -376,7 +378,7 @@ export function AppLayout() {
                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                  >
-                   <MenuItem onClick={() => navigate(`/users/${user.id}`)}>
+                   <MenuItem onClick={() => navigate(ROUTES.USERS.PROFILE(getUserSlug(user)))}>
                      <UserCircle className="w-4 h-4 mr-2 text-slate-500" /> My Profile
                    </MenuItem>
                    <Divider />

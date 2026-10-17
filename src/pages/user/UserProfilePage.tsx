@@ -20,6 +20,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { getOrgUsers } from '../../api/employeeApi';
 import type { User } from '../../types/user';
 import { ROUTES } from '../../constants';
+import { getUserSlug } from '../../utils/userUtils';
 
 export const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -58,6 +59,15 @@ export const UserProfilePage: React.FC = () => {
       isMounted = false;
     };
   }, []);
+
+  React.useEffect(() => {
+    if (profile?.email) {
+      const slug = getUserSlug(profile);
+      if (slug && userId !== slug) {
+        navigate(ROUTES.USERS.PROFILE(slug), { replace: true });
+      }
+    }
+  }, [profile, userId, navigate]);
 
   const availableManagers = React.useMemo(() => {
     if (!profile) return orgUsers;
@@ -306,7 +316,7 @@ export const UserProfilePage: React.FC = () => {
 
             {profile.manager ? (
               <Link
-                to={ROUTES.USERS.PROFILE(profile.manager.displayId || profile.manager.id)}
+                to={ROUTES.USERS.PROFILE(getUserSlug(profile.manager))}
                 className="group flex items-center justify-between p-3.5 bg-slate-50/80 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
@@ -396,7 +406,7 @@ export const UserProfilePage: React.FC = () => {
                 {profile.reportees.map((reportee) => (
                   <Link
                     key={reportee.id}
-                    to={ROUTES.USERS.PROFILE(reportee.displayId || reportee.id)}
+                    to={ROUTES.USERS.PROFILE(getUserSlug(reportee))}
                     className="group p-3.5 bg-slate-50/80 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all flex items-center justify-between cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">

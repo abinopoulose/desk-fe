@@ -20,6 +20,7 @@ import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
 import { useEmployeeManagement } from '../../hooks/useEmployeeManagement';
 import { ROUTES } from '../../constants';
+import { getUserSlug } from '../../utils/userUtils';
 import type { InviteEmployeeRequest } from '../../types/user';
 
 export const EmployeeManagementPage: React.FC = () => {
@@ -380,7 +381,7 @@ export const EmployeeManagementPage: React.FC = () => {
 
                               <div className="min-w-0">
                                 <Link
-                                  to={ROUTES.USERS.PROFILE(user.displayId || user.id)}
+                                  to={ROUTES.USERS.PROFILE(getUserSlug(user))}
                                   className="font-bold text-slate-900 hover:text-indigo-600 transition-colors truncate block"
                                 >
                                   {user.fullName}
@@ -485,7 +486,7 @@ export const EmployeeManagementPage: React.FC = () => {
                             )}
 
                             <Link
-                              to={ROUTES.USERS.PROFILE(user.displayId || user.id)}
+                              to={ROUTES.USERS.PROFILE(getUserSlug(user))}
                               className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
                             >
                               <span>View Profile</span>

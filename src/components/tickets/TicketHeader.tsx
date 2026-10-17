@@ -3,6 +3,8 @@ import { Link } from 'react-router';
 import { Copy, Check, Clock, CheckCircle2, User } from 'lucide-react';
 import type { TicketDetailResponse } from '../../types/ticket';
 import { SLAIndicator } from './SLAIndicator';
+import { ROUTES } from '../../constants';
+import { getUserSlug } from '../../utils/userUtils';
 
 export interface TicketHeaderProps {
   ticket: TicketDetailResponse;
@@ -85,7 +87,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
           <span>•</span>
           <div className="flex items-center gap-1">
             <User className="w-3.5 h-3.5 text-slate-400" />
-            <Link to={`/users/${ticket.requester.displayId || ticket.requester.id}`} className="font-semibold text-slate-700 hover:text-indigo-600 hover:underline">
+            <Link to={ROUTES.USERS.PROFILE(getUserSlug(ticket.requester))} className="font-semibold text-slate-700 hover:text-indigo-600 hover:underline">
               {ticket.requester.fullName}
             </Link>
           </div>
