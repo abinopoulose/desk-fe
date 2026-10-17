@@ -395,6 +395,11 @@ export const EmployeeManagementPage: React.FC = () => {
                                   <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
                                     <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
                                     <span>{user.title || 'Staff Member'}</span>
+                                    {user.departmentName && (
+                                      <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 ml-1">
+                                        {user.departmentName}
+                                      </span>
+                                    )}
                                   </p>
                                 </div>
                               </div>

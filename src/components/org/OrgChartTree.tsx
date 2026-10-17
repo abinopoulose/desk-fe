@@ -73,6 +73,11 @@ const TreeNode = React.memo(({
             </span>
           )}
           {node.title && <div className="text-xs text-slate-500 text-center mt-1 truncate w-full">{node.title}</div>}
+          {node.departmentName && (
+            <span className="text-[10px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 mt-1">
+              {node.departmentName}
+            </span>
+          )}
           {hasChildren && (
             <div className="mt-2 text-2xs font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200/60">
               {node.children!.length} reportees

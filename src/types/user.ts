@@ -10,6 +10,8 @@ export interface User {
   managerId?: string;
   roles: Role[];
   status?: 'ACTIVE' | 'PENDING';
+  departmentId?: string | null;
+  departmentName?: string | null;
 }
 
 export interface InviteEmployeeRequest {
@@ -39,6 +41,8 @@ export interface UserProfileResponse {
   reportees: UserSummaryDTO[];
   roles: string[];
   isActive: boolean;
+  departmentId?: string | null;
+  departmentName?: string | null;
 }
 
 export interface UpdateUserProfilePayload {
@@ -54,5 +58,7 @@ export interface OrgNode {
   fullName: string;
   title?: string;
   email: string;
+  departmentId?: string | null;
+  departmentName?: string | null;
   children?: OrgNode[];
 }

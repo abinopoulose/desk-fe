@@ -239,11 +239,18 @@ export const UserProfilePage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Title / Role */}
-              <p className="text-sm font-medium text-slate-600 flex items-center gap-1.5 mb-3">
-                <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                <span>{profile.title || 'No Job Title Specified'}</span>
-              </p>
+              {/* Title / Role & Department */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <p className="text-sm font-medium text-slate-600 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{profile.title || 'No Job Title Specified'}</span>
+                </p>
+                {profile.departmentName && (
+                  <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    Department: {profile.departmentName}
+                  </span>
+                )}
+              </div>
 
               {/* Contact Meta Details */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
