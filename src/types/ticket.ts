@@ -147,7 +147,7 @@ export interface TicketHistoryDTO {
 }
 
 export interface TicketFilterParams {
-  tab?: 'my' | 'assigned' | 'all';
+  tab?: 'my' | 'assigned' | 'shared' | 'all';
   status?: string;
   mappedState?: 'OPEN' | 'CLOSED';
   priority?: number;

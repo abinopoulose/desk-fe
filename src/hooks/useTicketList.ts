@@ -6,7 +6,7 @@ import { APP_CONFIG } from '../constants';
 import type { ApiError } from '../utils/apiErrorHandler';
 
 export interface TicketListFilters {
-  tab: 'my' | 'assigned' | 'all';
+  tab: 'my' | 'assigned' | 'shared' | 'all';
   status: string;
   mappedState: string;
   assigneeId: string;

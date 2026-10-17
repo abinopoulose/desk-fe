@@ -84,9 +84,10 @@ export const TicketListPage: React.FC = () => {
     setFilter('priority', '');
   };
 
-  const tabs: { key: 'my' | 'assigned' | 'all'; label: string }[] = [
+  const tabs: { key: 'my' | 'assigned' | 'shared' | 'all'; label: string }[] = [
     { key: 'my', label: 'My Requests' },
     { key: 'assigned', label: 'Assigned to Me' },
+    { key: 'shared', label: 'Shared with Me' },
     ...(canManage ? [{ key: 'all' as const, label: 'All Company Tickets' }] : []),
   ];
 
