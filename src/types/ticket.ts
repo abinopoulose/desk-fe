@@ -11,6 +11,7 @@ export interface TicketType {
 export interface Ticket {
   id: string;
   displayId?: string;
+  title: string;
   ticketTypeId: string;
   requesterId: string;
   assigneeId?: string;
@@ -69,6 +70,7 @@ export type UpdateStatusRequest = CreateStatusRequest;
 
 export interface CreateTicketRequest {
   ticketTypeId: string;
+  title: string;
   priority: number;
   formData: Record<string, unknown>;
   attachments?: string[];
@@ -87,6 +89,7 @@ export interface FormSchemaResponse {
 export interface TicketDTO {
   id: string;
   displayId?: string;
+  title: string;
   ticketTypeId: string;
   ticketTypeTitle: string;
   requesterId: string;
@@ -108,7 +111,8 @@ export interface TicketDTO {
 export interface TicketDetailResponse {
   id: string;
   displayId?: string;
-  ticketType: { id: string; title: string; alphaTag?: string };
+  title: string;
+  ticketType: { id: string; title: string; alphaTag?: string; formSchema?: Record<string, unknown> };
   requester: { id: string; displayId?: string; fullName: string; email: string };
   assignee?: { id: string; displayId?: string; fullName: string; email: string };
   currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };

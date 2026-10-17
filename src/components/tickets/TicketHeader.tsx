@@ -70,9 +70,15 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
           </span>
         </div>
 
-        <h2 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">
-          {ticket.ticketType.title}
-        </h2>
+        <div className="space-y-1">
+          <h2 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">
+            {ticket.title || ticket.ticketType.title}
+          </h2>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span>Request Type:</span>
+            <span className="font-semibold text-slate-700">{ticket.ticketType.title}</span>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
           <span>Opened on {new Date(ticket.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>

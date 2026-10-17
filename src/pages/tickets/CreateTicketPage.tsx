@@ -37,6 +37,10 @@ export const CreateTicketPage: React.FC = () => {
     loadingSchema,
     error,
     fieldErrors,
+    title,
+    setTitle,
+    titleError,
+    setTitleError,
     priority,
     setPriority,
     isSubmitting,
@@ -236,6 +240,33 @@ export const CreateTicketPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Ticket Title Input */}
+          <div className="mb-6">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Request Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="ticket_title"
+              placeholder="e.g. Need EC2 instance for analytics database"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError(null);
+              }}
+              className={`w-full px-3.5 py-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border ${
+                titleError ? 'border-rose-400 focus:ring-rose-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-100'
+              } rounded-xl text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-all focus:ring-2`}
+              data-testid="ticket-title-input"
+            />
+            {titleError && (
+              <p className="text-xs text-rose-600 mt-1 font-medium">{titleError}</p>
+            )}
+            <p className="text-[11px] text-slate-400 mt-1">
+              A concise summary displayed at the top of your request.
+            </p>
+          </div>
+
           <DynamicFormRenderer
             schema={formSchema}
             onSubmit={handleFormSubmit}
@@ -261,16 +292,22 @@ export const CreateTicketPage: React.FC = () => {
 
             <div className="space-y-4 mb-6">
               {/* Summary cards */}
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60 text-xs">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 text-xs space-y-2.5">
                 <div>
-                  <span className="text-slate-400 block font-medium">Request Type</span>
-                  <span className="font-semibold text-slate-800">{schemaResponse.title}</span>
+                  <span className="text-slate-400 block font-medium">Request Title</span>
+                  <span className="font-bold text-slate-900 text-sm">{title}</span>
                 </div>
-                <div>
-                  <span className="text-slate-400 block font-medium">Priority</span>
-                  <span className={`inline-block font-semibold mt-0.5 px-2 py-0.5 rounded text-[11px] ${selectedPriorityItem.colorClass}`}>
-                    P{priority} - {selectedPriorityItem.label}
-                  </span>
+                <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-slate-200/50">
+                  <div>
+                    <span className="text-slate-400 block font-medium">Request Type</span>
+                    <span className="font-semibold text-slate-800">{schemaResponse.title}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Priority</span>
+                    <span className={`inline-block font-semibold mt-0.5 px-2 py-0.5 rounded text-[11px] ${selectedPriorityItem.colorClass}`}>
+                      P{priority} - {selectedPriorityItem.label}
+                    </span>
+                  </div>
                 </div>
               </div>
 

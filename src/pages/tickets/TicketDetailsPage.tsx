@@ -37,6 +37,21 @@ export const TicketDetailsPage: React.FC = () => {
 
   const [availableStatuses, setAvailableStatuses] = React.useState<TicketStatusDTO[]>([]);
   const [availableAssignees, setAvailableAssignees] = React.useState<User[]>([]);
+  const [formSchema, setFormSchema] = React.useState<Record<string, unknown> | null>(
+    ticket?.ticketType?.formSchema || null
+  );
+
+  React.useEffect(() => {
+    if (ticket?.ticketType?.formSchema) {
+      setFormSchema(ticket.ticketType.formSchema);
+    } else if (ticket?.ticketType?.id) {
+      ticketTypeApi.getTicketTypeById(ticket.ticketType.id)
+        .then((res) => {
+          if (res?.formSchema) setFormSchema(res.formSchema);
+        })
+        .catch(() => {});
+    }
+  }, [ticket?.ticketType]);
 
   React.useEffect(() => {
     if (ticket?.ticketType?.id) {
@@ -176,7 +191,7 @@ export const TicketDetailsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Column */}
           <div className="lg:col-span-2 space-y-6">
-            <TicketFormDataCard formData={ticket.formData} />
+            <TicketFormDataCard formData={ticket.formData} formSchema={formSchema || ticket.ticketType?.formSchema} />
             <TicketCommentsSection
               comments={comments}
               commentText={commentText}

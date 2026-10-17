@@ -314,12 +314,20 @@ export const TicketListPage: React.FC = () => {
                         <td className="py-3.5 px-5">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                              {t.ticketTypeTitle}
+                              {t.title || t.ticketTypeTitle}
                             </span>
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[10px] text-slate-500 font-bold">
                                 {t.displayId || `#${t.id.substring(0, 8).toUpperCase()}`}
                               </span>
+                              {t.title && t.ticketTypeTitle && (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="text-[10px] text-slate-500 font-medium">
+                                    {t.ticketTypeTitle}
+                                  </span>
+                                </>
+                              )}
                               {t.slaBreached && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
                                   <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
