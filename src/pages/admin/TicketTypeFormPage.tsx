@@ -47,9 +47,9 @@ export const TicketTypeFormPage: React.FC = () => {
     {
       priority: 1, // Critical
       resolutionMinutes: 240, // 4 hours
-      workingDays: [1, 2, 3, 4, 5],
-      workingHoursStart: '09:00:00',
-      workingHoursEnd: '17:00:00',
+      workingDays: [1, 2, 3, 4, 5, 6, 7],
+      workingHoursStart: '00:00:00',
+      workingHoursEnd: '23:59:00',
       escalationHooks: null,
     },
     {

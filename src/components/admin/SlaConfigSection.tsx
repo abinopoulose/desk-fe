@@ -106,17 +106,18 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
       setScheduleMode(is24_7 ? '24_7' : 'standard');
     } else {
       const nextPriority = [1, 2, 3, 4].find((p) => !usedPriorities.includes(p)) || 3;
+      const isP1 = nextPriority === 1;
       setEditingId(null);
       setEditingPriority(null);
       setFormData({
         priority: nextPriority,
         resolutionMinutes: nextPriority === 1 ? 240 : nextPriority === 2 ? 480 : nextPriority === 3 ? 1440 : 2880,
-        workingDays: [1, 2, 3, 4, 5],
-        workingHoursStart: '09:00:00',
-        workingHoursEnd: '17:00:00',
+        workingDays: isP1 ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5],
+        workingHoursStart: isP1 ? '00:00:00' : '09:00:00',
+        workingHoursEnd: isP1 ? '23:59:00' : '17:00:00',
         escalationHooks: null,
       });
-      setScheduleMode('standard');
+      setScheduleMode(isP1 ? '24_7' : 'standard');
       setIsCustomResolution(false);
       setCustomHours(nextPriority === 1 ? 4 : nextPriority === 2 ? 8 : nextPriority === 3 ? 24 : 48);
     }
@@ -218,9 +219,9 @@ export const SlaConfigSection: React.FC<SlaConfigSectionProps> = ({
       {
         priority: 1, // Critical
         resolutionMinutes: 240, // 4 hours
-        workingDays: [1, 2, 3, 4, 5],
-        workingHoursStart: '09:00:00',
-        workingHoursEnd: '17:00:00',
+        workingDays: [1, 2, 3, 4, 5, 6, 7],
+        workingHoursStart: '00:00:00',
+        workingHoursEnd: '23:59:00',
         escalationHooks: null,
       },
       {
