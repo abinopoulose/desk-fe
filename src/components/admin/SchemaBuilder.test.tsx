@@ -230,4 +230,51 @@ describe('SchemaBuilder Component', () => {
 
     expect(screen.getByText('Questions in this Form (3)')).toBeDefined();
   });
+
+  it('allows duplicating a question like Google Forms', () => {
+    const handleChange = vi.fn();
+    render(<SchemaBuilder schema={initialSchema} onChange={handleChange} />);
+
+    expect(screen.getByText('Questions in this Form (2)')).toBeDefined();
+
+    // Click duplicate on the first question
+    const duplicateBtns = screen.getAllByTitle('Duplicate Question');
+    expect(duplicateBtns.length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(duplicateBtns[0]);
+
+    // Now 3 questions exist
+    expect(screen.getByText('Questions in this Form (3)')).toBeDefined();
+  });
+
+  it('allows quick-adding next option for dropdown questions', () => {
+    render(<SchemaBuilder schema={initialSchema} onChange={vi.fn()} />);
+
+    // Select the first question (Employee Department)
+    const questionItems = screen.getAllByText('Employee Department');
+    fireEvent.click(questionItems[0]);
+
+    // Click "Quick Add Next"
+    const quickAddBtn = screen.getByText('Quick Add Next');
+    fireEvent.click(quickAddBtn);
+
+    // Expect Option 4 to be added
+    expect(screen.getByDisplayValue('Option 4')).toBeDefined();
+  });
+
+  it('allows changing the answer type from the inline card dropdown', () => {
+    const handleChange = vi.fn();
+    render(<SchemaBuilder schema={initialSchema} onChange={handleChange} />);
+
+    // Select the first question (Employee Department)
+    const questionItems = screen.getAllByText('Employee Department');
+    fireEvent.click(questionItems[0]);
+
+    const typeSelect = screen.getByLabelText('Answer Type') as HTMLSelectElement;
+    expect(typeSelect.value).toBe('select');
+
+    // Change to date picker
+    fireEvent.change(typeSelect, { target: { value: 'date' } });
+    expect(typeSelect.value).toBe('date');
+    expect(screen.getByText(/Date picker \(day, month, year\)/i)).toBeDefined();
+  });
 });

@@ -19,7 +19,8 @@ export const VALIDATION_RULE_OPTIONS = [
 ];
 
 type Action =
-  | { type: 'ADD_FIELD'; field: FormField }
+  | { type: 'ADD_FIELD'; field: FormField; insertAtIndex?: number }
+  | { type: 'DUPLICATE_FIELD'; index: number }
   | { type: 'REMOVE_FIELD'; index: number }
   | { type: 'REORDER_FIELD'; startIndex: number; endIndex: number }
   | { type: 'UPDATE_FIELD'; index: number; updates: Partial<FormField> }
@@ -60,12 +61,42 @@ export const normalizeFormSchema = (raw?: unknown): FormSchema => {
 const reducer = (state: State, action: Action): State => {
   const currentFields = Array.isArray(state.schema?.fields) ? state.schema.fields : [];
   switch (action.type) {
-    case 'ADD_FIELD':
+    case 'ADD_FIELD': {
+      const newFields = [...currentFields];
+      const insertAt =
+        typeof action.insertAtIndex === 'number' &&
+        action.insertAtIndex >= 0 &&
+        action.insertAtIndex <= currentFields.length
+          ? action.insertAtIndex
+          : currentFields.length;
+      newFields.splice(insertAt, 0, action.field);
       return {
         ...state,
-        schema: { ...state.schema, fields: [...currentFields, action.field] },
-        selectedIndex: currentFields.length,
+        schema: { ...state.schema, fields: newFields },
+        selectedIndex: insertAt,
       };
+    }
+    case 'DUPLICATE_FIELD': {
+      if (action.index < 0 || action.index >= currentFields.length) return state;
+      const target = currentFields[action.index];
+      const slug = (target.label || 'field')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 16);
+      const duplicate: FormField = {
+        ...target,
+        name: `${slug || 'field'}_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`,
+        options: target.options ? [...target.options] : undefined,
+      };
+      const newFields = [...currentFields];
+      newFields.splice(action.index + 1, 0, duplicate);
+      return {
+        ...state,
+        schema: { ...state.schema, fields: newFields },
+        selectedIndex: action.index + 1,
+      };
+    }
     case 'REMOVE_FIELD': {
       const newFields = [...currentFields];
       newFields.splice(action.index, 1);
@@ -151,7 +182,7 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     draggedIndex: null,
   });
 
-  const addField = useCallback((fieldType: FieldType = 'text', customLabel?: string) => {
+  const addField = useCallback((fieldType: FieldType = 'text', customLabel?: string, insertAtIndex?: number) => {
     const defaultLabels: Record<FieldType, string> = {
       text: 'Short Text Question',
       textarea: 'Detailed Explanation',
@@ -172,7 +203,11 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
       type: fieldType,
       options: fieldType === 'select' ? ['Option 1', 'Option 2'] : undefined,
     };
-    dispatch({ type: 'ADD_FIELD', field: newField });
+    dispatch({ type: 'ADD_FIELD', field: newField, insertAtIndex });
+  }, []);
+
+  const duplicateField = useCallback((index: number) => {
+    dispatch({ type: 'DUPLICATE_FIELD', index });
   }, []);
 
   const removeField = useCallback((index: number) => {
@@ -230,6 +265,7 @@ export const useSchemaBuilder = (initialSchema?: FormSchema) => {
     selectedIndex: state.selectedIndex,
     selectField,
     addField,
+    duplicateField,
     removeField,
     reorderField,
     updateField,
