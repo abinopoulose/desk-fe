@@ -41,8 +41,14 @@ export const TicketDetailsPage: React.FC = () => {
   );
 
   React.useEffect(() => {
-    if (ticket?.ticketType?.formSchema) {
-      setFormSchema(ticket.ticketType.formSchema);
+    const rawSchema = ticket?.ticketType?.formSchema;
+    const hasValidFields = rawSchema && (
+      Array.isArray((rawSchema as { fields?: unknown[] }).fields) ||
+      Array.isArray(rawSchema)
+    );
+
+    if (hasValidFields) {
+      setFormSchema(rawSchema);
     } else if (ticket?.ticketType?.id) {
       ticketTypeApi.getTicketTypeById(ticket.ticketType.id)
         .then((res) => {

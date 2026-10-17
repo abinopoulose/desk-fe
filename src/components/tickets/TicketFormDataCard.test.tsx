@@ -72,4 +72,24 @@ describe('TicketFormDataCard Component', () => {
     expect(screen.getByText('Date Selection')).toBeDefined();
     expect(screen.queryByText(/mvbyx4zs/i)).toBeNull();
   });
+
+  it('renders human-readable custom question labels when key prefix differs from label', () => {
+    const customSchema: FormSchema = {
+      fields: [
+        { name: 'emp_id_mvcpt406_1ak7', label: 'Client Project', type: 'checkbox' },
+        { name: 'short_text_quest_mvcpsym5_y4b0', label: 'Emp ID', type: 'text' },
+      ],
+    };
+    const customData = {
+      emp_id_mvcpt406_1ak7: true,
+      short_text_quest_mvcpsym5_y4b0: '1003',
+    };
+
+    render(<TicketFormDataCard formData={customData} formSchema={customSchema} />);
+
+    expect(screen.getByText('Client Project')).toBeDefined();
+    expect(screen.getByText('Emp ID')).toBeDefined();
+    expect(screen.queryByText('Emp Id')).toBeNull();
+    expect(screen.queryByText('Short Text Quest')).toBeNull();
+  });
 });
