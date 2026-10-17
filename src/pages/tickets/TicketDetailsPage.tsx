@@ -2,7 +2,6 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
-import { useAuth } from '../../store/authStore';
 import { useTicketDetails, useTicketComments } from '../../hooks';
 import { ROUTES } from '../../constants';
 import {
@@ -10,9 +9,11 @@ import {
   TicketFormDataCard,
   TicketCommentsSection,
   TicketManagementCard,
+  TicketAccessCard,
 } from '../../components/tickets';
 
 import { ticketTypeApi } from '../../api/ticketTypeApi';
+import { ticketApi } from '../../api/ticketApi';
 import { getOrgUsers } from '../../api/employeeApi';
 import type { TicketStatusDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
@@ -20,10 +21,9 @@ import type { User } from '../../types/user';
 export const TicketDetailsPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
-  const { hasPrivilege } = useAuth();
 
-  const canManage = hasPrivilege('TICKET_MANAGEMENT');
-  const canWrite = hasPrivilege('TICKET_WRITE');
+  const canManage = true;
+  const canWrite = true;
 
   const {
     ticket,
@@ -63,14 +63,12 @@ export const TicketDetailsPage: React.FC = () => {
   }, [ticket?.ticketType?.id]);
 
   React.useEffect(() => {
-    if (canManage) {
-      getOrgUsers()
-        .then((res) => {
-          if (Array.isArray(res)) setAvailableAssignees(res);
-        })
-        .catch(() => {});
-    }
-  }, [canManage]);
+    getOrgUsers()
+      .then((res) => {
+        if (Array.isArray(res)) setAvailableAssignees(res);
+      })
+      .catch(() => {});
+  }, []);
 
   const {
     comments,
@@ -212,6 +210,15 @@ export const TicketDetailsPage: React.FC = () => {
               canManage={canManage}
               onStatusChange={handleStatusChange}
               onAssigneeChange={handleAssigneeChange}
+            />
+
+            <TicketAccessCard
+              ticketId={ticket.id}
+              onAccessChanged={() => {
+                ticketApi.getTicketDetails(ticket.id).then((fresh) => {
+                  setTicket(fresh);
+                }).catch(() => {});
+              }}
             />
           </div>
         </div>

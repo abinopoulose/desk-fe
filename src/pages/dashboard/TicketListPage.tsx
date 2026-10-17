@@ -57,8 +57,8 @@ const getPriorityBadge = (priority: number) => {
 
 export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { hasPrivilege } = useAuth();
-  const canManage = hasPrivilege('TICKET_MANAGEMENT');
+  const { isSuperAdmin, hasPrivilege } = useAuth();
+  const canManage = isSuperAdmin || hasPrivilege('ADMIN_FULL_ACCESS');
 
   const {
     tickets,

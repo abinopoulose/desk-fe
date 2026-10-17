@@ -190,3 +190,31 @@ export interface TicketSummaryDTO {
   slaBreached: boolean;
   createdAt: string;
 }
+
+export interface TicketShareDTO {
+  id: string;
+  ticketId: string;
+  shareType: 'USER' | 'DEPARTMENT';
+  targetId: string;
+  targetName: string;
+  targetEmail?: string;
+  targetDisplayId?: string;
+  sharedByUserId: string;
+  sharedByUserName: string;
+  createdAt: string;
+}
+
+export interface TicketAccessListDTO {
+  ticketId: string;
+  requester?: { id: string; displayId?: string; fullName: string; email: string } | null;
+  assignee?: { id: string; displayId?: string; fullName: string; email: string } | null;
+  primaryDepartment?: { id: string; name: string; displayId?: string } | null;
+  sharedUsers: TicketShareDTO[];
+  sharedDepartments: TicketShareDTO[];
+}
+
+export interface ShareTicketRequest {
+  shareType: 'USER' | 'DEPARTMENT';
+  targetId: string;
+}
+

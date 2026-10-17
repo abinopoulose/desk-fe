@@ -16,6 +16,8 @@ export const API_PATHS = {
     STATUS: (id: string) => `/api/v1/tickets/${id}/status`,
     ASSIGN: (id: string) => `/api/v1/tickets/${id}/assignee`,
     COMMENTS: (id: string) => `/api/v1/tickets/${id}/comments`,
+    ACCESS: (id: string) => `/api/v1/tickets/${id}/access`,
+    SHARES: (id: string) => `/api/v1/tickets/${id}/shares`,
   },
   DEPARTMENTS: {
     BASE: '/api/v1/departments',

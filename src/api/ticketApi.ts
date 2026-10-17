@@ -53,4 +53,20 @@ export const ticketApi = {
     const response = await axiosInstance.get<CommentDTO[]>(API_PATHS.TICKETS.COMMENTS(ticketId));
     return response.data;
   },
+
+  getTicketAccess: async (ticketId: string): Promise<import('../types/ticket').TicketAccessListDTO> => {
+    const response = await axiosInstance.get<import('../types/ticket').TicketAccessListDTO>(API_PATHS.TICKETS.ACCESS(ticketId));
+    return response.data;
+  },
+
+  shareTicket: async (ticketId: string, request: import('../types/ticket').ShareTicketRequest): Promise<import('../types/ticket').TicketShareDTO> => {
+    const response = await axiosInstance.post<import('../types/ticket').TicketShareDTO>(API_PATHS.TICKETS.SHARES(ticketId), request);
+    return response.data;
+  },
+
+  unshareTicket: async (ticketId: string, shareType: 'USER' | 'DEPARTMENT', targetId: string): Promise<void> => {
+    await axiosInstance.delete(API_PATHS.TICKETS.SHARES(ticketId), {
+      params: { shareType, targetId }
+    });
+  },
 };
