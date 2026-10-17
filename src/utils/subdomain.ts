@@ -1,7 +1,19 @@
 /**
  * Known root domain hostnames that have no tenant subdomain.
+ * Configurable via VITE_ROOT_DOMAIN (comma-separated if multiple).
  */
-const ROOT_HOSTNAMES = new Set(['localhost', '127.0.0.1', 'desk.abino', 'desk.abino.in']);
+export function getRootDomains(): string[] {
+  const envDomain = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ROOT_DOMAIN;
+  const configured = envDomain ? envDomain.split(',').map((d: string) => d.trim().toLowerCase()).filter(Boolean) : [];
+  const defaults = ['localhost', '127.0.0.1', 'desk.abino', 'desk.abino.in'];
+  const merged = [...defaults];
+  for (const c of configured) {
+    if (!merged.includes(c)) {
+      merged.push(c);
+    }
+  }
+  return merged;
+}
 
 /**
  * Extracts tenant subdomain from the current window hostname.
@@ -18,9 +30,10 @@ const ROOT_HOSTNAMES = new Set(['localhost', '127.0.0.1', 'desk.abino', 'desk.ab
 export function getSubdomain(): string | null {
   if (typeof window === 'undefined') return null;
   const hostname = window.location.hostname.toLowerCase();
+  const rootDomains = getRootDomains();
 
   // 1. Plain root hosts
-  if (ROOT_HOSTNAMES.has(hostname)) {
+  if (rootDomains.includes(hostname)) {
     return null;
   }
 
@@ -33,25 +46,19 @@ export function getSubdomain(): string | null {
     return null;
   }
 
-  // 3. Check desk.abino subdomains: firmname.desk.abino
-  if (hostname.endsWith('.desk.abino')) {
-    const sub = hostname.slice(0, -'.desk.abino'.length);
-    if (sub && sub !== 'www') {
-      return sub;
+  // 3. Check configured root subdomains (e.g. firmname.desk.abino or firmname.yourdomain.com)
+  for (const root of rootDomains) {
+    if (root === 'localhost' || root === '127.0.0.1') continue;
+    if (hostname.endsWith('.' + root)) {
+      const sub = hostname.slice(0, -('.' + root).length);
+      if (sub && sub !== 'www') {
+        return sub;
+      }
+      return null;
     }
-    return null;
   }
 
-  // 4. Check desk.abino.in subdomains: firmname.desk.abino.in
-  if (hostname.endsWith('.desk.abino.in')) {
-    const sub = hostname.slice(0, -'.desk.abino.in'.length);
-    if (sub && sub !== 'www') {
-      return sub;
-    }
-    return null;
-  }
-
-  // 5. General fallback for domain with subdomains (e.g. tenant1.desk.example.com)
+  // 4. General fallback for domain with subdomains (e.g. tenant1.desk.example.com)
   const parts = hostname.split('.');
   if (parts.length > 2) {
     const sub = parts[0];
@@ -81,16 +88,19 @@ export function buildTenantUrl(tenantSubdomain: string, path: string = '/', toke
 
   if (cleanHost === 'localhost' || cleanHost === '127.0.0.1' || cleanHost.endsWith('.localhost')) {
     targetHost = `${tenantSubdomain}.localhost${portPart}`;
-  } else if (cleanHost === 'desk.abino' || cleanHost.endsWith('.desk.abino')) {
-    targetHost = `${tenantSubdomain}.desk.abino${portPart}`;
-  } else if (cleanHost === 'desk.abino.in' || cleanHost.endsWith('.desk.abino.in')) {
-    targetHost = `${tenantSubdomain}.desk.abino.in${portPart}`;
   } else {
-    const currentSub = getSubdomain();
-    if (currentSub) {
-      targetHost = cleanHost.replace(new RegExp(`^${currentSub}\\.`), `${tenantSubdomain}.`) + portPart;
+    const nonLocalRoots = getRootDomains().filter(d => d !== 'localhost' && d !== '127.0.0.1');
+    const matchedRoot = nonLocalRoots.find(d => cleanHost === d || cleanHost.endsWith('.' + d));
+
+    if (matchedRoot) {
+      targetHost = `${tenantSubdomain}.${matchedRoot}${portPart}`;
     } else {
-      targetHost = `${tenantSubdomain}.${cleanHost}${portPart}`;
+      const currentSub = getSubdomain();
+      if (currentSub) {
+        targetHost = cleanHost.replace(new RegExp(`^${currentSub}\\.`), `${tenantSubdomain}.`) + portPart;
+      } else {
+        targetHost = `${tenantSubdomain}.${cleanHost}${portPart}`;
+      }
     }
   }
 

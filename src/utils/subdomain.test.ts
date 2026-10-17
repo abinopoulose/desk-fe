@@ -75,6 +75,20 @@ describe('subdomain utilities', () => {
       mockLocation({ hostname: 'www.example.com' });
       expect(getSubdomain()).toBeNull();
     });
+
+    it('supports custom VITE_ROOT_DOMAIN from env', () => {
+      const originalEnv = import.meta.env.VITE_ROOT_DOMAIN;
+      try {
+        import.meta.env.VITE_ROOT_DOMAIN = 'customdesk.org';
+        mockLocation({ hostname: 'acme.customdesk.org' });
+        expect(getSubdomain()).toBe('acme');
+
+        mockLocation({ hostname: 'customdesk.org' });
+        expect(getSubdomain()).toBeNull();
+      } finally {
+        import.meta.env.VITE_ROOT_DOMAIN = originalEnv;
+      }
+    });
   });
 
   describe('buildTenantUrl', () => {
@@ -116,6 +130,22 @@ describe('subdomain utilities', () => {
       });
       const url = buildTenantUrl('abino', '/');
       expect(url).toBe('http://abino.localhost:3000/');
+    });
+
+    it('supports custom VITE_ROOT_DOMAIN for URL building', () => {
+      const originalEnv = import.meta.env.VITE_ROOT_DOMAIN;
+      try {
+        import.meta.env.VITE_ROOT_DOMAIN = 'customdesk.org';
+        mockLocation({
+          protocol: 'https:',
+          hostname: 'customdesk.org',
+          port: '',
+        });
+        const url = buildTenantUrl('acme', '/dashboard');
+        expect(url).toBe('https://acme.customdesk.org/dashboard');
+      } finally {
+        import.meta.env.VITE_ROOT_DOMAIN = originalEnv;
+      }
     });
   });
 
