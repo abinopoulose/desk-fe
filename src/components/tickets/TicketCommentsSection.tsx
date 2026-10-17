@@ -323,16 +323,9 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                    <span>
-                      {commentText.length} / {MAX_CHARS} characters
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1 text-indigo-600">
-                      <AtSign className="w-3 h-3" />
-                      <span>Mentions auto-share access</span>
-                    </span>
-                  </div>
+                  <span className="text-[11px] text-slate-400">
+                    {commentText.length} / {MAX_CHARS} characters
+                  </span>
 
                   <button
                     type="submit"
