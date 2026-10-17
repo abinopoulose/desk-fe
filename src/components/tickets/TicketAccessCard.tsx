@@ -19,11 +19,13 @@ import type { DepartmentDTO } from '../../types/department';
 
 interface TicketAccessCardProps {
   ticketId: string;
+  refreshTrigger?: number;
   onAccessChanged?: () => void;
 }
 
 export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
   ticketId,
+  refreshTrigger,
   onAccessChanged,
 }) => {
   const [accessList, setAccessList] = useState<TicketAccessListDTO | null>(null);
@@ -58,7 +60,7 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
 
   useEffect(() => {
     fetchAccess();
-  }, [fetchAccess]);
+  }, [fetchAccess, refreshTrigger]);
 
   // Open modal and load candidate users / departments
   const handleOpenModal = async () => {
@@ -208,7 +210,7 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
       ) : accessList ? (
         <div className="space-y-4 text-xs">
 
-          {/* Section 1: Standard Parties */}
+          {/* Section 1: Core Participants (Creator, Specialist, and Added Users) */}
           <div className="space-y-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Core Participants
@@ -237,7 +239,7 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
             )}
 
             {/* Specialist / Assignee */}
-            {accessList.assignee ? (
+            {accessList.assignee && (
               <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 border border-slate-100">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
@@ -256,7 +258,55 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
                   Specialist
                 </span>
               </div>
-            ) : null}
+            )}
+
+            {/* Shared Users / Added Teammates */}
+            {accessList.sharedUsers.map((share) => (
+              <div
+                key={share.id}
+                className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60 hover:bg-slate-50 border border-slate-100 group transition-colors"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    {share.targetName ? share.targetName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className="truncate">
+                    <div className="font-semibold text-slate-900 truncate">
+                      {share.targetName}
+                    </div>
+                    {share.targetEmail && (
+                      <div className="text-[10px] text-slate-400 truncate">
+                        {share.targetEmail}
+                      </div>
+                    )}
+                    <div className="text-[9px] text-slate-400 italic">
+                      Shared by {share.sharedByUserName || 'team'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                    Participant
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveShare(share)}
+                    title="Remove access"
+                    className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Section 2: Department Access */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Department Access
+            </span>
 
             {/* Primary Department */}
             {accessList.primaryDepartment && (
@@ -279,92 +329,43 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
                 </span>
               </div>
             )}
+
+            {/* Shared Departments */}
+            {accessList.sharedDepartments.map((share) => (
+              <div
+                key={share.id}
+                className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60 hover:bg-slate-50 border border-slate-100 group transition-colors"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs shrink-0">
+                    <Building2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="truncate">
+                    <div className="font-semibold text-slate-900 truncate">
+                      {share.targetName}
+                    </div>
+                    <div className="text-[9px] text-slate-400 italic">
+                      Shared by {share.sharedByUserName || 'team'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">
+                    Shared Dept
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveShare(share)}
+                    title="Remove access"
+                    className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          {/* Section 2: Shared Users */}
-          {accessList.sharedUsers.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Shared With Users ({accessList.sharedUsers.length})
-              </span>
-              <div className="space-y-1.5">
-                {accessList.sharedUsers.map((share) => (
-                  <div
-                    key={share.id}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60 hover:bg-slate-50 border border-slate-100 group transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {share.targetName ? share.targetName.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                      <div className="truncate">
-                        <div className="font-semibold text-slate-900 truncate">
-                          {share.targetName}
-                        </div>
-                        {share.targetEmail && (
-                          <div className="text-[10px] text-slate-400 truncate">
-                            {share.targetEmail}
-                          </div>
-                        )}
-                        <div className="text-[9px] text-slate-400 italic">
-                          Shared by {share.sharedByUserName || 'team'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveShare(share)}
-                      title="Remove access"
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Section 3: Shared Departments */}
-          {accessList.sharedDepartments.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Shared With Departments ({accessList.sharedDepartments.length})
-              </span>
-              <div className="space-y-1.5">
-                {accessList.sharedDepartments.map((share) => (
-                  <div
-                    key={share.id}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50/60 hover:bg-slate-50 border border-slate-100 group transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs shrink-0">
-                        <Building2 className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="truncate">
-                        <div className="font-semibold text-slate-900 truncate">
-                          {share.targetName}
-                        </div>
-                        <div className="text-[9px] text-slate-400 italic">
-                          Shared by {share.sharedByUserName || 'team'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveShare(share)}
-                      title="Remove access"
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {accessList.sharedUsers.length === 0 && accessList.sharedDepartments.length === 0 && (
             <p className="text-[11px] text-slate-400 italic text-center py-1">

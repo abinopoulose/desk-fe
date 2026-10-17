@@ -85,6 +85,8 @@ export const TicketDetailsPage: React.FC = () => {
     },
   });
 
+  const [accessRefreshTrigger, setAccessRefreshTrigger] = useState(0);
+
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     try {
       await updateStatus(e.target.value);
@@ -107,6 +109,13 @@ export const TicketDetailsPage: React.FC = () => {
   const handleCommentSubmit = async (e: React.FormEvent) => {
     try {
       await handleSubmitComment(e);
+      // Refresh access list and reload ticket details (for audit history)
+      setAccessRefreshTrigger((prev) => prev + 1);
+      if (ticketId) {
+        ticketApi.getTicketDetails(ticketId).then((fresh) => {
+          setTicket(fresh);
+        }).catch(() => {});
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to add comment');
@@ -214,6 +223,7 @@ export const TicketDetailsPage: React.FC = () => {
 
             <TicketAccessCard
               ticketId={ticket.id}
+              refreshTrigger={accessRefreshTrigger}
               onAccessChanged={() => {
                 ticketApi.getTicketDetails(ticket.id).then((fresh) => {
                   setTicket(fresh);
