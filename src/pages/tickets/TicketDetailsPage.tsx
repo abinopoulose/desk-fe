@@ -10,7 +10,6 @@ import {
   TicketFormDataCard,
   TicketCommentsSection,
   TicketManagementCard,
-  TicketAuditHistoryCard,
 } from '../../components/tickets';
 
 import { ticketTypeApi } from '../../api/ticketTypeApi';
@@ -199,6 +198,7 @@ export const TicketDetailsPage: React.FC = () => {
               submitting={submitting}
               onSubmit={handleCommentSubmit}
               canWrite={canWrite}
+              history={ticket.history}
             />
           </div>
 
@@ -213,7 +213,6 @@ export const TicketDetailsPage: React.FC = () => {
               onStatusChange={handleStatusChange}
               onAssigneeChange={handleAssigneeChange}
             />
-            <TicketAuditHistoryCard history={ticket.history} />
           </div>
         </div>
       </div>
