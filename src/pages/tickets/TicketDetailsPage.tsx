@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
