@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPage } from './pages/auth/LoginPage';
 import { OrgSignupPage } from './pages/auth/OrgSignupPage';
 import { SetPasswordPage } from './pages/auth/SetPasswordPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { OrgChartPage } from './pages/org/OrgChartPage';
 import { BrowseFoldersPage } from './pages/folders/BrowseFoldersPage';
 import { TicketTypeFormPage } from './pages/admin/TicketTypeFormPage';
@@ -22,6 +23,13 @@ import { PageErrorBoundary } from './components/errors/PageErrorBoundary';
 import { NotFoundPage } from './pages/errors/NotFoundPage';
 import { UnauthorizedPage } from './pages/errors/UnauthorizedPage';
 import { useAuth } from './store/authStore';
+import { getUserSlug } from './utils/userUtils';
+
+function SettingsRedirect() {
+  const { user } = useAuth();
+  if (!user) return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
+  return <Navigate to={`${ROUTES.USERS.PROFILE(getUserSlug(user))}?tab=sessions`} replace />;
+}
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -33,10 +41,12 @@ function App() {
           <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.AUTH.REGISTER} element={<OrgSignupPage />} />
           <Route path={ROUTES.AUTH.SET_PASSWORD} element={<SetPasswordPage />} />
+          <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             {/* Workspace Routes (Accessible to all authenticated firm members) */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
+            <Route path={ROUTES.SETTINGS} element={<SettingsRedirect />} />
             <Route path={ROUTES.TICKETS.NEW} element={<CreateTicketPage />} />
             <Route path={ROUTES.TICKETS.DETAILS_PATH} element={<TicketDetailsPage />} />
             <Route path={ROUTES.TICKETS.BASE} element={<Navigate to={ROUTES.DASHBOARD} replace />} />

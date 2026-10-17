@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { useSetPassword } from '../../hooks/useSetPassword';
 import { AuthLayout } from '../../components/layout/AuthLayout';
-import { TextField, InputAdornment, IconButton, Button, Alert, Box, LinearProgress, Typography } from '@mui/material';
+import {
+  TextField,
+  InputAdornment,
+  IconButton,
+  Button,
+  Alert,
+  Box,
+  LinearProgress,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+} from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 
 const getPasswordStrength = (password: string) => {
   let strength = 0;
@@ -23,13 +34,30 @@ const getStrengthColor = (strength: number) => {
 };
 
 export const SetPasswordPage: React.FC = () => {
-  const { formState, setField, submit, loading, error, token } = useSetPassword();
+  const {
+    formState,
+    setField,
+    submit,
+    loading,
+    error,
+    token,
+    tokenInfo,
+    terminateOtherSessions,
+    setTerminateOtherSessions,
+  } = useSetPassword();
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordStrength = getPasswordStrength(formState.password);
 
   return (
-    <AuthLayout title="Set Your Password" subtitle="Welcome! Create your password to get started.">
+    <AuthLayout
+      title="Set Your Password"
+      subtitle={
+        tokenInfo?.email
+          ? `Create a secure password for ${tokenInfo.email}`
+          : 'Welcome! Create your password to get started.'
+      }
+    >
       {!token ? (
         <Alert severity="error" icon={<AlertCircle size={24} />} sx={{ alignItems: 'center', py: 2 }}>
           Invalid or missing invitation link.
@@ -42,7 +70,7 @@ export const SetPasswordPage: React.FC = () => {
             </Alert>
           )}
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
             <Box>
               <TextField
                 id="password"
@@ -56,24 +84,32 @@ export const SetPasswordPage: React.FC = () => {
                 onChange={(e) => setField('password', e.target.value)}
                 slotProps={{
                   input: {
-                    startAdornment: <InputAdornment position="start"><Lock size={20} /></InputAdornment>,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock size={20} />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton aria-label="Toggle password visibility" onClick={() => setShowPassword(!showPassword)} edge="end">
+                        <IconButton
+                          aria-label="Toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
                     ),
-                  }
+                  },
                 }}
               />
               {formState.password && (
                 <Box sx={{ mt: 1 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={passwordStrength} 
-                    color={getStrengthColor(passwordStrength)} 
-                    sx={{ height: 6, borderRadius: 3, mb: 0.5 }} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={passwordStrength}
+                    color={getStrengthColor(passwordStrength)}
+                    sx={{ height: 6, borderRadius: 3, mb: 0.5 }}
                   />
                   <Typography variant="caption" color="text.secondary">
                     {passwordStrength <= 25 && 'Weak'}
@@ -96,10 +132,73 @@ export const SetPasswordPage: React.FC = () => {
               onChange={(e) => setField('confirmPassword', e.target.value)}
               slotProps={{
                 input: {
-                  startAdornment: <InputAdornment position="start"><Lock size={20} /></InputAdornment>,
-                }
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock size={20} />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
+          </Box>
+
+          {/* Option to terminate other sessions */}
+          <Box
+            sx={{
+              mb: 4,
+              p: 2,
+              borderRadius: 2,
+              bgcolor: 'rgba(30, 41, 59, 0.5)',
+              border: '1px solid rgba(51, 65, 85, 0.7)',
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={terminateOtherSessions}
+                  onChange={(e) => setTerminateOtherSessions(e.target.checked)}
+                  size="small"
+                  sx={{
+                    color: '#64748b',
+                    '&.Mui-checked': {
+                      color: '#6366f1',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '0.825rem' }}>
+                    Terminate all other logged in sessions
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 0.25 }}>
+                    Sign out of all other browsers, computers, and mobile devices immediately.
+                  </Typography>
+                </Box>
+              }
+            />
+
+            {tokenInfo?.hasOtherSessions && (tokenInfo.activeSessionCount ?? 0) > 0 && (
+              <Box
+                sx={{
+                  mt: 1.5,
+                  p: 1.25,
+                  borderRadius: 1.5,
+                  bgcolor: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  color: '#fcd34d',
+                  fontSize: '0.75rem',
+                }}
+              >
+                <ShieldAlert size={16} className="text-amber-400 shrink-0" />
+                <span>
+                  Notice: You currently have {tokenInfo.activeSessionCount} active session(s) that will be terminated.
+                </span>
+              </Box>
+            )}
           </Box>
 
           <Button
@@ -125,3 +224,4 @@ export const SetPasswordPage: React.FC = () => {
     </AuthLayout>
   );
 };
+export default SetPasswordPage;

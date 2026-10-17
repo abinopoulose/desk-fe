@@ -381,6 +381,9 @@ export function AppLayout() {
                    <MenuItem onClick={() => navigate(ROUTES.USERS.PROFILE(getUserSlug(user)))}>
                      <UserCircle className="w-4 h-4 mr-2 text-slate-500" /> My Profile
                    </MenuItem>
+                   <MenuItem onClick={() => navigate(`${ROUTES.USERS.PROFILE(getUserSlug(user))}?tab=sessions`)}>
+                     <ShieldCheck className="w-4 h-4 mr-2 text-slate-500" /> Active Sessions & Security
+                   </MenuItem>
                    <Divider />
                    <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                      <LogOut className="w-4 h-4 mr-2" /> Logout

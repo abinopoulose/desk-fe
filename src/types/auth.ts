@@ -36,4 +36,5 @@ export interface SetPasswordRequest {
   token: string;
   password: string;
   confirmPassword?: string;
+  terminateOtherSessions?: boolean;
 }

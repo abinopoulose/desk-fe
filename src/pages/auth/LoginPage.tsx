@@ -332,7 +332,7 @@ export const LoginPage: React.FC = () => {
                   </label>
                   <Link
                     component={RouterLink}
-                    to="/forgot-password"
+                    to={ROUTES.AUTH.FORGOT_PASSWORD}
                     variant="caption"
                     sx={{
                       color: '#818cf8',
