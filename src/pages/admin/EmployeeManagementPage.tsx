@@ -142,7 +142,7 @@ export const EmployeeManagementPage: React.FC = () => {
   };
 
   return (
-    <PrivilegeGate requiredPrivilege="USER_READ">
+    <PrivilegeGate requiredPrivilege="USER_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         
         {/* Sticky Top Header */}

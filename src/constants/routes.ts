@@ -9,6 +9,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   BROWSE: '/browse',
   ORG_CHART: '/org-chart',
+  DEPARTMENTS: '/departments',
   METRICS: '/metrics',
   USERS: {
     PROFILE_PATH: '/users/:userId',

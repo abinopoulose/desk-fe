@@ -168,7 +168,7 @@ export const TicketTypeFormPage: React.FC = () => {
   };
 
   return (
-    <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
+    <PrivilegeGate requiredPrivilege="TICKET_TYPE_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         
         {/* Top Header */}

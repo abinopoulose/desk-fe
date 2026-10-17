@@ -74,7 +74,7 @@ export const TicketStatusManager: React.FC = () => {
   }
 
   return (
-    <PrivilegeGate requiredPrivilege="TICKET_TYPE_WRITE">
+    <PrivilegeGate requiredPrivilege="TICKET_TYPE_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         {/* Top Header */}
         <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-2xs">

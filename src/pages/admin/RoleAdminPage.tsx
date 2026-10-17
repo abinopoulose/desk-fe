@@ -28,52 +28,13 @@ interface PermissionGroup {
 
 const PERMISSION_GROUPS: PermissionGroup[] = [
   {
-    id: 'tickets',
-    title: 'Ticket Management',
+    id: 'simplified_privileges',
+    title: 'Privileges',
     permissions: [
-      'TICKET_READ',
-      'TICKET_WRITE',
-      'TICKET_DELETE',
-      'TICKET_MANAGEMENT',
-      'TICKET_TYPE_READ',
-      'TICKET_TYPE_WRITE',
-      'TICKET_TYPE_DELETE',
-    ],
-  },
-  {
-    id: 'users',
-    title: 'Users & Access Control',
-    permissions: [
-      'USER_READ',
-      'USER_WRITE',
-      'USER_DELETE',
-      'USER_INVITE',
-      'ROLE_READ',
-      'ROLE_WRITE',
-    ],
-  },
-  {
-    id: 'org',
-    title: 'Departments & Folders',
-    permissions: [
-      'DEPARTMENT_READ',
-      'DEPARTMENT_WRITE',
-      'DEPARTMENT_DELETE',
-      'FOLDER_READ',
-      'FOLDER_WRITE',
-      'FOLDER_DELETE',
-    ],
-  },
-  {
-    id: 'system',
-    title: 'SLA, Analytics & Administration',
-    permissions: [
-      'SLA_READ',
-      'SLA_WRITE',
-      'METRICS_READ',
-      'AUDIT_READ',
-      'ADMIN_FULL_ACCESS',
-      'TENANT_MANAGE',
+      'USER_EDIT',
+      'TICKET_TYPE_EDIT',
+      'DEPARTMENT_EDIT',
+      'ROLE_EDIT',
     ],
   },
 ];

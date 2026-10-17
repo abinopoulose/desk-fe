@@ -119,10 +119,7 @@ describe('RoleAdminPage', () => {
     render(<RoleAdminPage />);
 
     expect(screen.getByText('Create New Role')).toBeDefined();
-    expect(screen.getByText('Ticket Management')).toBeDefined();
-    expect(screen.getByText('Users & Access Control')).toBeDefined();
-    expect(screen.getByText('Departments & Folders')).toBeDefined();
-    expect(screen.getByText('SLA, Analytics & Administration')).toBeDefined();
+    expect(screen.getByText('Privileges')).toBeDefined();
     expect(screen.getByText('Select All')).toBeDefined();
   });
 });

@@ -25,8 +25,9 @@ export const navConfig: NavGroup[] = [
     label: 'Workspace',
     items: [
       { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
+      { to: ROUTES.DEPARTMENTS, icon: Building2, label: 'My Departments' },
       { to: ROUTES.ORG_CHART, icon: Network, label: 'Org Chart' },
-      { to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'METRICS_READ' },
+      { to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'DEPARTMENT_EDIT' },
     ],
   },
   {
@@ -34,10 +35,10 @@ export const navConfig: NavGroup[] = [
     collapsible: true,
     defaultOpen: true,
     items: [
-      { to: ROUTES.ADMIN.TICKET_TYPES, icon: Settings, label: 'Ticket Master', requiredPrivilege: 'TICKET_TYPE_WRITE' },
-      { to: ROUTES.ADMIN.DEPARTMENTS, icon: Building2, label: 'Departments', requiredPrivilege: 'DEPARTMENT_WRITE' },
-      { to: ROUTES.ADMIN.EMPLOYEES, icon: Users, label: 'Employees', requiredPrivilege: 'USER_INVITE' },
-      { to: ROUTES.ADMIN.ROLES, icon: Shield, label: 'Roles & Permissions', requiredPrivilege: 'ROLE_WRITE' },
+      { to: ROUTES.ADMIN.TICKET_TYPES, icon: Settings, label: 'Ticket Master', requiredPrivilege: 'TICKET_TYPE_EDIT' },
+      { to: ROUTES.ADMIN.DEPARTMENTS, icon: Building2, label: 'Departments', requiredPrivilege: 'DEPARTMENT_EDIT' },
+      { to: ROUTES.ADMIN.EMPLOYEES, icon: Users, label: 'Employees', requiredPrivilege: 'USER_EDIT' },
+      { to: ROUTES.ADMIN.ROLES, icon: Shield, label: 'Roles & Permissions', requiredPrivilege: 'ROLE_EDIT' },
     ],
   }
 ];

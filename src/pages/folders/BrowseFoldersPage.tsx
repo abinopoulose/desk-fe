@@ -85,7 +85,7 @@ const getDepartmentBadgeStyle = (dept: string = '') => {
   return styles[Math.abs(hash) % styles.length];
 };
 
-export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
+export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdminMode = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -316,7 +316,7 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = () => {
   };
 
   return (
-    <PrivilegeGate requiredPrivilege="TICKET_TYPE_READ">
+    <PrivilegeGate requiredPrivilege={isAdminMode ? 'TICKET_TYPE_EDIT' : undefined}>
       <div className="min-h-full bg-slate-50 text-slate-800 flex flex-col">
         {/* Top Header Card */}
         <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-xs">

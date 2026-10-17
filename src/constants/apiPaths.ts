@@ -20,6 +20,10 @@ export const API_PATHS = {
   DEPARTMENTS: {
     BASE: '/api/v1/departments',
     BY_ID: (id: string) => `/api/v1/departments/${id}`,
+    MY: '/api/v1/departments/my',
+    MEMBERS: (id: string) => `/api/v1/departments/${id}/members`,
+    MEMBER_ROLE: (id: string, userId: string) => `/api/v1/departments/${id}/members/${userId}`,
+    METRICS: (id: string) => `/api/v1/departments/${id}/metrics`,
   },
   TICKET_TYPES: {
     BASE: '/api/v1/ticket-types',

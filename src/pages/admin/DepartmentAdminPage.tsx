@@ -103,7 +103,7 @@ export const DepartmentAdminPage: React.FC = () => {
   };
 
   return (
-    <PrivilegeGate requiredPrivilege="DEPARTMENT_WRITE">
+    <PrivilegeGate requiredPrivilege="DEPARTMENT_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 p-6 lg:p-8">
         
         {/* Header Area */}
