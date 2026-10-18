@@ -115,8 +115,8 @@ export interface TicketDetailResponse {
   displayId?: string;
   title: string;
   ticketType: { id: string; title: string; alphaTag?: string; formSchema?: Record<string, unknown> };
-  requester: { id: string; displayId?: string; fullName: string; email: string };
-  assignee?: { id: string; displayId?: string; fullName: string; email: string };
+  requester: { id: string; displayId?: string; fullName: string; email: string; profilePictureUrl?: string };
+  assignee?: { id: string; displayId?: string; fullName: string; email: string; profilePictureUrl?: string };
   currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };
   priority: number;
   formData: Record<string, unknown>;

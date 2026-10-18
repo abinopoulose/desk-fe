@@ -4,17 +4,18 @@ import { Settings, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME, ROUTES } from '../../constants';
 import { getUserSlug } from '../../utils/userUtils';
 
+import { AssigneeSearchBar } from './AssigneeSearchBar';
 import type { TicketStatusDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
 
 export interface TicketManagementCardProps {
   currentStatus: { id: string; name: string; mappedState: 'OPEN' | 'CLOSED' };
-  assignee?: { id: string; fullName: string; email: string };
+  assignee?: { id: string; fullName: string; email: string; profilePictureUrl?: string; displayId?: string };
   availableStatuses?: TicketStatusDTO[];
   availableAssignees?: User[];
   canManage: boolean;
   onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onAssigneeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onAssigneeChange: (assigneeIdOrEvent: string | null | React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
@@ -77,35 +78,20 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
         <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
           Assignee
         </label>
-        {canManage ? (
-          <select
-            className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
-            value={assignee?.id || ''}
-            onChange={onAssigneeChange}
-          >
-            <option value="">Unassigned</option>
-            {availableAssignees && availableAssignees.length > 0 ? (
-              availableAssignees.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName} {u.title ? `— ${u.title}` : ''}
-                </option>
-              ))
-            ) : assignee ? (
-              <option value={assignee.id}>{assignee.fullName}</option>
-            ) : null}
-          </select>
-        ) : (
-          <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
-            <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-            {assignee ? (
-              <Link to={ROUTES.USERS.PROFILE(getUserSlug(assignee))} className="hover:text-indigo-600 hover:underline">
-                {assignee.fullName}
-              </Link>
-            ) : (
-              <span className="text-slate-400 italic">Unassigned</span>
-            )}
-          </div>
-        )}
+        <AssigneeSearchBar
+          assignee={assignee}
+          availableAssignees={availableAssignees}
+          canManage={canManage}
+          onAssigneeChange={(assigneeId) => {
+            if (typeof onAssigneeChange === 'function') {
+              try {
+                (onAssigneeChange as any)(assigneeId);
+              } catch {
+                (onAssigneeChange as any)({ target: { value: assigneeId ?? '' } });
+              }
+            }
+          }}
+        />
       </div>
     </div>
   );

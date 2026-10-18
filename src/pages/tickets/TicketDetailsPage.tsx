@@ -147,8 +147,13 @@ export const TicketDetailsPage: React.FC = () => {
     }
   };
 
-  const handleAssigneeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const assigneeId = e.target.value === '' ? null : e.target.value;
+  const handleAssigneeChange = async (
+    assigneeIdOrEvent: string | null | React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const assigneeId =
+      typeof assigneeIdOrEvent === 'object' && assigneeIdOrEvent !== null && 'target' in assigneeIdOrEvent
+        ? (assigneeIdOrEvent.target.value === '' ? null : assigneeIdOrEvent.target.value)
+        : assigneeIdOrEvent;
     try {
       await assignTicket(assigneeId);
       // Refresh access list so newly added core participants appear immediately

@@ -7,15 +7,19 @@ export const inviteEmployee = async (data: InviteEmployeeRequest) => {
   return response.data;
 };
 
-export const getOrgUsers = async (): Promise<User[]> => {
-  const response = await axiosInstance.get(API_PATHS.USERS.BASE);
+export const getOrgUsers = async (search?: string): Promise<User[]> => {
+  const response = await axiosInstance.get(API_PATHS.USERS.BASE, {
+    params: search ? { search } : undefined,
+  });
   const data = response.data;
   const userList = Array.isArray(data) ? data : (data?.users || []);
   return userList.map((u: any) => ({
     id: u.id,
+    displayId: u.displayId,
     email: u.email,
     fullName: u.fullName,
     title: u.title,
+    profilePictureUrl: u.profilePictureUrl,
     roles: u.roles || [],
     status: u.status || u.activationStatus || 'ACTIVE'
   }));
