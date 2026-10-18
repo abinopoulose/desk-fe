@@ -1,39 +1,37 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { Copy, Check, Clock, CheckCircle2, User } from 'lucide-react';
+import { Copy, Check, Clock, CheckCircle2, User, Flame, Loader2 } from 'lucide-react';
 import type { TicketDetailResponse } from '../../types/ticket';
 import { SLAIndicator } from './SLAIndicator';
 import { ROUTES } from '../../constants';
 import { getUserSlug } from '../../utils/userUtils';
+import { getPriorityStyle, getTicketDisplayReference } from '../../utils/ticketUtils';
 
 export interface TicketHeaderProps {
   ticket: TicketDetailResponse;
   onCopyId?: () => void;
+  canEscalate?: boolean;
+  onEscalate?: () => void;
+  escalating?: boolean;
 }
 
-const getPriorityStyle = (priority: number) => {
-  switch (priority) {
-    case 1:
-      return { label: 'Critical', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' };
-    case 2:
-      return { label: 'High', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' };
-    case 3:
-      return { label: 'Medium', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' };
-    default:
-      return { label: 'Low', bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', dot: 'bg-slate-400' };
-  }
-};
-
-export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) => {
+export const TicketHeader: React.FC<TicketHeaderProps> = ({
+  ticket,
+  onCopyId,
+  canEscalate,
+  onEscalate,
+  escalating,
+}) => {
   const [copied, setCopied] = useState(false);
   const priorityCfg = getPriorityStyle(ticket.priority);
   const isOpen = ticket.currentStatus.mappedState === 'OPEN';
+  const displayId = getTicketDisplayReference(ticket);
 
   const handleCopy = () => {
     if (onCopyId) {
       onCopyId();
     } else {
-      navigator.clipboard.writeText(ticket.displayId || ticket.id);
+      navigator.clipboard.writeText(displayId);
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -44,7 +42,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
       <div className="space-y-2">
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="font-mono text-xs font-bold bg-indigo-50/80 px-2.5 py-1 rounded-lg border border-indigo-200 text-indigo-700">
-            {ticket.displayId || `#${ticket.id.substring(0, 8).toUpperCase()}`}
+            {displayId}
           </span>
 
           <button
@@ -70,6 +68,15 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
             {isOpen ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <Clock className="w-3 h-3 text-slate-400" />}
             <span>{ticket.currentStatus.name}</span>
           </span>
+          {ticket.escalated && (
+            <span
+              data-testid="escalated-tag"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs"
+            >
+              <Flame className="w-3 h-3 text-rose-600 fill-rose-500" />
+              <span>Escalated</span>
+            </span>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -103,6 +110,27 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({ ticket, onCopyId }) 
           breached={ticket.slaBreached}
           statusState={ticket.currentStatus.mappedState}
         />
+        {canEscalate && (
+          <button
+            type="button"
+            onClick={onEscalate}
+            disabled={escalating}
+            data-testid="escalate-ticket-button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {escalating ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Escalating...</span>
+              </>
+            ) : (
+              <>
+                <Flame className="w-3.5 h-3.5 fill-rose-200" />
+                <span>Escalate</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

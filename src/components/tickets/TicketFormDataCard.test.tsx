@@ -92,4 +92,11 @@ describe('TicketFormDataCard Component', () => {
     expect(screen.queryByText('Emp Id')).toBeNull();
     expect(screen.queryByText('Short Text Quest')).toBeNull();
   });
+
+  it('renders one question per line in a full-width stacked container', () => {
+    const { container } = render(<TicketFormDataCard formData={sampleFormData} formSchema={schema} />);
+    const questionsContainer = container.querySelector('.space-y-3');
+    expect(questionsContainer).not.toBeNull();
+    expect(questionsContainer?.children.length).toBe(4);
+  });
 });

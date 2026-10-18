@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getUserSlug } from './userUtils';
+import { getUserSlug, getUserInitial } from './userUtils';
 
 describe('userUtils - getUserSlug', () => {
   it('extracts username from email correctly', () => {
@@ -19,5 +19,23 @@ describe('userUtils - getUserSlug', () => {
   it('handles null/undefined gracefully', () => {
     expect(getUserSlug(null)).toBe('');
     expect(getUserSlug(undefined)).toBe('');
+  });
+});
+
+describe('userUtils - getUserInitial', () => {
+  it('extracts initial from string name', () => {
+    expect(getUserInitial('Abino Poulose')).toBe('A');
+    expect(getUserInitial('jane doe')).toBe('J');
+  });
+
+  it('extracts initial from user object fullName or email', () => {
+    expect(getUserInitial({ fullName: 'Specialist Alice' })).toBe('S');
+    expect(getUserInitial({ email: 'bob@example.com' })).toBe('B');
+  });
+
+  it('returns custom or default fallback for null/empty', () => {
+    expect(getUserInitial(null)).toBe('U');
+    expect(getUserInitial(undefined, '?')).toBe('?');
+    expect(getUserInitial('', 'X')).toBe('X');
   });
 });

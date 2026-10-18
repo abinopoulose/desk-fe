@@ -8,6 +8,8 @@ export interface UseTicketDetailsReturn {
   ticket: TicketDetailResponse | null;
   loading: boolean;
   error: string | null;
+  statusCode: number | null;
+  isForbidden: boolean;
   fetchTicketById: (id?: string) => Promise<TicketDetailResponse | null>;
   fetchTicket: (id?: string) => Promise<TicketDetailResponse | null>;
   refetch: () => Promise<TicketDetailResponse | null>;
@@ -26,6 +28,7 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
   const [ticket, setTicket] = useState<TicketDetailResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(Boolean(ticketId));
   const [error, setError] = useState<string | null>(null);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
 
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -43,6 +46,7 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
           setTicket(null);
           setLoading(false);
           setError(null);
+          setStatusCode(null);
         }
         return null;
       }
@@ -50,17 +54,22 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
       if (isMountedRef.current) {
         setLoading(true);
         setError(null);
+        setStatusCode(null);
       }
 
       try {
         const data = await ticketApi.getTicketDetails(targetId);
         if (isMountedRef.current) {
           setTicket(data);
+          setStatusCode(null);
         }
         return data;
       } catch (err: unknown) {
         if (isMountedRef.current) {
-          const message = (err as ApiError)?.message || 'Failed to load ticket details';
+          const apiError = err as ApiError;
+          const status = apiError?.statusCode ?? (err as any)?.response?.status ?? null;
+          setStatusCode(status);
+          const message = apiError?.message || 'Failed to load ticket details';
           setError(message);
         }
         throw err;
@@ -198,6 +207,8 @@ export function useTicketDetails(ticketId?: string): UseTicketDetailsReturn {
     ticket,
     loading,
     error,
+    statusCode,
+    isForbidden: statusCode === 403,
     fetchTicketById,
     fetchTicket: fetchTicketById,
     refetch,

@@ -18,3 +18,24 @@ export const getUserSlug = (
   }
   return user.displayId || user.id || '';
 };
+
+/**
+ * Derives a clean single-character uppercase initial for avatars and badge fallbacks.
+ */
+export const getUserInitial = (
+  userOrName?: string | { fullName?: string; email?: string } | null,
+  fallback = 'U'
+): string => {
+  if (!userOrName) return fallback;
+  if (typeof userOrName === 'string') {
+    const trimmed = userOrName.trim();
+    return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : fallback;
+  }
+  if (userOrName.fullName && userOrName.fullName.trim().length > 0) {
+    return userOrName.fullName.trim().charAt(0).toUpperCase();
+  }
+  if (userOrName.email && userOrName.email.trim().length > 0) {
+    return userOrName.email.trim().charAt(0).toUpperCase();
+  }
+  return fallback;
+};

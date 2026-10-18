@@ -17,43 +17,8 @@ import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { ROUTES, APP_CONFIG } from '../../constants';
 import { useAuth } from '../../store/authStore';
 import { useTicketList } from '../../hooks';
-
-const getPriorityBadge = (priority: number) => {
-  switch (priority) {
-    case 1:
-      return {
-        label: 'Critical',
-        bg: 'bg-rose-50',
-        text: 'text-rose-700',
-        border: 'border-rose-200',
-        dot: 'bg-rose-500',
-      };
-    case 2:
-      return {
-        label: 'High',
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        border: 'border-amber-200',
-        dot: 'bg-amber-500',
-      };
-    case 3:
-      return {
-        label: 'Medium',
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
-        dot: 'bg-blue-500',
-      };
-    default:
-      return {
-        label: 'Low',
-        bg: 'bg-slate-100',
-        text: 'text-slate-700',
-        border: 'border-slate-200',
-        dot: 'bg-slate-400',
-      };
-  }
-};
+import { getPriorityStyle, getTicketDisplayReference } from '../../utils/ticketUtils';
+import { getUserInitial } from '../../utils/userUtils';
 
 export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -302,8 +267,9 @@ export const TicketListPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((t) => {
-                    const priorityCfg = getPriorityBadge(t.priority);
+                    const priorityCfg = getPriorityStyle(t.priority);
                     const isOpen = t.mappedState === 'OPEN';
+                    const displayRef = getTicketDisplayReference(t);
 
                     return (
                       <tr
@@ -319,7 +285,7 @@ export const TicketListPage: React.FC = () => {
                             </span>
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[10px] text-slate-500 font-bold">
-                                {t.displayId || `#${t.id.substring(0, 8).toUpperCase()}`}
+                                {displayRef}
                               </span>
                               {t.title && t.ticketTypeTitle && (
                                 <>
@@ -367,7 +333,7 @@ export const TicketListPage: React.FC = () => {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">
-                              {t.requesterName ? t.requesterName.charAt(0).toUpperCase() : 'U'}
+                              {getUserInitial(t.requesterName)}
                             </div>
                             <span className="text-xs text-slate-700 font-medium">
                               {t.requesterName || 'Unknown'}
@@ -380,7 +346,7 @@ export const TicketListPage: React.FC = () => {
                           {t.assigneeName ? (
                             <div className="flex items-center gap-2">
                               <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
-                                {t.assigneeName.charAt(0).toUpperCase()}
+                                {getUserInitial(t.assigneeName)}
                               </div>
                               <span className="text-xs text-slate-700 font-medium">
                                 {t.assigneeName}

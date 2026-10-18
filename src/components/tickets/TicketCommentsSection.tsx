@@ -12,6 +12,7 @@ import {
 import { getOrgUsers } from '../../api/employeeApi';
 import type { CommentDTO, TicketHistoryDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
+import { getUserInitial } from '../../utils/userUtils';
 
 const MAX_CHARS = 500;
 const INITIAL_VISIBLE_COUNT = 10;
@@ -357,7 +358,7 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                 visibleComments.map((comment) => (
                   <div key={comment.id} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                      {comment.author?.fullName ? comment.author.fullName.charAt(0).toUpperCase() : 'U'}
+                      {getUserInitial(comment.author?.fullName)}
                     </div>
 
                     <div className="flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-1.5">
@@ -430,7 +431,7 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-slate-200/80 text-slate-700 flex items-center justify-center text-[11px] font-bold shrink-0">
-                          {entry.changedByUserName ? entry.changedByUserName.charAt(0).toUpperCase() : 'U'}
+                          {getUserInitial(entry.changedByUserName)}
                         </div>
                         <span className="text-xs font-bold text-slate-800">
                           {entry.changedByUserName || 'System User'}

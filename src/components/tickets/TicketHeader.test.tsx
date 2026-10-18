@@ -56,4 +56,59 @@ describe('TicketHeader Component', () => {
     expect(screen.getByText('Critical')).toBeDefined();
     expect(screen.getByText('Open')).toBeDefined();
   });
+
+  it('renders Escalated badge when ticket.escalated is true', () => {
+    render(
+      <MemoryRouter>
+        <TicketHeader ticket={{ ...sampleTicket, escalated: true }} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('escalated-tag')).toBeDefined();
+    expect(screen.getByText('Escalated')).toBeDefined();
+  });
+
+  it('does not render Escalated badge when ticket.escalated is false', () => {
+    render(
+      <MemoryRouter>
+        <TicketHeader ticket={{ ...sampleTicket, escalated: false }} />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByTestId('escalated-tag')).toBeNull();
+  });
+
+  it('renders Escalate button when canEscalate is true and calls onEscalate when clicked', () => {
+    let clicked = false;
+    render(
+      <MemoryRouter>
+        <TicketHeader
+          ticket={sampleTicket}
+          canEscalate={true}
+          onEscalate={() => {
+            clicked = true;
+          }}
+        />
+      </MemoryRouter>
+    );
+
+    const btn = screen.getByTestId('escalate-ticket-button');
+    expect(btn).toBeDefined();
+    btn.click();
+    expect(clicked).toBe(true);
+  });
+
+  it('shows loading state on Escalate button when escalating is true', () => {
+    render(
+      <MemoryRouter>
+        <TicketHeader
+          ticket={sampleTicket}
+          canEscalate={true}
+          escalating={true}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Escalating...')).toBeDefined();
+  });
 });

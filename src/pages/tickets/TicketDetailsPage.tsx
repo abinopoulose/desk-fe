@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
-import { ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ChevronRight, AlertCircle, Lock, CheckCircle2, Loader2, Send, Flame } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import { useTicketDetails, useTicketComments } from '../../hooks';
+import { useAuth } from '../../store/authStore';
 import { ROUTES } from '../../constants';
+import type { ApiError } from '../../utils/apiErrorHandler';
+import { getTicketDisplayReference, canUserEscalateTicket } from '../../utils/ticketUtils';
 import {
   TicketHeader,
   TicketFormDataCard,
@@ -29,10 +32,28 @@ export const TicketDetailsPage: React.FC = () => {
     ticket,
     loading,
     error,
+    isForbidden,
     updateStatus,
     assignTicket,
     setTicket,
   } = useTicketDetails(ticketId);
+
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  const handleRequestAccess = async () => {
+    if (!ticketId) return;
+    setRequestStatus('loading');
+    setRequestError(null);
+    try {
+      await ticketApi.requestAccess(ticketId);
+      setRequestStatus('success');
+    } catch (err: unknown) {
+      setRequestStatus('error');
+      const msg = (err as ApiError)?.message || 'Failed to send access request. Please try again.';
+      setRequestError(msg);
+    }
+  };
 
   const [availableStatuses, setAvailableStatuses] = React.useState<TicketStatusDTO[]>([]);
   const [availableAssignees, setAvailableAssignees] = React.useState<User[]>([]);
@@ -91,7 +112,31 @@ export const TicketDetailsPage: React.FC = () => {
     },
   });
 
+  const { user } = useAuth();
   const [accessRefreshTrigger, setAccessRefreshTrigger] = useState(0);
+  const [escalating, setEscalating] = useState(false);
+  const [escalateSuccess, setEscalateSuccess] = useState<string | null>(null);
+  const [escalateError, setEscalateError] = useState<string | null>(null);
+
+  const canEscalate = canUserEscalateTicket(ticket, user?.id);
+
+  const handleEscalate = async () => {
+    if (!ticketId || escalating) return;
+    setEscalating(true);
+    setEscalateError(null);
+    setEscalateSuccess(null);
+    try {
+      const updatedTicket = await ticketApi.escalateTicket(ticketId);
+      setTicket(updatedTicket);
+      setAccessRefreshTrigger((prev) => prev + 1);
+      setEscalateSuccess('Ticket has been escalated. The assignee’s manager has been notified.');
+    } catch (err: unknown) {
+      const msg = (err as ApiError)?.message || 'Failed to escalate ticket. Please try again.';
+      setEscalateError(msg);
+    } finally {
+      setEscalating(false);
+    }
+  };
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     try {
@@ -147,6 +192,77 @@ export const TicketDetailsPage: React.FC = () => {
     );
   }
 
+  if (isForbidden) {
+    return (
+      <div className="p-8 max-w-2xl mx-auto my-12">
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xs text-center" role="region" aria-label="Access Restricted">
+          <div className="w-14 h-14 bg-amber-50 border border-amber-200 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-2xs">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Access Restricted</h2>
+          <p className="text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
+            You do not have access to this ticket{ticketId ? ` (${ticketId})` : ''}. If you need to view or work on this ticket, you can request access from the creator and assignee.
+          </p>
+
+          {requestStatus === 'success' ? (
+            <div className="space-y-5">
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>Access request sent. The ticket creator and assignee have been notified.</span>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.TICKETS.BASE)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors cursor-pointer inline-flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Requests</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {requestStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-xl text-xs flex items-center justify-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{requestError || 'Failed to request access.'}</span>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleRequestAccess}
+                  disabled={requestStatus === 'loading'}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
+                >
+                  {requestStatus === 'loading' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Requesting Access...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Request Access</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.TICKETS.BASE)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  Back to Requests
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (error || !ticket) {
     return (
       <div className="p-8 max-w-4xl mx-auto">
@@ -168,7 +284,7 @@ export const TicketDetailsPage: React.FC = () => {
     );
   }
 
-  const displayReference = ticket.displayId || `#${ticket.id.substring(0, 8).toUpperCase()}`;
+  const displayReference = getTicketDisplayReference(ticket);
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
@@ -195,12 +311,61 @@ export const TicketDetailsPage: React.FC = () => {
               <span className="font-mono text-slate-700 font-semibold">{displayReference}</span>
             </nav>
           </div>
+
+          {canEscalate && (
+            <button
+              type="button"
+              onClick={handleEscalate}
+              disabled={escalating}
+              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 disabled:bg-rose-400 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              {escalating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Flame className="w-3.5 h-3.5 fill-rose-200" />}
+              <span>Escalate Ticket</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
-        <TicketHeader ticket={ticket} />
+        {escalateSuccess && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center justify-between gap-3 text-sm font-medium">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{escalateSuccess}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEscalateSuccess(null)}
+              className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {escalateError && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-center justify-between gap-3 text-sm font-medium">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{escalateError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEscalateError(null)}
+              className="text-rose-700 hover:text-rose-900 text-xs font-semibold cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        <TicketHeader
+          ticket={ticket}
+          canEscalate={canEscalate}
+          onEscalate={handleEscalate}
+          escalating={escalating}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Column */}

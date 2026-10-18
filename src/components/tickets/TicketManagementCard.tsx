@@ -75,7 +75,7 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
       {/* Assignee control */}
       <div>
         <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-          Assigned Specialist
+          Assignee
         </label>
         {canManage ? (
           <select

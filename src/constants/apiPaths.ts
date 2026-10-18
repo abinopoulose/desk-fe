@@ -18,6 +18,8 @@ export const API_PATHS = {
     COMMENTS: (id: string) => `/api/v1/tickets/${id}/comments`,
     ACCESS: (id: string) => `/api/v1/tickets/${id}/access`,
     SHARES: (id: string) => `/api/v1/tickets/${id}/shares`,
+    REQUEST_ACCESS: (id: string) => `/api/v1/tickets/${id}/request-access`,
+    ESCALATE: (id: string) => `/api/v1/tickets/${id}/escalate`,
   },
   DEPARTMENTS: {
     BASE: '/api/v1/departments',

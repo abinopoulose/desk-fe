@@ -103,6 +103,8 @@ export interface TicketDTO {
   formData: Record<string, unknown>;
   slaDueAt: string;
   slaBreached: boolean;
+  escalated?: boolean;
+  escalatedAt?: string;
   attachments?: string[];
   createdAt: string;
   updatedAt: string;
@@ -120,6 +122,8 @@ export interface TicketDetailResponse {
   formData: Record<string, unknown>;
   slaDueAt: string;
   slaBreached: boolean;
+  escalated?: boolean;
+  escalatedAt?: string;
   attachments?: string[];
   comments: CommentDTO[];
   history: TicketHistoryDTO[];

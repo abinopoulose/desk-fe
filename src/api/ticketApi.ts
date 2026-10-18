@@ -69,4 +69,14 @@ export const ticketApi = {
       params: { shareType, targetId }
     });
   },
+
+  requestAccess: async (ticketId: string): Promise<{ message: string }> => {
+    const response = await axiosInstance.post<{ message: string }>(API_PATHS.TICKETS.REQUEST_ACCESS(ticketId));
+    return response.data;
+  },
+
+  escalateTicket: async (ticketId: string): Promise<TicketDetailResponse> => {
+    const response = await axiosInstance.post<TicketDetailResponse>(API_PATHS.TICKETS.ESCALATE(ticketId));
+    return response.data;
+  },
 };

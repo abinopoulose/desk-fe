@@ -77,7 +77,7 @@ export const TicketFormDataCard: React.FC<TicketFormDataCardProps> = ({ formData
           No additional form fields were required for this ticket type.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-3">
           {orderedKeys.map((key) => {
             const value = formData[key];
             const fieldDef = fieldMap.get(key);

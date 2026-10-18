@@ -109,7 +109,7 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
     const existingUserIds = new Set<string>();
     if (accessList?.requester) existingUserIds.add(accessList.requester.id);
     if (accessList?.assignee) existingUserIds.add(accessList.assignee.id);
-    accessList?.sharedUsers.forEach((u) => existingUserIds.add(u.targetId));
+    accessList?.sharedUsers?.forEach((u) => existingUserIds.add(u.targetId));
     return orgUsers.filter((u) => !existingUserIds.has(u.id) && u.status === 'ACTIVE');
   }, [orgUsers, accessList]);
 
@@ -117,7 +117,7 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
   const availableDepartments = useMemo(() => {
     const existingDeptIds = new Set<string>();
     if (accessList?.primaryDepartment) existingDeptIds.add(accessList.primaryDepartment.id);
-    accessList?.sharedDepartments.forEach((d) => existingDeptIds.add(d.targetId));
+    accessList?.sharedDepartments?.forEach((d) => existingDeptIds.add(d.targetId));
     return departments.filter((d) => !existingDeptIds.has(d.id));
   }, [departments, accessList]);
 
@@ -366,13 +366,6 @@ export const TicketAccessCard: React.FC<TicketAccessCardProps> = ({
               </div>
             ))}
           </div>
-
-          {accessList.sharedUsers.length === 0 && accessList.sharedDepartments.length === 0 && (
-            <p className="text-[11px] text-slate-400 italic text-center py-1">
-              Ticket has not been shared with any additional users or departments yet.
-            </p>
-          )}
-
         </div>
       ) : null}
 
