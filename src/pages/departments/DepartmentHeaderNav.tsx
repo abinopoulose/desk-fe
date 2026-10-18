@@ -21,6 +21,7 @@ interface DepartmentHeaderNavProps {
   activeTab: 'tickets' | 'members' | 'metrics';
   isAdmin?: boolean;
   myDepartments?: { id: string; name: string }[];
+  onDepartmentChange?: (deptId: string) => void;
 }
 
 export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
@@ -32,6 +33,7 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
   activeTab,
   isAdmin = false,
   myDepartments = [],
+  onDepartmentChange,
 }) => {
   const navigate = useNavigate();
   const canManage = isAdmin || myRole === 'ADMIN';
@@ -74,6 +76,9 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
                     onChange={(e) => {
                       const nextDeptId = e.target.value;
                       if (nextDeptId && nextDeptId !== departmentId) {
+                        if (onDepartmentChange) {
+                          onDepartmentChange(nextDeptId);
+                        }
                         if (activeTab === 'tickets') {
                           navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(nextDeptId));
                         } else if (activeTab === 'members') {

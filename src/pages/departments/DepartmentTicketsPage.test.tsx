@@ -26,6 +26,16 @@ vi.mock('react-router', () => ({
 describe('DepartmentTicketsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ]);
   });
 
   afterEach(() => {
@@ -93,15 +103,12 @@ describe('DepartmentTicketsPage', () => {
       expect(screen.getAllByText('Technical Support').length).toBeGreaterThan(0);
       expect(screen.getByText('Laptop display flicker')).toBeDefined();
       expect(screen.getByText('VPN cannot connect')).toBeDefined();
+      expect(screen.getByText('Take Ticket')).toBeDefined();
+      expect(screen.getByText('Breached')).toBeDefined();
+      expect(screen.getByText('Escalated')).toBeDefined();
     });
 
-    // Check unassigned ticket has "Take Ticket" button
     const takeButton = screen.getByText('Take Ticket');
-    expect(takeButton).toBeDefined();
-
-    // Check SLA breached indicator and Escalated tag
-    expect(screen.getByText('Breached')).toBeDefined();
-    expect(screen.getByText('Escalated')).toBeDefined();
 
     // Click Take Ticket
     fireEvent.click(takeButton);

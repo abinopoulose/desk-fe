@@ -1,7 +1,4 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router';
-import { RefreshCw } from 'lucide-react';
-import { departmentApi } from './api/departmentApi';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router';
 import { ROUTES } from './constants';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -43,39 +40,6 @@ function DepartmentRedirect() {
   return <Navigate to={ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId || '')} replace />;
 }
 
-function DepartmentTicketsGateway() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    departmentApi.getMyDepartments()
-      .then((depts) => {
-        if (depts && depts.length > 0) {
-          navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(depts[0].id), { replace: true });
-        } else {
-          navigate(ROUTES.DEPARTMENTS, { replace: true });
-        }
-      })
-      .catch(() => {
-        navigate(ROUTES.DEPARTMENTS, { replace: true });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [navigate]);
-
-  if (!loading) return null;
-
-  return (
-    <div className="min-h-full bg-slate-50 flex items-center justify-center py-24">
-      <div className="flex flex-col items-center gap-3 text-slate-500">
-        <RefreshCw className="w-6 h-6 animate-spin text-indigo-600" />
-        <span className="text-xs font-semibold">Opening Department Tickets...</span>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const { isAuthenticated } = useAuth();
 
@@ -92,7 +56,7 @@ function App() {
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
             <Route path={ROUTES.DEPARTMENTS} element={<DepartmentListPage />} />
-            <Route path={ROUTES.DEPARTMENT_TICKETS} element={<DepartmentTicketsGateway />} />
+            <Route path={ROUTES.DEPARTMENT_TICKETS} element={<DepartmentTicketsPage />} />
             <Route path="/departments/:departmentId" element={<DepartmentRedirect />} />
             <Route path={ROUTES.DEPARTMENT_DETAILS.TICKETS_PATH} element={<DepartmentTicketsPage />} />
             <Route path={ROUTES.DEPARTMENT_DETAILS.MEMBERS_PATH} element={<DepartmentMembersPage />} />

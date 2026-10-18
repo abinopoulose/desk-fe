@@ -11,7 +11,8 @@ import {
   AlertCircle,
   RefreshCw,
   Inbox,
-  UserPlus
+  UserPlus,
+  Building2
 } from 'lucide-react';
 import { departmentApi } from '../../api/departmentApi';
 import { ticketApi } from '../../api/ticketApi';
@@ -23,15 +24,26 @@ import { getUserInitial } from '../../utils/userUtils';
 import type { MyDepartmentDTO, DepartmentDTO } from '../../types/department';
 import type { TicketDTO, TicketFilterParams } from '../../types/ticket';
 
+interface DepartmentViewItem {
+  id: string;
+  displayId?: string;
+  name: string;
+  description?: string;
+  alphaTags?: string[];
+  myRole?: 'ADMIN' | 'MEMBER' | null;
+  memberCount?: number;
+}
+
 export const DepartmentTicketsPage: React.FC = () => {
-  const { departmentId } = useParams<{ departmentId: string }>();
+  const { departmentId: paramDepartmentId } = useParams<{ departmentId: string }>();
   const navigate = useNavigate();
   const { user, isSuperAdmin, hasPrivilege } = useAuth();
   const canEditAnyDept = isSuperAdmin || hasPrivilege('DEPARTMENT_EDIT');
 
   // Department State
-  const [department, setDepartment] = useState<MyDepartmentDTO | DepartmentDTO | null>(null);
-  const [myDepartments, setMyDepartments] = useState<MyDepartmentDTO[]>([]);
+  const [department, setDepartment] = useState<DepartmentViewItem | null>(null);
+  const [myDepartments, setMyDepartments] = useState<DepartmentViewItem[]>([]);
+  const [activeDepartmentId, setActiveDepartmentId] = useState<string>(paramDepartmentId || '');
   const [myRole, setMyRole] = useState<'ADMIN' | 'MEMBER' | null>(null);
   const [loadingDept, setLoadingDept] = useState(true);
   const [deptError, setDeptError] = useState<string | null>(null);
@@ -74,35 +86,100 @@ export const DepartmentTicketsPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
+  useEffect(() => {
+    if (paramDepartmentId && paramDepartmentId !== activeDepartmentId) {
+      setActiveDepartmentId(paramDepartmentId);
+    }
+  }, [paramDepartmentId]);
+
   // Fetch department details & user role
   const fetchDepartmentInfo = useCallback(async () => {
-    if (!departmentId) return;
     setLoadingDept(true);
     setDeptError(null);
     try {
-      const myDepts = await departmentApi.getMyDepartments();
-      setMyDepartments(myDepts);
-      const current = myDepts.find((d) => d.id === departmentId);
-      if (current) {
-        setDepartment(current);
-        setMyRole(current.myRole);
-      } else {
-        // Fallback for org admins or direct lookup
-        const dept = await departmentApi.getDepartmentById(departmentId);
-        setDepartment(dept);
-        if (canEditAnyDept) {
-          setMyRole('ADMIN');
-        } else {
-          setMyRole(null);
+      const [myDepts, allDepts] = await Promise.all([
+        departmentApi.getMyDepartments().catch(() => [] as MyDepartmentDTO[]),
+        departmentApi.getAllDepartments().catch(() => [] as DepartmentDTO[]),
+      ]);
+
+      const safeMyDepts = Array.isArray(myDepts) ? myDepts : [];
+      const safeAllDepts = Array.isArray(allDepts) ? allDepts : [];
+
+      // Combine into available list for department switcher:
+      // Include all organization departments and user's assigned departments
+      const combinedDepts: Array<{ id: string; displayId?: string; name: string; description?: string; alphaTags?: string[] }> = [...safeAllDepts];
+      for (const md of safeMyDepts) {
+        if (!combinedDepts.some((d) => d.id === md.id)) {
+          combinedDepts.push({
+            id: md.id,
+            displayId: (md as any).displayId,
+            name: md.name,
+            description: md.description,
+            alphaTags: md.alphaTags,
+          });
         }
       }
+
+      const availableList: DepartmentViewItem[] = combinedDepts.map((d) => {
+        const existing = safeMyDepts.find((m) => m.id === d.id);
+        return {
+          id: d.id,
+          displayId: d.displayId,
+          name: d.name,
+          description: d.description,
+          alphaTags: d.alphaTags,
+          myRole: existing?.myRole || (canEditAnyDept ? ('ADMIN' as const) : null),
+          memberCount: existing?.memberCount || 0,
+        };
+      });
+
+      setMyDepartments(availableList);
+
+      if (availableList.length === 0) {
+        setDepartment(null);
+        setActiveDepartmentId('');
+        setLoadingDept(false);
+        return;
+      }
+
+      // Determine target department:
+      // Priority: param in URL -> previously active dept -> dept user belongs to -> first available dept
+      const targetId = paramDepartmentId || activeDepartmentId;
+      let current = targetId
+        ? availableList.find((d) => d.id === targetId || d.displayId === targetId)
+        : null;
+
+      if (!current && targetId) {
+        try {
+          const direct = await departmentApi.getDepartmentById(targetId);
+          current = {
+            id: direct.id,
+            displayId: direct.displayId,
+            name: direct.name,
+            description: direct.description,
+            alphaTags: direct.alphaTags,
+            myRole: canEditAnyDept ? ('ADMIN' as const) : null,
+            memberCount: 0,
+          };
+        } catch {
+          // not found by direct id
+        }
+      }
+
+      if (!current) {
+        current = availableList.find((d) => d.myRole !== null) || availableList[0];
+      }
+
+      setDepartment(current);
+      setActiveDepartmentId(current.id);
+      setMyRole(current.myRole || (canEditAnyDept ? 'ADMIN' : null));
     } catch (err: unknown) {
       console.error('Failed to load department info', err);
       setDeptError('Failed to load department information.');
     } finally {
       setLoadingDept(false);
     }
-  }, [departmentId, canEditAnyDept]);
+  }, [paramDepartmentId, canEditAnyDept]);
 
   useEffect(() => {
     fetchDepartmentInfo();
@@ -110,12 +187,12 @@ export const DepartmentTicketsPage: React.FC = () => {
 
   // Fetch tickets for this department
   const fetchTickets = useCallback(async () => {
-    if (!departmentId) return;
+    if (!activeDepartmentId) return;
     setLoadingTickets(true);
     setTicketsError(null);
     try {
       const params: TicketFilterParams = {
-        departmentId,
+        departmentId: activeDepartmentId,
         page,
         size,
         sort,
@@ -152,7 +229,7 @@ export const DepartmentTicketsPage: React.FC = () => {
         setLoadingTickets(false);
       }
     }
-  }, [departmentId, debouncedSearch, mappedState, priority, assigneeMode, sort, page, size, user?.id]);
+  }, [activeDepartmentId, debouncedSearch, mappedState, priority, assigneeMode, sort, page, size, user?.id]);
 
   useEffect(() => {
     fetchTickets();
@@ -197,8 +274,6 @@ export const DepartmentTicketsPage: React.FC = () => {
     setPage(0);
   };
 
-  const isUserAuthorized = canEditAnyDept || myRole !== null;
-
   if (loadingDept) {
     return (
       <div className="min-h-full bg-slate-50 flex items-center justify-center py-24">
@@ -213,40 +288,31 @@ export const DepartmentTicketsPage: React.FC = () => {
   if (deptError || !department) {
     return (
       <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
-        <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
-          <h2 className="text-base font-bold text-red-900">Department Not Found</h2>
-          <p className="text-xs text-red-700 max-w-md mx-auto">
-            {deptError || 'We could not locate this department or you do not have permission to view it.'}
+        <div className="p-8 bg-white border border-slate-200 rounded-2xl text-center space-y-4 shadow-xs max-w-lg mx-auto">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">No Departments Available</h2>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            {deptError || 'There are no departments created in your organization yet.'}
           </p>
-          <button
-            type="button"
-            onClick={() => navigate(ROUTES.DEPARTMENTS)}
-            className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 transition-colors cursor-pointer"
-          >
-            Back to My Departments
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isUserAuthorized) {
-    return (
-      <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
-        <div className="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-3">
-          <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
-          <h2 className="text-base font-bold text-amber-900">Access Restricted</h2>
-          <p className="text-xs text-amber-700 max-w-md mx-auto">
-            You must be a member or administrator of {department.name} to view its service queue.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate(ROUTES.DEPARTMENTS)}
-            className="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-xl hover:bg-amber-700 transition-colors cursor-pointer"
-          >
-            Back to My Departments
-          </button>
+          {canEditAnyDept ? (
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.ADMIN.DEPARTMENTS)}
+              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors cursor-pointer"
+            >
+              Manage Departments
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              Back to Dashboard
+            </button>
+          )}
         </div>
       </div>
     );
@@ -264,6 +330,14 @@ export const DepartmentTicketsPage: React.FC = () => {
         activeTab="tickets"
         isAdmin={canEditAnyDept || myRole === 'ADMIN'}
         myDepartments={myDepartments}
+        onDepartmentChange={(deptId) => {
+          setActiveDepartmentId(deptId);
+          const found = myDepartments.find((d) => d.id === deptId);
+          if (found) {
+            setDepartment(found);
+            setMyRole(found.myRole || (canEditAnyDept ? 'ADMIN' : null));
+          }
+        }}
       />
 
       {/* Main Content Area */}
