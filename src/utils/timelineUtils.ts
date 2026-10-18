@@ -24,6 +24,12 @@ export const mergeTimeline = (
     } else if (entry.fieldName === 'priority') {
       type = 'PRIORITY_CHANGE';
       summary = `Priority changed from ${entry.oldValue || 'None'} to ${entry.newValue || 'None'} by ${actorName}`;
+    } else if (entry.fieldName === 'share') {
+      type = 'FIELD_CHANGE';
+      summary = entry.newValue || `Access shared by ${actorName}`;
+    } else if (entry.fieldName === 'unshare') {
+      type = 'FIELD_CHANGE';
+      summary = `Access revoked for ${entry.oldValue || 'user'} by ${actorName}`;
     } else {
       type = 'FIELD_CHANGE';
       summary = `${entry.fieldName} updated from '${entry.oldValue || 'None'}' to '${entry.newValue || 'None'}'`;

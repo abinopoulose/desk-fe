@@ -106,6 +106,8 @@ export const TicketDetailsPage: React.FC = () => {
     const assigneeId = e.target.value === '' ? null : e.target.value;
     try {
       await assignTicket(assigneeId);
+      // Refresh access list so newly added core participants appear immediately
+      setAccessRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       console.error(err);
       alert('Failed to reassign ticket');
