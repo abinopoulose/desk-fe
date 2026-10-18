@@ -10,6 +10,16 @@ export const ROUTES = {
   BROWSE: '/browse',
   ORG_CHART: '/org-chart',
   DEPARTMENTS: '/departments',
+  DEPARTMENT_TICKETS: '/department-tickets',
+  DEPARTMENT_DETAILS: {
+    BASE: '/departments',
+    TICKETS_PATH: '/departments/:departmentId/tickets',
+    TICKETS: (id: string | number) => `/departments/${id}/tickets`,
+    MEMBERS_PATH: '/departments/:departmentId/members',
+    MEMBERS: (id: string | number) => `/departments/${id}/members`,
+    METRICS_PATH: '/departments/:departmentId/metrics',
+    METRICS: (id: string | number) => `/departments/${id}/metrics`,
+  },
   METRICS: '/metrics',
   USERS: {
     PROFILE_PATH: '/users/:userId',

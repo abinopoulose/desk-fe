@@ -1,4 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router';
+import { RefreshCw } from 'lucide-react';
+import { departmentApi } from './api/departmentApi';
 import { ROUTES } from './constants';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -17,7 +20,10 @@ import { MetricsDashboardPage } from './pages/metrics/MetricsDashboardPage';
 import { PrivilegeGate } from './components/auth/PrivilegeGate';
 import UserProfilePage from './pages/user/UserProfilePage';
 import { DepartmentAdminPage } from './pages/admin/DepartmentAdminPage';
-import { ManageDepartmentPage } from './pages/departments/ManageDepartmentPage';
+import { DepartmentListPage } from './pages/departments/DepartmentListPage';
+import { DepartmentTicketsPage } from './pages/departments/DepartmentTicketsPage';
+import { DepartmentMembersPage } from './pages/departments/DepartmentMembersPage';
+import { DepartmentMetricsPage } from './pages/departments/DepartmentMetricsPage';
 import { RoleAdminPage } from './pages/admin/RoleAdminPage';
 import { EmployeeManagementPage } from './pages/admin/EmployeeManagementPage';
 import { PageErrorBoundary } from './components/errors/PageErrorBoundary';
@@ -30,6 +36,44 @@ function SettingsRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   return <Navigate to={`${ROUTES.USERS.PROFILE(getUserSlug(user))}?tab=sessions`} replace />;
+}
+
+function DepartmentRedirect() {
+  const { departmentId } = useParams<{ departmentId: string }>();
+  return <Navigate to={ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId || '')} replace />;
+}
+
+function DepartmentTicketsGateway() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    departmentApi.getMyDepartments()
+      .then((depts) => {
+        if (depts && depts.length > 0) {
+          navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(depts[0].id), { replace: true });
+        } else {
+          navigate(ROUTES.DEPARTMENTS, { replace: true });
+        }
+      })
+      .catch(() => {
+        navigate(ROUTES.DEPARTMENTS, { replace: true });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [navigate]);
+
+  if (!loading) return null;
+
+  return (
+    <div className="min-h-full bg-slate-50 flex items-center justify-center py-24">
+      <div className="flex flex-col items-center gap-3 text-slate-500">
+        <RefreshCw className="w-6 h-6 animate-spin text-indigo-600" />
+        <span className="text-xs font-semibold">Opening Department Tickets...</span>
+      </div>
+    </div>
+  );
 }
 
 function App() {
@@ -47,7 +91,12 @@ function App() {
             {/* Workspace Routes (Accessible to all authenticated firm members) */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
-            <Route path={ROUTES.DEPARTMENTS} element={<ManageDepartmentPage />} />
+            <Route path={ROUTES.DEPARTMENTS} element={<DepartmentListPage />} />
+            <Route path={ROUTES.DEPARTMENT_TICKETS} element={<DepartmentTicketsGateway />} />
+            <Route path="/departments/:departmentId" element={<DepartmentRedirect />} />
+            <Route path={ROUTES.DEPARTMENT_DETAILS.TICKETS_PATH} element={<DepartmentTicketsPage />} />
+            <Route path={ROUTES.DEPARTMENT_DETAILS.MEMBERS_PATH} element={<DepartmentMembersPage />} />
+            <Route path={ROUTES.DEPARTMENT_DETAILS.METRICS_PATH} element={<DepartmentMetricsPage />} />
             <Route path={ROUTES.SETTINGS} element={<SettingsRedirect />} />
             <Route path={ROUTES.TICKETS.NEW} element={<CreateTicketPage />} />
             <Route path={ROUTES.TICKETS.DETAILS_PATH} element={<TicketDetailsPage />} />

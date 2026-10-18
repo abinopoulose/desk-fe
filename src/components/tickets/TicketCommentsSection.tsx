@@ -7,19 +7,23 @@ import {
   ChevronDown,
   AtSign,
   Share2,
-  Trash2
+  Trash2,
+  Paperclip,
+  FileText,
+  X,
+  Download
 } from 'lucide-react';
 import { getOrgUsers } from '../../api/employeeApi';
 import type { CommentDTO, TicketHistoryDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
 import { getUserInitial } from '../../utils/userUtils';
 
-const MAX_CHARS = 500;
+const MAX_CHARS = 1000;
 const INITIAL_VISIBLE_COUNT = 10;
 const LOAD_MORE_STEP = 20;
 
 /** Relative time helper */
-const relativeTime = (dateStr?: string): string => {
+export const relativeTime = (dateStr?: string): string => {
   if (!dateStr) return 'just now';
   const diff = Date.now() - new Date(dateStr).getTime();
   if (isNaN(diff)) return 'just now';
@@ -34,8 +38,78 @@ const relativeTime = (dateStr?: string): string => {
   return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 };
 
+export interface CommentAttachmentItem {
+  name: string;
+  size?: number;
+  type?: string;
+  url: string;
+}
+
+/** Parses raw attachment string (JSON or URL or DataURL) */
+export const parseCommentAttachment = (raw: string): CommentAttachmentItem => {
+  if (typeof raw === 'string' && raw.trim().startsWith('{') && raw.trim().endsWith('}')) {
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        name: parsed.name || 'attachment',
+        size: parsed.size,
+        type: parsed.type || (parsed.url?.startsWith('data:image') ? 'image/png' : 'application/octet-stream'),
+        url: parsed.url || parsed.data || '',
+      };
+    } catch {
+      // fallback to plain URL handling
+    }
+  }
+
+  let name = 'attachment';
+  let type = 'application/octet-stream';
+  if (typeof raw === 'string') {
+    if (raw.startsWith('data:image')) {
+      type = 'image/png';
+      name = 'image.png';
+    } else if (raw.startsWith('http')) {
+      const parts = raw.split('/');
+      name = parts[parts.length - 1].split('?')[0] || 'attachment';
+      if (name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+        type = 'image/' + name.split('.').pop()?.toLowerCase();
+      }
+    }
+  }
+  return { name, type, url: raw };
+};
+
+/** Formats byte size into human readable string */
+export const formatFileSize = (bytes?: number): string => {
+  if (!bytes || bytes <= 0) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+/**
+ * Transforms clean drafting mentions (@FullName) into structured backend format (@[FullName](uuid)).
+ * Preserves any mentions already in structured format.
+ */
+export const formatContentForSubmission = (text: string, users: User[]): string => {
+  if (!text) return '';
+  let result = text;
+  // Sort users by full name length descending to prevent partial match collisions
+  const sorted = [...users]
+    .filter((u) => u.fullName && u.id)
+    .sort((a, b) => b.fullName.length - a.fullName.length);
+
+  for (const u of sorted) {
+    const escapedName = u.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Only match @FullName if not already inside @[FullName](...)
+    const regex = new RegExp(`@${escapedName}(?![\\w\\]\\)])`, 'g');
+    result = result.replace(regex, `@[${u.fullName}](${u.id})`);
+  }
+  return result;
+};
+
 /** Render comment content with highlighted mentions */
-const renderCommentText = (content: string) => {
+export const renderCommentText = (content: string) => {
+  if (!content) return null;
   // Matches structured mentions @[Name](uuid) or simple @Word
   const parts: React.ReactNode[] = [];
   const regex = /(@\[([^\]]+)\]\([a-f0-9\\-]+\)|@[a-zA-Z0-9._%+-]+)/g;
@@ -73,10 +147,11 @@ export interface TicketCommentsSectionProps {
   commentText: string;
   onCommentTextChange: (text: string) => void;
   submitting: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent, formattedContent?: string, attachments?: string[]) => void;
   canWrite: boolean;
   history?: TicketHistoryDTO[];
   defaultTab?: 'comments' | 'history';
+  availableUsers?: User[];
 }
 
 export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
@@ -88,27 +163,41 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
   canWrite = true,
   history = [],
   defaultTab = 'comments',
+  availableUsers,
 }) => {
   const [activeTab, setActiveTab] = useState<'comments' | 'history'>(defaultTab);
   const [visibleCommentsCount, setVisibleCommentsCount] = useState<number>(INITIAL_VISIBLE_COUNT);
   const [visibleHistoryCount, setVisibleHistoryCount] = useState<number>(INITIAL_VISIBLE_COUNT);
 
   // Mention autocomplete state
-  const [orgUsers, setOrgUsers] = useState<User[]>([]);
+  const [loadedUsers, setLoadedUsers] = useState<User[]>([]);
+  const orgUsers = useMemo(() => {
+    if (availableUsers && availableUsers.length > 0) {
+      return availableUsers.filter((u) => (u as any).status !== 'INACTIVE');
+    }
+    return loadedUsers;
+  }, [availableUsers, loadedUsers]);
+
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load org users once for mentions
+  // Draft file attachments
+  const [draftAttachments, setDraftAttachments] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Load org users once for mentions if availableUsers not provided
   useEffect(() => {
+    if (availableUsers && availableUsers.length > 0) return;
     getOrgUsers()
       .then((users) => {
         if (Array.isArray(users)) {
-          setOrgUsers(users.filter((u) => u.status === 'ACTIVE'));
+          setLoadedUsers(users.filter((u) => u.status === 'ACTIVE'));
         }
       })
       .catch(() => {});
-  }, []);
+  }, [availableUsers]);
 
   // Filtered users for mention autocomplete
   const filteredUsers = useMemo(() => {
@@ -129,9 +218,9 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
     const textBeforeCursor = text.substring(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
-    if (lastAtIndex !== -1 && lastAtIndex >= textBeforeCursor.length - 20) {
+    if (lastAtIndex !== -1 && lastAtIndex >= textBeforeCursor.length - 25) {
       const query = textBeforeCursor.substring(lastAtIndex + 1);
-      if (!query.includes(' ')) {
+      if (!query.includes(' ') && !query.includes('[')) {
         setMentionQuery(query);
         setShowMentionMenu(true);
         return;
@@ -140,21 +229,93 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
     setShowMentionMenu(false);
   };
 
-  // Select mention
+  // Select mention: Inserts clean @FullName without ugly UUID syntax
   const handleSelectMention = (user: User) => {
-    if (!textareaRef.current) return;
-    const text = commentText;
-    const cursorPos = textareaRef.current.selectionStart || text.length;
+    const text = textareaRef.current?.value || commentText;
+    const cursorPos = textareaRef.current?.selectionStart || text.length;
     const textBeforeCursor = text.substring(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
     if (lastAtIndex !== -1) {
-      const mentionToken = `@[${user.fullName}](${user.id}) `;
+      // Clean display format: @FullName without markdown brackets or UUID!
+      const mentionToken = `@${user.fullName} `;
       const newText = text.substring(0, lastAtIndex) + mentionToken + text.substring(cursorPos);
       onCommentTextChange(newText);
     }
     setShowMentionMenu(false);
-    textareaRef.current.focus();
+    textareaRef.current?.focus();
+  };
+
+  // Convert File to JSON attachment string
+  const readFileAsAttachment = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const payload = JSON.stringify({
+          name: file.name,
+          size: file.size,
+          type: file.type || 'application/octet-stream',
+          url: dataUrl,
+        });
+        resolve(payload);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // File selection handler
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    try {
+      const newAtts = await Promise.all(files.map(readFileAsAttachment));
+      setDraftAttachments((prev) => [...prev, ...newAtts]);
+    } catch (err) {
+      console.error('Failed to read attached file', err);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
+    try {
+      const newAtts = await Promise.all(files.map(readFileAsAttachment));
+      setDraftAttachments((prev) => [...prev, ...newAtts]);
+    } catch (err) {
+      console.error('Failed to read dropped file', err);
+    }
+  };
+
+  const handleRemoveDraftAttachment = (indexToRemove: number) => {
+    setDraftAttachments((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Form submission with mention formatting and attachments
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() && draftAttachments.length === 0) return;
+    const formattedContent = formatContentForSubmission(commentText, orgUsers);
+    onSubmit(e, formattedContent, draftAttachments);
+    setDraftAttachments([]);
   };
 
   // Always show latest comments first
@@ -284,21 +445,28 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
 
             {/* Reply Input Form */}
             {canWrite ? (
-              <form onSubmit={onSubmit} className="pb-3 border-b border-slate-100 space-y-3 relative">
-                <div className="relative">
+              <form onSubmit={handleFormSubmit} className="pb-4 border-b border-slate-100 space-y-3 relative">
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`relative rounded-2xl transition-all ${
+                    isDragging ? 'ring-2 ring-indigo-500 ring-offset-2' : ''
+                  }`}
+                >
                   <textarea
                     ref={textareaRef}
                     rows={3}
                     maxLength={MAX_CHARS}
-                    placeholder="Leave a comment... Type @ to mention a teammate"
+                    placeholder="Leave a comment... Type @ to mention a teammate, or attach files below"
                     value={commentText}
                     onChange={handleTextChange}
-                    className="w-full p-3 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                    className="w-full p-3.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200/90 rounded-2xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed"
                   />
 
                   {/* Mention Autocomplete Popover */}
                   {showMentionMenu && filteredUsers.length > 0 && (
-                    <div className="absolute left-3 bottom-12 z-20 bg-white rounded-xl shadow-lg border border-slate-200 p-1.5 w-64 space-y-0.5 animate-in fade-in duration-100">
+                    <div className="absolute left-3 bottom-14 z-20 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 w-64 space-y-0.5 animate-in fade-in duration-100">
                       <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                         <AtSign className="w-3 h-3 text-indigo-600" />
                         Mention Teammate
@@ -310,10 +478,10 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                           onClick={() => handleSelectMention(u)}
                           className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-indigo-50 text-left transition-colors cursor-pointer"
                         >
-                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
-                            {u.fullName.charAt(0).toUpperCase()}
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {getUserInitial(u.fullName)}
                           </div>
-                          <div className="truncate">
+                          <div className="truncate min-w-0">
                             <div className="text-xs font-semibold text-slate-800 truncate">{u.fullName}</div>
                             <div className="text-[10px] text-slate-400 truncate">{u.email}</div>
                           </div>
@@ -323,14 +491,79 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">
-                    {commentText.length} / {MAX_CHARS} characters
-                  </span>
+                {/* Draft Attachments Preview Strip (Jira-style) */}
+                {draftAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1 pb-1">
+                    {draftAttachments.map((raw, idx) => {
+                      const att = parseCommentAttachment(raw);
+                      const isImage = att.type?.startsWith('image/') || att.url?.startsWith('data:image');
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-100/90 border border-slate-200/90 rounded-xl text-xs text-slate-700 group shadow-2xs"
+                        >
+                          {isImage ? (
+                            <img
+                              src={att.url}
+                              alt={att.name}
+                              className="w-5 h-5 rounded object-cover shrink-0"
+                            />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          )}
+                          <span className="font-medium text-slate-800 truncate max-w-[140px]" title={att.name}>
+                            {att.name}
+                          </span>
+                          {att.size && (
+                            <span className="text-[10px] text-slate-400 shrink-0">
+                              ({formatFileSize(att.size)})
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDraftAttachment(idx)}
+                            className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer transition-colors"
+                            title="Remove attachment"
+                            aria-label={`Remove ${att.name}`}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Hidden File Input for Attachments */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  aria-label="Upload comment attachment"
+                />
+
+                {/* Composer Toolbar */}
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 border border-slate-200/80 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                      <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Attach files</span>
+                    </button>
+                    <span className="text-[11px] text-slate-400">
+                      {commentText.length} / {MAX_CHARS} characters
+                    </span>
+                  </div>
 
                   <button
                     type="submit"
-                    disabled={submitting || !commentText.trim()}
+                    disabled={submitting || (!commentText.trim() && draftAttachments.length === 0)}
                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     {submitting ? (
@@ -349,7 +582,7 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
             )}
 
             {/* Comments Timeline */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {visibleComments.length === 0 ? (
                 <div className="py-8 text-center text-slate-400 text-xs">
                   No updates or comments have been posted yet. Start the conversation above.
@@ -357,22 +590,110 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
               ) : (
                 visibleComments.map((comment) => (
                   <div key={comment.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    {/* Author Avatar on the left */}
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-indigo-200/60 shadow-2xs overflow-hidden">
                       {getUserInitial(comment.author?.fullName)}
                     </div>
 
-                    <div className="flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60 space-y-1.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-800">
-                          {comment.author?.fullName || 'User'}
-                        </span>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      {/* Author Name and Timestamp OUTSIDE the comment box */}
+                      <div className="flex items-center justify-between gap-2 px-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900">
+                            {comment.author?.fullName || 'User'}
+                          </span>
+                          {comment.author?.email && (
+                            <span className="text-[11px] text-slate-400 hidden sm:inline">
+                              {comment.author.email}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[11px] text-slate-400">
                           {relativeTime(comment.createdAt)}
                         </span>
                       </div>
 
-                      <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {renderCommentText(comment.content)}
+                      {/* Comment Box itself (strictly content & attachments) */}
+                      <div className="bg-slate-50/90 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+                        <div className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
+                          {renderCommentText(comment.content)}
+                        </div>
+
+                        {/* Attachments Section in Comment (Jira-style) */}
+                        {comment.attachments && comment.attachments.length > 0 && (
+                          <div className="pt-2.5 border-t border-slate-200/70 space-y-2">
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                              <Paperclip className="w-3 h-3 text-slate-400" />
+                              <span>Attachments ({comment.attachments.length})</span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2.5">
+                              {comment.attachments.map((raw, idx) => {
+                                const att = parseCommentAttachment(raw);
+                                const isImage =
+                                  att.type?.startsWith('image/') ||
+                                  att.url?.startsWith('data:image') ||
+                                  att.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+
+                                if (isImage) {
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className="group relative rounded-xl overflow-hidden border border-slate-200 bg-white shadow-2xs hover:shadow-xs transition-all max-w-[220px]"
+                                    >
+                                      <img
+                                        src={att.url}
+                                        alt={att.name}
+                                        className="h-28 w-auto max-w-[220px] object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                        onClick={() => window.open(att.url, '_blank')}
+                                      />
+                                      <div className="p-1.5 bg-white/95 border-t border-slate-100 flex items-center justify-between gap-1">
+                                        <span className="text-[11px] font-medium text-slate-700 truncate max-w-[140px]" title={att.name}>
+                                          {att.name}
+                                        </span>
+                                        <a
+                                          href={att.url}
+                                          download={att.name}
+                                          className="p-1 text-slate-400 hover:text-indigo-600 rounded transition-colors cursor-pointer"
+                                          title={`Download ${att.name}`}
+                                        >
+                                          <Download className="w-3.5 h-3.5" />
+                                        </a>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-colors"
+                                  >
+                                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                      <FileText className="w-4 h-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-semibold text-slate-800 truncate max-w-[160px]" title={att.name}>
+                                        {att.name}
+                                      </p>
+                                      {att.size && (
+                                        <p className="text-[10px] text-slate-400">{formatFileSize(att.size)}</p>
+                                      )}
+                                    </div>
+                                    <a
+                                      href={att.url}
+                                      download={att.name}
+                                      className="p-1 text-slate-400 hover:text-indigo-600 rounded transition-colors ml-1 cursor-pointer"
+                                      title={`Download ${att.name}`}
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                    </a>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

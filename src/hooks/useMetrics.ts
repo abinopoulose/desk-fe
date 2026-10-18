@@ -23,14 +23,13 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchMetrics(filters);
   }, [filters, fetchMetrics]);
 
-  const handleFilterChange = useCallback((key: keyof MetricsFilterParams, value: string) => {
+  const handleFilterChange = useCallback((key: keyof MetricsFilterParams, value: any) => {
     setFilters((prev) => ({
       ...prev,
-      [key]: value === '' ? undefined : value,
+      [key]: value === '' || value === undefined ? undefined : value,
     }));
   }, []);
 
@@ -48,6 +47,10 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
     });
   }, []);
 
+  const resetFilters = useCallback(() => {
+    setFilters(initialFilters);
+  }, [initialFilters]);
+
   const refetch = useCallback(() => {
     void fetchMetrics(filters);
   }, [filters, fetchMetrics]);
@@ -55,7 +58,7 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
   const chartData = useMemo(() => {
     if (!metrics) return null;
     
-    const onTimeCount = metrics.totalTickets - metrics.slaBreachCount;
+    const onTimeCount = Math.max(0, metrics.totalTickets - metrics.slaBreachCount);
     return {
       slaData: [
         { name: 'On Time', value: onTimeCount },
@@ -72,6 +75,7 @@ export function useMetrics(initialFilters: MetricsFilterParams = {}) {
     filters,
     setFilter: handleFilterChange,
     setMultipleFilters,
+    resetFilters,
     refetch,
   };
 }

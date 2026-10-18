@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mergeTimeline } from './timelineUtils';
 import type { AuditEntry } from '../types/audit';
-import type { CommentDTO } from '../types/ticket';
 
 describe('timelineUtils - mergeTimeline', () => {
   it('formats status, assignee, and priority changes correctly', () => {

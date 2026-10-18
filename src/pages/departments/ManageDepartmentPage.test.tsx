@@ -1,28 +1,35 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { ManageDepartmentPage } from './ManageDepartmentPage';
+import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
+import { DepartmentListPage } from './DepartmentListPage';
 import { departmentApi } from '../../api/departmentApi';
 
 vi.mock('../../api/departmentApi');
-vi.mock('../../api/employeeApi');
 vi.mock('../../store/authStore', () => ({
   useAuth: () => ({
     user: { id: 'user-1', fullName: 'Test User', email: 'test@abino.in' },
-    isSuperAdmin: true,
-    hasPrivilege: () => true,
+    isSuperAdmin: false,
+    hasPrivilege: () => false,
   }),
 }));
 
-describe('ManageDepartmentPage', () => {
+const mockNavigate = vi.fn();
+vi.mock('react-router', () => ({
+  useNavigate: () => mockNavigate,
+  Link: ({ children, to }: any) => <a href={to}>{children}</a>,
+}));
+
+describe('DepartmentListPage', () => {
   beforeEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
   afterEach(() => {
+    cleanup();
     vi.resetAllMocks();
   });
 
-  it('renders my departments and member list', async () => {
+  it('renders my departments list with role badges and actions', async () => {
     vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
       {
         id: 'dept-1',
@@ -30,42 +37,68 @@ describe('ManageDepartmentPage', () => {
         description: 'Information Technology',
         alphaTags: ['IT', 'TECH'],
         myRole: 'ADMIN',
-        memberCount: 2,
+        memberCount: 5,
+      },
+      {
+        id: 'dept-2',
+        name: 'Finance',
+        description: 'Accounts & payroll',
+        alphaTags: ['FIN'],
+        myRole: 'MEMBER',
+        memberCount: 12,
       },
     ]);
 
-    vi.mocked(departmentApi.getDepartmentMembers).mockResolvedValue([
-      {
-        id: 'dm-1',
-        departmentId: 'dept-1',
-        userId: 'u-1',
-        displayId: 'USER-1',
-        fullName: 'Ghinson K Varkey',
-        email: 'ghinson@abino.in',
-        role: 'ADMIN',
-        joinedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'dm-2',
-        departmentId: 'dept-1',
-        userId: 'u-2',
-        displayId: 'USER-2',
-        fullName: 'John Doe',
-        email: 'john@abino.in',
-        role: 'MEMBER',
-        joinedAt: '2026-01-02T00:00:00Z',
-      },
-    ]);
-
-    render(<ManageDepartmentPage />);
+    render(<DepartmentListPage />);
 
     expect(screen.getByText('My Departments')).toBeDefined();
 
     await waitFor(() => {
       expect(screen.getAllByText('IT').length).toBeGreaterThan(0);
-      expect(screen.getByText('Ghinson K Varkey')).toBeDefined();
-      expect(screen.getByText('John Doe')).toBeDefined();
-      expect(screen.getByText('Add Member')).toBeDefined();
+      expect(screen.getByText('Finance')).toBeDefined();
+      expect(screen.getByText('Admin')).toBeDefined();
+      expect(screen.getByText('Member')).toBeDefined();
+      expect(screen.getByText('5')).toBeDefined();
+      expect(screen.getByText('12')).toBeDefined();
     });
+
+    // Check actions for admin department
+    expect(screen.getByText('Members')).toBeDefined();
+    expect(screen.getByText('Metrics')).toBeDefined();
+    expect(screen.getAllByText('Open Tickets Queue').length).toBe(2);
+  });
+
+  it('filters departments using search input', async () => {
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Information Technology',
+        description: 'Computers and support',
+        alphaTags: ['IT'],
+        myRole: 'ADMIN',
+        memberCount: 5,
+      },
+      {
+        id: 'dept-2',
+        name: 'Finance',
+        description: 'Accounts & payroll',
+        alphaTags: ['FIN'],
+        myRole: 'MEMBER',
+        memberCount: 12,
+      },
+    ]);
+
+    render(<DepartmentListPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Information Technology')).toBeDefined();
+      expect(screen.getByText('Finance')).toBeDefined();
+    });
+
+    const searchInput = screen.getByPlaceholderText(/search departments by name/i);
+    fireEvent.change(searchInput, { target: { value: 'Finance' } });
+
+    expect(screen.queryByText('Information Technology')).toBeNull();
+    expect(screen.getByText('Finance')).toBeDefined();
   });
 });

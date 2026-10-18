@@ -6,6 +6,7 @@ import { ticketApi } from '../../api/ticketApi';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
 import { getOrgUsers } from '../../api/employeeApi';
 import * as hooks from '../../hooks';
+import type { TicketDetailResponse } from '../../types/ticket';
 
 vi.mock('../../store/authStore', () => ({
   useAuth: vi.fn(() => ({
@@ -73,7 +74,7 @@ describe('TicketDetailsPage - Access Restricted & Request Access', () => {
       setCommentText: vi.fn(),
       submitting: false,
       handleSubmitComment: vi.fn(),
-    });
+    } as any);
   });
 
   afterEach(() => {
@@ -238,7 +239,7 @@ describe('TicketDetailsPage - SLA Escalation', () => {
       setCommentText: vi.fn(),
       submitting: false,
       handleSubmitComment: vi.fn(),
-    });
+    } as any);
   });
 
   afterEach(() => {

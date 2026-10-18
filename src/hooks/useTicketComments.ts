@@ -23,10 +23,10 @@ export interface UseTicketCommentsReturn {
   submittingComment: boolean;
   submitError: string | null;
   error: string | null;
-  addTicketComment: (content?: string) => Promise<CommentDTO | undefined>;
-  addComment: (content?: string) => Promise<CommentDTO | undefined>;
-  handleSubmitComment: (e?: React.FormEvent) => Promise<CommentDTO | undefined>;
-  handleCommentSubmit: (e?: React.FormEvent) => Promise<CommentDTO | undefined>;
+  addTicketComment: (content?: string, attachments?: string[]) => Promise<CommentDTO | undefined>;
+  addComment: (content?: string, attachments?: string[]) => Promise<CommentDTO | undefined>;
+  handleSubmitComment: (e?: React.FormEvent, content?: string, attachments?: string[]) => Promise<CommentDTO | undefined>;
+  handleCommentSubmit: (e?: React.FormEvent, content?: string, attachments?: string[]) => Promise<CommentDTO | undefined>;
   resetForm: () => void;
 }
 
@@ -137,9 +137,10 @@ export function useTicketComments(
   }, [fetchSeparately, ticketId, fetchComments]);
 
   const addTicketComment = useCallback(
-    async (content?: string): Promise<CommentDTO | undefined> => {
+    async (content?: string, attachments?: string[]): Promise<CommentDTO | undefined> => {
       const text = (content !== undefined ? content : commentText).trim();
-      if (!ticketId || !text) return undefined;
+      const hasAttachments = attachments && attachments.length > 0;
+      if (!ticketId || (!text && !hasAttachments)) return undefined;
 
       if (isMountedRef.current) {
         setSubmitting(true);
@@ -147,7 +148,7 @@ export function useTicketComments(
       }
 
       try {
-        const newComment = await ticketApi.addComment(ticketId, text);
+        const newComment = await ticketApi.addComment(ticketId, text, attachments);
         if (isMountedRef.current) {
           setInternalComments((prev) => [newComment, ...prev]);
           setCommentText('');
@@ -170,11 +171,11 @@ export function useTicketComments(
   );
 
   const handleSubmitComment = useCallback(
-    async (e?: React.FormEvent): Promise<CommentDTO | undefined> => {
+    async (e?: React.FormEvent, content?: string, attachments?: string[]): Promise<CommentDTO | undefined> => {
       if (e) {
         e.preventDefault();
       }
-      return addTicketComment();
+      return addTicketComment(content, attachments);
     },
     [addTicketComment]
   );

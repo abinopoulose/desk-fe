@@ -63,7 +63,7 @@ export const AssigneeSearchBar: React.FC<AssigneeSearchBarProps> = ({
   // Filter top 5 employees only matching search query (name or email)
   const filteredEmployees = useMemo(() => {
     const active = availableAssignees.filter(
-      (u) => u.status !== 'INACTIVE' && (u as any).isActive !== false
+      (u) => (u as any).status !== 'INACTIVE' && (u as any).isActive !== false
     );
     const query = searchQuery.trim().toLowerCase();
     if (!query) {

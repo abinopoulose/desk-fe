@@ -1,8 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router';
-import { Settings, CheckCircle2, User as UserIcon } from 'lucide-react';
-import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME, ROUTES } from '../../constants';
-import { getUserSlug } from '../../utils/userUtils';
+import { Settings, CheckCircle2 } from 'lucide-react';
+import { DEFAULT_CLOSED_STATUS_ID, DEFAULT_CLOSED_STATUS_NAME } from '../../constants';
 
 import { AssigneeSearchBar } from './AssigneeSearchBar';
 import type { TicketStatusDTO } from '../../types/ticket';

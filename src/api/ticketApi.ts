@@ -44,8 +44,12 @@ export const ticketApi = {
     return response.data;
   },
 
-  addComment: async (ticketId: string, content: string): Promise<CommentDTO> => {
-    const response = await axiosInstance.post<CommentDTO>(API_PATHS.TICKETS.COMMENTS(ticketId), { content });
+  addComment: async (ticketId: string, content: string, attachments?: string[]): Promise<CommentDTO> => {
+    const payload: { content: string; attachments?: string[] } = { content };
+    if (attachments && attachments.length > 0) {
+      payload.attachments = attachments;
+    }
+    const response = await axiosInstance.post<CommentDTO>(API_PATHS.TICKETS.COMMENTS(ticketId), payload);
     return response.data;
   },
 

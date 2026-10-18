@@ -164,9 +164,13 @@ export const TicketDetailsPage: React.FC = () => {
     }
   };
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
+  const handleCommentSubmit = async (
+    e: React.FormEvent,
+    formattedContent?: string,
+    attachments?: string[]
+  ) => {
     try {
-      await handleSubmitComment(e);
+      await handleSubmitComment(e, formattedContent, attachments);
       // Refresh access list and reload ticket details (for audit history)
       setAccessRefreshTrigger((prev) => prev + 1);
       if (ticketId) {
@@ -384,6 +388,7 @@ export const TicketDetailsPage: React.FC = () => {
               onSubmit={handleCommentSubmit}
               canWrite={canWrite}
               history={ticket.history}
+              availableUsers={availableAssignees}
             />
           </div>
 

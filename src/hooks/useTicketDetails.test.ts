@@ -36,14 +36,13 @@ describe('useTicketDetails hook', () => {
   });
 
   it('sets ticket data and isForbidden: false on successful load', async () => {
-    const mockTicket: TicketDetailResponse = {
+    const mockTicket = {
       id: 'ticket-123',
       displayId: 'TECH-2',
       title: 'VPN Connection Problem',
       ticketType: {
         id: 'tt-1',
         title: 'Network Issue',
-        department: { id: 'd-1', name: 'IT Infrastructure' },
       },
       currentStatus: {
         id: 'status-open',
@@ -56,7 +55,7 @@ describe('useTicketDetails hook', () => {
       updatedAt: '2026-10-18T10:00:00Z',
     };
 
-    vi.mocked(ticketApi.getTicketDetails).mockResolvedValue(mockTicket);
+    vi.mocked(ticketApi.getTicketDetails).mockResolvedValue(mockTicket as unknown as TicketDetailResponse);
 
     const { result } = renderHook(() => useTicketDetails('TECH-2'));
 

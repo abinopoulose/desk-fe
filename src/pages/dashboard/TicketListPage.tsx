@@ -83,6 +83,15 @@ export const TicketListPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
+              onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
+              className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Open your department support queue"
+            >
+              <Inbox className="w-4 h-4 text-indigo-600" />
+              <span>Department Tickets</span>
+            </button>
+            <button
+              type="button"
               onClick={() => navigate(ROUTES.TICKETS.NEW)}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
@@ -119,6 +128,16 @@ export const TicketListPage: React.FC = () => {
                   </button>
                 );
               })}
+              <div className="h-4 w-px bg-slate-200 mx-1 shrink-0" />
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
+                title="Triage incoming requests for your department"
+              >
+                <Inbox className="w-3.5 h-3.5" />
+                <span>Department Queue</span>
+              </button>
             </div>
 
             {/* State filter: All / Open / Closed */}

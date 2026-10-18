@@ -158,6 +158,7 @@ export interface TicketFilterParams {
   requesterId?: string;
   assigneeId?: string;
   departmentId?: string;
+  unassigned?: boolean;
   search?: string;
   page?: number;
   size?: number;
