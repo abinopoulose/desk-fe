@@ -33,6 +33,29 @@ const getStrengthColor = (strength: number) => {
   return 'success';
 };
 
+const darkInputSx = {
+  '& .MuiOutlinedInput-root': {
+    bgcolor: 'rgba(15, 23, 42, 0.6)',
+    borderRadius: 2,
+    color: 'white',
+    fontSize: '0.875rem',
+    '& fieldset': {
+      borderColor: 'rgba(51, 65, 85, 0.8)',
+    },
+    '&:hover fieldset': {
+      borderColor: '#6366f1',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#6366f1',
+      borderWidth: 1.5,
+    },
+  },
+  '& .MuiInputBase-input::placeholder': {
+    color: '#64748b',
+    opacity: 1,
+  },
+};
+
 export const SetPasswordPage: React.FC = () => {
   const {
     formState,
@@ -57,36 +80,68 @@ export const SetPasswordPage: React.FC = () => {
           ? `Create a secure password for ${tokenInfo.email}`
           : 'Welcome! Create your password to get started.'
       }
+      maxWidth={440}
     >
       {!token ? (
-        <Alert severity="error" icon={<AlertCircle size={24} />} sx={{ alignItems: 'center', py: 2 }}>
+        <Alert
+          severity="error"
+          variant="filled"
+          icon={<AlertCircle size={22} />}
+          sx={{
+            alignItems: 'center',
+            py: 2,
+            borderRadius: 2,
+            bgcolor: 'rgba(239, 68, 68, 0.15)',
+            color: '#fca5a5',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            '& .MuiAlert-icon': { color: '#ef4444' },
+          }}
+        >
           Invalid or missing invitation link.
         </Alert>
       ) : (
         <form onSubmit={submit} noValidate>
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }} role="alert">
+            <Alert
+              severity="error"
+              variant="filled"
+              sx={{
+                mb: 3,
+                borderRadius: 2,
+                bgcolor: 'rgba(239, 68, 68, 0.15)',
+                color: '#fca5a5',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                '& .MuiAlert-icon': { color: '#ef4444' },
+              }}
+              role="alert"
+            >
               {error}
             </Alert>
           )}
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
-            <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mb: 3 }}>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              >
+                New Password
+              </label>
               <TextField
                 id="password"
-                label="New Password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 autoFocus
                 required
                 fullWidth
+                placeholder="••••••••••••"
                 value={formState.password}
                 onChange={(e) => setField('password', e.target.value)}
                 slotProps={{
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Lock size={20} />
+                        <Lock className="w-4 h-4 text-slate-400" />
                       </InputAdornment>
                     ),
                     endAdornment: (
@@ -95,57 +150,93 @@ export const SetPasswordPage: React.FC = () => {
                           aria-label="Toggle password visibility"
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
+                          size="small"
+                          sx={{ color: '#94a3b8', '&:hover': { color: 'white' } }}
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                          {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                         </IconButton>
                       </InputAdornment>
                     ),
                   },
                 }}
+                sx={darkInputSx}
               />
               {formState.password && (
-                <Box sx={{ mt: 1 }}>
+                <Box sx={{ mt: 1.5 }}>
                   <LinearProgress
                     variant="determinate"
                     value={passwordStrength}
                     color={getStrengthColor(passwordStrength)}
-                    sx={{ height: 6, borderRadius: 3, mb: 0.5 }}
+                    sx={{
+                      height: 5,
+                      borderRadius: 3,
+                      bgcolor: 'rgba(51, 65, 85, 0.5)',
+                      mb: 0.75,
+                    }}
                   />
-                  <Typography variant="caption" color="text.secondary">
-                    {passwordStrength <= 25 && 'Weak'}
-                    {passwordStrength > 25 && passwordStrength <= 50 && 'Fair'}
-                    {passwordStrength > 50 && passwordStrength <= 75 && 'Good'}
-                    {passwordStrength > 75 && 'Strong'}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '11px' }}>
+                      Password strength:
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color:
+                          passwordStrength <= 25
+                            ? '#f87171'
+                            : passwordStrength <= 50
+                            ? '#fbbf24'
+                            : passwordStrength <= 75
+                            ? '#60a5fa'
+                            : '#34d399',
+                      }}
+                    >
+                      {passwordStrength <= 25 && 'Weak'}
+                      {passwordStrength > 25 && passwordStrength <= 50 && 'Fair'}
+                      {passwordStrength > 50 && passwordStrength <= 75 && 'Good'}
+                      {passwordStrength > 75 && 'Strong'}
+                    </Typography>
+                  </Box>
                 </Box>
               )}
-            </Box>
+            </div>
 
-            <TextField
-              id="confirmPassword"
-              label="Confirm Password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              fullWidth
-              value={formState.confirmPassword}
-              onChange={(e) => setField('confirmPassword', e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock size={20} />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              >
+                Confirm Password
+              </label>
+              <TextField
+                id="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                fullWidth
+                placeholder="••••••••••••"
+                value={formState.confirmPassword}
+                onChange={(e) => setField('confirmPassword', e.target.value)}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock className="w-4 h-4 text-slate-400" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={darkInputSx}
+              />
+            </div>
           </Box>
 
           {/* Option to terminate other sessions */}
           <Box
             sx={{
-              mb: 4,
+              mb: 3.5,
               p: 2,
               borderRadius: 2,
               bgcolor: 'rgba(30, 41, 59, 0.5)',
@@ -207,13 +298,29 @@ export const SetPasswordPage: React.FC = () => {
             variant="contained"
             size="large"
             disabled={loading}
-            endIcon={loading ? undefined : <ArrowRight size={20} />}
-            sx={{ py: 1.5, borderRadius: 2 }}
+            endIcon={loading ? undefined : <ArrowRight size={18} />}
+            sx={{
+              py: 1.5,
+              borderRadius: 2.5,
+              fontWeight: 600,
+              textTransform: 'none',
+              fontSize: '0.875rem',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.35)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #4338ca 0%, #2563eb 100%)',
+                boxShadow: '0 6px 16px rgba(79, 70, 229, 0.45)',
+              },
+              '&:disabled': {
+                background: 'rgba(51, 65, 85, 0.5)',
+                color: '#64748b',
+              },
+            }}
           >
             {loading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Loader2 className="animate-spin" size={20} />
-                Setting password...
+                <Loader2 className="animate-spin" size={18} />
+                <span>Setting password...</span>
               </Box>
             ) : (
               'Set Password'
