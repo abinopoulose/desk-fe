@@ -63,9 +63,11 @@ describe('DepartmentListPage', () => {
     });
 
     // Check actions for admin department
-    expect(screen.getByText('Members')).toBeDefined();
+    expect(screen.getByText('Manage Members')).toBeDefined();
+    expect(screen.getByText('View Team Roster')).toBeDefined();
     expect(screen.getByText('Metrics')).toBeDefined();
-    expect(screen.getAllByText('Open Tickets Queue').length).toBe(2);
+    expect(screen.getAllByText('Tickets').length).toBe(2);
+    expect(screen.queryByText('Open Tickets Queue')).toBeNull();
   });
 
   it('filters departments using search input', async () => {

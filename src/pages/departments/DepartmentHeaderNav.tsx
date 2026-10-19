@@ -137,23 +137,9 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-t border-slate-100 overflow-x-auto">
-          {/* Tickets Tab (Accessible to both Members and Admins) */}
-          <button
-            type="button"
-            onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId))}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'tickets'
-                ? 'border-indigo-600 text-indigo-600 font-bold'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
-          >
-            <Ticket className="w-4 h-4" />
-            <span>Tickets</span>
-          </button>
-
-          {/* Members Tab (Admin only) */}
-          {canManage && (
+        <div className="flex items-center justify-between border-t border-slate-100 overflow-x-auto">
+          <div className="flex items-center gap-2">
+            {/* Members & Team Tab (Accessible to all members) */}
             <button
               type="button"
               onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.MEMBERS(departmentId))}
@@ -164,23 +150,34 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
               }`}
             >
               <Users className="w-4 h-4" />
-              <span>Members</span>
+              <span>Members & Team</span>
             </button>
-          )}
 
-          {/* Performance Metrics Tab (Admin only) */}
-          {canManage && (
+            {/* Tickets Tab (Accessible to both Members and Admins) */}
             <button
               type="button"
-              onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.METRICS(departmentId))}
+              onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId))}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'metrics'
+                activeTab === 'tickets'
                   ? 'border-indigo-600 text-indigo-600 font-bold'
                   : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
               }`}
             >
-              <BarChart2 className="w-4 h-4" />
-              <span>Performance Metrics</span>
+              <Ticket className="w-4 h-4" />
+              <span>Tickets</span>
+            </button>
+          </div>
+
+          {/* Centralized Performance Metrics Link (Admin only) */}
+          {canManage && (
+            <button
+              type="button"
+              onClick={() => navigate(`${ROUTES.METRICS}?departmentId=${departmentId}`)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 my-2 text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 rounded-xl transition-colors cursor-pointer"
+              title="Open customizable department performance analytics"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Performance Metrics ↗</span>
             </button>
           )}
         </div>

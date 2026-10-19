@@ -271,28 +271,22 @@ export const DepartmentMembersPage: React.FC = () => {
     );
   }
 
-  // Admin access gate: Only department admins can manage members
-  if (!isCurrentDeptAdmin) {
+  // Access gate: Must be assigned to this department or have admin privileges
+  const isMemberOfDept = Boolean(myRole) || isCurrentDeptAdmin;
+  if (!isMemberOfDept) {
     return (
       <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
         <div className="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-3">
           <ShieldAlert className="w-8 h-8 text-amber-500 mx-auto" />
-          <h2 className="text-base font-bold text-amber-900">Admin Privileges Required</h2>
+          <h2 className="text-base font-bold text-amber-900">Membership Required</h2>
           <p className="text-xs text-amber-700 max-w-md mx-auto">
-            Only department administrators can view and manage department personnel. You can view the tickets queue instead.
+            You are not assigned to this department. Only department members and administrators can view this team roster.
           </p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <button
               type="button"
-              onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(department.id))}
-              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors cursor-pointer"
-            >
-              View Department Tickets
-            </button>
-            <button
-              type="button"
               onClick={() => navigate(ROUTES.DEPARTMENTS)}
-              className="px-4 py-2 bg-white text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors cursor-pointer"
             >
               Back to My Departments
             </button>
@@ -312,7 +306,7 @@ export const DepartmentMembersPage: React.FC = () => {
         alphaTags={department.alphaTags}
         myRole={myRole}
         activeTab="members"
-        isAdmin={true}
+        isAdmin={isCurrentDeptAdmin}
         myDepartments={myDepartments}
       />
 
@@ -380,15 +374,17 @@ export const DepartmentMembersPage: React.FC = () => {
               <RefreshCw className={`w-4 h-4 ${loadingMembers ? 'animate-spin text-indigo-600' : ''}`} />
             </button>
 
-            {/* Add Member Button */}
-            <button
-              type="button"
-              onClick={handleOpenAddModal}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Add Member</span>
-            </button>
+            {/* Add Member Button - Admin Only */}
+            {isCurrentDeptAdmin && (
+              <button
+                type="button"
+                onClick={handleOpenAddModal}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Add Member</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -423,7 +419,7 @@ export const DepartmentMembersPage: React.FC = () => {
                     <th className="py-3.5 px-4 font-semibold">Email</th>
                     <th className="py-3.5 px-4 font-semibold">Role</th>
                     <th className="py-3.5 px-4 font-semibold">Joined At</th>
-                    <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
+                    {isCurrentDeptAdmin && <th className="py-3.5 px-4 font-semibold text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
@@ -494,36 +490,38 @@ export const DepartmentMembersPage: React.FC = () => {
                           }) : '—'}
                         </td>
 
-                        {/* Actions (Promote/Demote & Remove) */}
-                        <td className="py-4 px-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {/* Promote / Demote Button */}
-                            <button
-                              type="button"
-                              disabled={updatingMemberId === m.userId}
-                              onClick={() => handleToggleMemberRole(m)}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
-                                isMemberAdmin
-                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
-                                  : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
-                              }`}
-                              title={isMemberAdmin ? 'Demote to regular Member' : 'Promote to department Admin'}
-                            >
-                              <ArrowUpDown className="w-3 h-3" />
-                              <span>{isMemberAdmin ? 'Demote' : 'Promote'}</span>
-                            </button>
+                        {/* Actions (Promote/Demote & Remove) - Admin Only */}
+                        {isCurrentDeptAdmin && (
+                          <td className="py-4 px-4 whitespace-nowrap text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Promote / Demote Button */}
+                              <button
+                                type="button"
+                                disabled={updatingMemberId === m.userId}
+                                onClick={() => handleToggleMemberRole(m)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                                  isMemberAdmin
+                                    ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                                    : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                                }`}
+                                title={isMemberAdmin ? 'Demote to regular Member' : 'Promote to department Admin'}
+                              >
+                                <ArrowUpDown className="w-3 h-3" />
+                                <span>{isMemberAdmin ? 'Demote' : 'Promote'}</span>
+                              </button>
 
-                            {/* Remove Member Button */}
-                            <button
-                              type="button"
-                              onClick={() => setMemberToRemove(m)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Remove member from department"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                              {/* Remove Member Button */}
+                              <button
+                                type="button"
+                                onClick={() => setMemberToRemove(m)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                title="Remove member from department"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

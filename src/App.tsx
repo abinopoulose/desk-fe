@@ -37,7 +37,7 @@ function SettingsRedirect() {
 
 function DepartmentRedirect() {
   const { departmentId } = useParams<{ departmentId: string }>();
-  return <Navigate to={ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId || '')} replace />;
+  return <Navigate to={ROUTES.DEPARTMENT_DETAILS.MEMBERS(departmentId || '')} replace />;
 }
 
 function App() {

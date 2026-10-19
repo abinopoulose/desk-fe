@@ -11,6 +11,8 @@ import {
   Sparkles,
   RefreshCw,
   AlertCircle,
+  Shield,
+  Layers,
 } from 'lucide-react';
 import { departmentApi } from '../../api/departmentApi';
 import { useAuth } from '../../store/authStore';
@@ -26,6 +28,7 @@ export const DepartmentListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'MEMBER'>('ALL');
 
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
@@ -59,16 +62,32 @@ export const DepartmentListPage: React.FC = () => {
     fetchDepartments();
   }, [fetchDepartments]);
 
+  const totalAdminCount = useMemo(() => {
+    return departments.filter((d) => d.myRole === 'ADMIN' || canEditAnyDept).length;
+  }, [departments, canEditAnyDept]);
+
+  const totalMemberCount = useMemo(() => {
+    return departments.reduce((acc, d) => acc + (d.memberCount || 0), 0);
+  }, [departments]);
+
   const filteredDepartments = useMemo(() => {
+    let result = departments;
+
+    if (roleFilter === 'ADMIN') {
+      result = result.filter((d) => d.myRole === 'ADMIN' || canEditAnyDept);
+    } else if (roleFilter === 'MEMBER') {
+      result = result.filter((d) => d.myRole === 'MEMBER' && !canEditAnyDept);
+    }
+
     const q = search.trim().toLowerCase();
-    if (!q) return departments;
-    return departments.filter((d) => {
+    if (!q) return result;
+    return result.filter((d) => {
       const matchName = d.name?.toLowerCase().includes(q);
       const matchDesc = d.description?.toLowerCase().includes(q);
       const matchTag = d.alphaTags?.some((t) => t.toLowerCase().includes(q));
       return matchName || matchDesc || matchTag;
     });
-  }, [departments, search]);
+  }, [departments, search, roleFilter, canEditAnyDept]);
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
@@ -79,10 +98,10 @@ export const DepartmentListPage: React.FC = () => {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                Organization Teams
+                Team Directory
               </span>
               <span className="text-xs text-slate-400 font-medium">
-                • {departments.length} Assigned Departments
+                • {departments.length} Assigned {departments.length === 1 ? 'Department' : 'Departments'}
               </span>
             </div>
 
@@ -90,7 +109,7 @@ export const DepartmentListPage: React.FC = () => {
               My Departments
             </h1>
             <p className="text-slate-500 text-sm mt-1 max-w-xl">
-              Access support queues, manage team members, and view performance metrics for your departments.
+              Overview of your assigned functional departments, team rosters, and administrative roles.
             </p>
           </div>
 
@@ -106,12 +125,45 @@ export const DepartmentListPage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Quick KPI Stat Chips */}
+        <div className="max-w-7xl mx-auto mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">Departments</div>
+              <div className="text-sm font-bold text-slate-900">{departments.length}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">Administering</div>
+              <div className="text-sm font-bold text-slate-900">{totalAdminCount}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 col-span-2 sm:col-span-1 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 font-medium">Total Personnel</div>
+              <div className="text-sm font-bold text-slate-900">{totalMemberCount}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
-        {/* Search & Stats Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Search & Filter Toolbar */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -123,8 +175,41 @@ export const DepartmentListPage: React.FC = () => {
             />
           </div>
 
-          <div className="text-xs text-slate-500 font-medium">
-            Showing <span className="font-semibold text-slate-900">{filteredDepartments.length}</span> of {departments.length} departments
+          {/* Role Filter Tabs */}
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setRoleFilter('ALL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                roleFilter === 'ALL'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              All ({departments.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoleFilter('ADMIN')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                roleFilter === 'ADMIN'
+                  ? 'bg-white text-purple-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Admin ({totalAdminCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoleFilter('MEMBER')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                roleFilter === 'MEMBER'
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Member ({departments.length - totalAdminCount})
+            </button>
           </div>
         </div>
 
@@ -174,20 +259,23 @@ export const DepartmentListPage: React.FC = () => {
               <Building2 className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-slate-900">
-              {search ? 'No matching departments' : 'No departments assigned'}
+              {search || roleFilter !== 'ALL' ? 'No matching departments' : 'No departments assigned'}
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
-              {search
-                ? `No departments found matching "${search}". Try a different keyword.`
-                : 'You are currently not assigned to any departments. Contact an organization administrator to be added as a member or manager.'}
+              {search || roleFilter !== 'ALL'
+                ? `No departments found matching your criteria. Try adjusting your search or filters.`
+                : 'You are currently not assigned to any departments. Contact an organization administrator to be added to a department.'}
             </p>
-            {search && (
+            {(search || roleFilter !== 'ALL') && (
               <button
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => {
+                  setSearch('');
+                  setRoleFilter('ALL');
+                }}
                 className="text-xs text-indigo-600 font-semibold hover:underline cursor-pointer"
               >
-                Clear Search Filter
+                Clear Filters
               </button>
             )}
           </div>
@@ -202,10 +290,10 @@ export const DepartmentListPage: React.FC = () => {
               return (
                 <div
                   key={dept.id}
-                  onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(dept.id))}
+                  onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.MEMBERS(dept.id))}
                   className="bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-300 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer"
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Header: Icon, Name, and Role Badge */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -252,52 +340,65 @@ export const DepartmentListPage: React.FC = () => {
                       {dept.description || 'No description provided for this department.'}
                     </p>
 
-                    {/* Member Count Pill */}
-                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100 text-xs text-slate-500">
-                      <Users className="w-3.5 h-3.5 text-slate-400" />
-                      <span>
-                        <strong className="text-slate-800">{dept.memberCount || 0}</strong> {dept.memberCount === 1 ? 'member' : 'members'}
+                    {/* Team Roster Summary */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>
+                          <strong className="text-slate-900 font-bold">{dept.memberCount || 0}</strong> {dept.memberCount === 1 ? 'member' : 'members'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        {isAdmin ? 'Admin Access' : 'Member Roster'}
                       </span>
                     </div>
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col gap-2">
-                    {/* View Tickets (Accessible to both Members and Admins) */}
+                  <div className="mt-5 pt-4 border-t border-slate-100 space-y-2.5">
+                    {/* Primary Button: Focuses on Team & Member Management */}
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(dept.id));
+                        navigate(ROUTES.DEPARTMENT_DETAILS.MEMBERS(dept.id));
                       }}
-                      className="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      className={`w-full py-2.5 px-3 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer ${
+                        isAdmin
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                      }`}
                     >
-                      <Ticket className="w-4 h-4" />
-                      <span>Open Tickets Queue</span>
-                      <ChevronRight className="w-4 h-4 ml-auto text-indigo-200" />
+                      <Users className="w-3.5 h-3.5" />
+                      <span>{isAdmin ? 'Manage Members' : 'View Team Roster'}</span>
+                      <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-70" />
                     </button>
 
-                    {/* Admin-only Links */}
-                    {isAdmin && (
-                      <div className="grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
+                    {/* Secondary Navigation Links */}
+                    <div
+                      className="flex items-center justify-between text-xs pt-1 px-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.TICKETS(dept.id))}
+                        className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Ticket className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Tickets</span>
+                      </button>
+
+                      {isAdmin && (
                         <button
                           type="button"
-                          onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.MEMBERS(dept.id))}
-                          className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 border border-slate-200 transition-colors cursor-pointer"
+                          onClick={() => navigate(`${ROUTES.METRICS}?departmentId=${dept.id}`)}
+                          className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 flex items-center gap-1 cursor-pointer transition-colors"
                         >
-                          <Users className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Members</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => navigate(ROUTES.DEPARTMENT_DETAILS.METRICS(dept.id))}
-                          className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 border border-slate-200 transition-colors cursor-pointer"
-                        >
-                          <BarChart2 className="w-3.5 h-3.5 text-slate-500" />
+                          <BarChart2 className="w-3.5 h-3.5 text-slate-400" />
                           <span>Metrics</span>
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               );
