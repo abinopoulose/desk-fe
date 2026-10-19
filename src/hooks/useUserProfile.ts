@@ -51,8 +51,11 @@ export function useUserProfile(userId: string | undefined) {
 
   const startEdit = useCallback(() => {
     if (profile) {
+      const activeState = profile.isActive ?? profile.active ?? true;
       setEditForm({
         ...profile,
+        isActive: activeState,
+        active: activeState,
         managerId: profile.manager?.id ?? null,
       });
       setIsEditing(true);
@@ -82,11 +85,18 @@ export function useUserProfile(userId: string | undefined) {
     setSaving(true);
     setError(null);
     try {
+      const resolvedIsActive = editForm.isActive !== undefined 
+        ? editForm.isActive 
+        : (editForm.active !== undefined 
+          ? editForm.active 
+          : (profile.isActive ?? profile.active ?? true));
+
       const payload = {
         fullName: editForm.fullName ?? profile.fullName,
         title: editForm.title ?? profile.title,
         managerId: editForm.managerId !== undefined ? editForm.managerId : (profile.manager?.id ?? null),
-        isActive: editForm.isActive !== undefined ? editForm.isActive : profile.isActive,
+        isActive: resolvedIsActive,
+        active: resolvedIsActive,
       };
       const updated = await updateUserProfile(userId, payload);
       if (updated && updated.id) {

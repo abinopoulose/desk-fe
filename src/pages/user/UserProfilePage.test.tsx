@@ -185,4 +185,41 @@ describe('UserProfilePage Component', () => {
     fireEvent.change(managerSelect, { target: { value: '' } });
     expect(mockSetField).toHaveBeenCalledWith('managerId', null);
   });
+
+  it('allows toggling account active status in edit modal', () => {
+    vi.spyOn(userHook, 'useUserProfile').mockReturnValue({
+      profile: mockProfile,
+      loading: false,
+      saving: false,
+      error: null,
+      isEditing: true,
+      editForm: {
+        fullName: 'Jane Developer',
+        title: 'Senior Software Engineer',
+        email: 'jane.dev@example.com',
+        isActive: true,
+      },
+      startEdit: mockStartEdit,
+      cancelEdit: mockCancelEdit,
+      setField: mockSetField,
+      save: mockSave,
+      uploadPicture: mockUploadPicture,
+      refetch: mockRefetch,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/users/c08a3dab-2946-46a6-98b0-7d632d3a58d8']}>
+        <Routes>
+          <Route path="/users/:userId" element={<UserProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const toggle = screen.getByRole('switch');
+    expect(toggle).toBeDefined();
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+
+    fireEvent.click(toggle);
+    expect(mockSetField).toHaveBeenCalledWith('isActive', false);
+  });
 });

@@ -345,16 +345,21 @@ export const UserProfilePage: React.FC = () => {
                       {profile.fullName}
                     </h1>
 
-                    <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        profile.isActive
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}
-                    >
-                      {profile.isActive ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
-                      {profile.isActive ? 'Active Employee' : 'Inactive'}
-                    </span>
+                    {(() => {
+                      const isUserActive = profile.isActive ?? profile.active ?? true;
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                            isUserActive
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {isUserActive ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
+                          {isUserActive ? 'Active Employee' : 'Inactive'}
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* Title / Role & Department */}
@@ -688,24 +693,71 @@ export const UserProfilePage: React.FC = () => {
               </div>
 
               {/* Active Account Status Toggle */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">Account Active</span>
-                  <span className="text-[11px] text-slate-500">
-                    Inactive users cannot log in or submit tickets
-                  </span>
-                </div>
+              {(() => {
+                const isAccountActive = editForm.isActive !== undefined 
+                  ? editForm.isActive 
+                  : (editForm.active !== undefined 
+                    ? editForm.active 
+                    : (profile.isActive ?? profile.active ?? true));
 
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isActive ?? profile.isActive}
-                    onChange={(e) => setField('isActive', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                </label>
-              </div>
+                return (
+                  <div
+                    onClick={() => setField('isActive', !isAccountActive)}
+                    role="switch"
+                    aria-checked={isAccountActive}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        setField('isActive', !isAccountActive);
+                      }
+                    }}
+                    className="bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between cursor-pointer transition-colors select-none group focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900 block">Account Active</span>
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                            isAccountActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {isAccountActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 block">
+                        Inactive users cannot log in or submit tickets
+                      </span>
+                    </div>
+
+                    <div className="relative inline-flex items-center shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={isAccountActive}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setField('isActive', e.target.checked);
+                        }}
+                        className="sr-only"
+                        aria-label="Account Active"
+                      />
+                      <div
+                        className={`w-11 h-6 rounded-full transition-colors relative ${
+                          isAccountActive ? 'bg-indigo-600' : 'bg-slate-300'
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform duration-200 shadow-xs ${
+                            isAccountActive ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Modal Actions */}
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

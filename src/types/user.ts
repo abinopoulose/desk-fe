@@ -41,6 +41,7 @@ export interface UserProfileResponse {
   reportees: UserSummaryDTO[];
   roles: string[];
   isActive: boolean;
+  active?: boolean;
   departmentId?: string | null;
   departmentName?: string | null;
 }
@@ -50,6 +51,7 @@ export interface UpdateUserProfilePayload {
   title?: string;
   managerId?: string | null;
   isActive?: boolean;
+  active?: boolean;
 }
 
 export interface OrgNode {
