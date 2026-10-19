@@ -1,4 +1,7 @@
+export const APP_NAME = (import.meta.env.VITE_APP_NAME as string) || 'Desk';
+
 export const APP_CONFIG = {
+  APP_NAME,
   PAGINATION: {
     DEFAULT_PAGE_SIZE: 10,
     PAGE_SIZE_OPTIONS: [10, 20, 50, 100],

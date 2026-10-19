@@ -1,7 +1,7 @@
 import { PageTransition } from "../common/PageTransition";
 import { useState, useEffect } from 'react';
 import type { MouseEvent, ComponentType } from 'react';
-import { ROUTES, navConfig } from '../../constants';
+import { ROUTES, navConfig, APP_NAME } from '../../constants';
 import type { NavGroup } from '../../constants';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
 import { useAuth, useAuthStore } from '../../store/authStore';
@@ -174,7 +174,7 @@ export function AppLayout() {
 
   useEffect(() => {
     const routeName = location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
-    document.title = `${routeName.charAt(0).toUpperCase() + routeName.slice(1).replace(/-/g, " ")} | Desk`;
+    document.title = `${routeName.charAt(0).toUpperCase() + routeName.slice(1).replace(/-/g, " ")} | ${APP_NAME}`;
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -203,7 +203,7 @@ export function AppLayout() {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                Desk
+                {APP_NAME}
               </span>
               <span className="text-2xs font-semibold text-indigo-600 tracking-wider uppercase leading-none">
                 Enterprise Hub

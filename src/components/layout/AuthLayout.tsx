@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { APP_NAME } from '../../constants';
 
 export function AuthLayout({
   children,
@@ -104,7 +105,7 @@ export function AuthLayout({
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="h6" component="span" sx={{ fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
-                    Desk
+                    {APP_NAME}
                   </Typography>
                   <Typography
                     variant="caption"
