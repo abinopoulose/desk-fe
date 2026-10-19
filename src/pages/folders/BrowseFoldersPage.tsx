@@ -12,7 +12,6 @@ import {
   Layers, 
   ArrowRight,
   FolderTree,
-  Sparkles,
   Plus,
   MoreVertical,
   Edit3,
@@ -325,19 +324,11 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
             
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                  Admin Console
-                </span>
-                <span className="text-xs text-slate-400 font-medium">• Service Catalog Master</span>
-              </div>
-              
               <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
                 {currentFolderName ? currentFolderName : 'All Ticket Categories'}
               </h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Organize service catalog categories, configure form schema questions, SLA resolution targets, and lifecycle statuses.
+                Organize categories, configure ticket form questions, SLA targets, and statuses.
               </p>
             </div>
 
