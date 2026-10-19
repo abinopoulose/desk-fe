@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 
 interface DepartmentHeaderNavProps {
   departmentId: string;
@@ -37,6 +38,24 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
 }) => {
   const navigate = useNavigate();
   const canManage = isAdmin || myRole === 'ADMIN';
+
+  React.useEffect(() => {
+    if (departmentId && departmentName) {
+      useBreadcrumbStore.getState().setLabel(departmentId, departmentName);
+    }
+  }, [departmentId, departmentName]);
+
+  React.useEffect(() => {
+    if (myDepartments && myDepartments.length > 0) {
+      const entries: Record<string, string> = {};
+      myDepartments.forEach((d) => {
+        if (d.id && d.name) {
+          entries[d.id] = d.name;
+        }
+      });
+      useBreadcrumbStore.getState().setLabels(entries);
+    }
+  }, [myDepartments]);
 
   return (
     <div className="bg-white border-b border-slate-200 shadow-2xs">

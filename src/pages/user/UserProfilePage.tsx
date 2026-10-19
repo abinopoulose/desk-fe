@@ -25,6 +25,7 @@ import { useAuth } from '../../store/authStore';
 import { getOrgUsers } from '../../api/employeeApi';
 import type { User } from '../../types/user';
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import { getUserSlug } from '../../utils/userUtils';
 import { ActiveSessionsSection } from '../../components/user/ActiveSessionsSection';
 import { LoginHistorySection } from '../../components/user/LoginHistorySection';
@@ -101,6 +102,15 @@ export const UserProfilePage: React.FC = () => {
       }
     }
   }, [profile, userId, navigate]);
+
+  React.useEffect(() => {
+    if (profile?.fullName) {
+      if (userId) useBreadcrumbStore.getState().setLabel(userId, profile.fullName);
+      if (profile.id) useBreadcrumbStore.getState().setLabel(profile.id, profile.fullName);
+      const slug = getUserSlug(profile);
+      if (slug) useBreadcrumbStore.getState().setLabel(slug, profile.fullName);
+    }
+  }, [profile, userId]);
 
   const availableManagers = React.useMemo(() => {
     if (!profile) return orgUsers;

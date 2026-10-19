@@ -1,6 +1,7 @@
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { DataGridSkeleton } from "../../components/common/Skeletons";
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
@@ -37,6 +38,12 @@ export const TicketStatusManager: React.FC = () => {
     remove,
     handleMove,
   } = useTicketStatuses();
+
+  React.useEffect(() => {
+    if (ticketType?.id && ticketType?.title) {
+      useBreadcrumbStore.getState().setLabel(ticketType.id, ticketType.title);
+    }
+  }, [ticketType]);
 
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

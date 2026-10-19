@@ -242,7 +242,8 @@ export const DepartmentTicketsPage: React.FC = () => {
     setActionSuccessMessage(null);
     try {
       await ticketApi.assignTicket(ticket.id, user.id);
-      setActionSuccessMessage(`Ticket #${ticket.displayId || ticket.id.substring(0, 8).toUpperCase()} assigned to you.`);
+      const ticketRef = ticket.displayId ? `#${ticket.displayId}` : (ticket.title ? `"${ticket.title}"` : '');
+      setActionSuccessMessage(`Ticket ${ticketRef} assigned to you.`.replace('Ticket  ', 'Ticket '));
       // Refetch tickets
       await fetchTickets();
       setTimeout(() => {

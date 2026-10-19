@@ -18,6 +18,17 @@ import {
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
 import { getUserSlug } from '../../utils/userUtils';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
+import {
+  isUuidLike,
+  formatRouteSegment,
+  getFallbackSegmentLabel,
+  getBreadcrumbHref,
+} from '../../utils/breadcrumbUtils';
+import { departmentApi } from '../../api/departmentApi';
+import { ticketApi } from '../../api/ticketApi';
+import { ticketTypeApi } from '../../api/ticketTypeApi';
+import { getUserProfile } from '../../api/userApi';
 
 interface NavItemProps {
   to: string;
@@ -127,25 +138,116 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
   );
 }
 
+const pendingBreadcrumbFetches = new Set<string>();
+
 function HeaderBreadcrumbs({ pathname }: { pathname: string }) {
+  const navigate = useNavigate();
+  const { labels, setLabel } = useBreadcrumbStore();
   const paths = pathname.split('/').filter(Boolean);
+
+  useEffect(() => {
+    paths.forEach((segment, index) => {
+      if (!segment || labels[segment] || pendingBreadcrumbFetches.has(segment)) return;
+      const prevSegment = index > 0 ? paths[index - 1].toLowerCase() : undefined;
+
+      if (prevSegment === 'departments' && isUuidLike(segment)) {
+        pendingBreadcrumbFetches.add(segment);
+        departmentApi
+          .getDepartmentById(segment)
+          .then((dept) => {
+            if (dept?.name) setLabel(segment, dept.name);
+          })
+          .catch(() => {})
+          .finally(() => {
+            pendingBreadcrumbFetches.delete(segment);
+          });
+      } else if (prevSegment === 'tickets' && isUuidLike(segment)) {
+        pendingBreadcrumbFetches.add(segment);
+        ticketApi
+          .getTicketDetails(segment)
+          .then((t) => {
+            const label = t?.displayId || t?.title || 'Ticket Details';
+            if (label) setLabel(segment, label);
+          })
+          .catch(() => {})
+          .finally(() => {
+            pendingBreadcrumbFetches.delete(segment);
+          });
+      } else if (prevSegment === 'ticket-types' && isUuidLike(segment)) {
+        pendingBreadcrumbFetches.add(segment);
+        ticketTypeApi
+          .getTicketTypeById(segment)
+          .then((tt) => {
+            if (tt?.title) setLabel(segment, tt.title);
+          })
+          .catch(() => {})
+          .finally(() => {
+            pendingBreadcrumbFetches.delete(segment);
+          });
+      } else if (prevSegment === 'users') {
+        pendingBreadcrumbFetches.add(segment);
+        getUserProfile(segment)
+          .then((u) => {
+            if (u?.fullName) setLabel(segment, u.fullName);
+          })
+          .catch(() => {})
+          .finally(() => {
+            pendingBreadcrumbFetches.delete(segment);
+          });
+      }
+    });
+  }, [pathname, labels, setLabel]);
+
   if (paths.length === 0) return <span className="font-semibold text-slate-800 text-lg">Dashboard</span>;
 
   return (
     <Breadcrumbs aria-label="breadcrumb">
-      <MuiLink underline="hover" color="inherit" href="/" onClick={(e) => { e.preventDefault(); }}>
+      <MuiLink
+        underline="hover"
+        color="inherit"
+        href="/"
+        onClick={(e) => {
+          e.preventDefault();
+          navigate('/');
+        }}
+        className="cursor-pointer hover:text-indigo-600 transition-colors"
+      >
         Home
       </MuiLink>
       {paths.map((path, index) => {
         const isLast = index === paths.length - 1;
-        const isUserSegment = paths[0] === 'users' && index === 1;
-        const name = isUserSegment ? path : path.charAt(0).toUpperCase() + path.slice(1);
+        const prevSegment = index > 0 ? paths[index - 1] : undefined;
+        const isUuid = isUuidLike(path);
+
+        let name = '';
+        if (labels[path]) {
+          name = labels[path];
+        } else if (isUuid) {
+          name = getFallbackSegmentLabel(path, prevSegment);
+        } else if (paths[0] === 'users' && index === 1) {
+          name = path;
+        } else {
+          name = formatRouteSegment(path);
+        }
+
+        const href = getBreadcrumbHref(paths, index);
+
         return isLast ? (
-          <span key={path} className="font-semibold text-slate-800">
+          <span key={`${path}-${index}`} className="font-semibold text-slate-800">
             {name}
           </span>
         ) : (
-          <MuiLink key={path} underline="hover" color="inherit" href={`/${paths.slice(0, index + 1).join('/')}`}>
+          <MuiLink
+            key={`${path}-${index}`}
+            underline="hover"
+            color="inherit"
+            href={href}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(href);
+            }}
+            className="cursor-pointer hover:text-indigo-600 transition-colors"
+          >
             {name}
           </MuiLink>
         );

@@ -24,14 +24,17 @@ export const getPriorityStyle = (priority?: number): PriorityBadgeConfig => {
 
 /**
  * Returns the human-readable display reference for a ticket.
- * Uses displayId (e.g. 'TECH-2') if present, or shortens the UUID (e.g. '#A1B2C3D4').
+ * Uses displayId (e.g. 'TECH-2') if present, or title, or shortens the UUID (e.g. '#A1B2C3D4').
  */
 export const getTicketDisplayReference = (
-  ticket?: { displayId?: string; id?: string } | null
+  ticket?: { displayId?: string; id?: string; title?: string } | null
 ): string => {
   if (!ticket) return '';
   if (ticket.displayId && ticket.displayId.trim()) {
     return ticket.displayId.trim();
+  }
+  if (ticket.title && ticket.title.trim()) {
+    return ticket.title.trim();
   }
   if (ticket.id && ticket.id.trim()) {
     return `#${ticket.id.trim().substring(0, 8).toUpperCase()}`;

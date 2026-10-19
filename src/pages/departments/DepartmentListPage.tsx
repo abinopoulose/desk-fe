@@ -15,6 +15,7 @@ import {
 import { departmentApi } from '../../api/departmentApi';
 import { useAuth } from '../../store/authStore';
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import type { MyDepartmentDTO } from '../../types/department';
 
 export const DepartmentListPage: React.FC = () => {
@@ -48,6 +49,13 @@ export const DepartmentListPage: React.FC = () => {
       }
 
       setDepartments(myDepts);
+      if (myDepts.length > 0) {
+        const entries: Record<string, string> = {};
+        myDepts.forEach((d) => {
+          if (d.id && d.name) entries[d.id] = d.name;
+        });
+        useBreadcrumbStore.getState().setLabels(entries);
+      }
     } catch (err: unknown) {
       console.error('Failed to fetch departments', err);
       setError('Failed to load your departments. Please try again.');

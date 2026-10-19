@@ -5,8 +5,9 @@ import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skelet
 import { useTicketDetails, useTicketComments } from '../../hooks';
 import { useAuth } from '../../store/authStore';
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import type { ApiError } from '../../utils/apiErrorHandler';
-import { getTicketDisplayReference, canUserEscalateTicket } from '../../utils/ticketUtils';
+import { canUserEscalateTicket } from '../../utils/ticketUtils';
 import {
   TicketHeader,
   TicketFormDataCard,
@@ -137,6 +138,13 @@ export const TicketDetailsPage: React.FC = () => {
       setEscalating(false);
     }
   };
+
+  React.useEffect(() => {
+    if (ticketId && ticket) {
+      const label = ticket.displayId?.trim() || ticket.title?.trim() || 'Ticket Details';
+      useBreadcrumbStore.getState().setLabel(ticketId, label);
+    }
+  }, [ticketId, ticket]);
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     try {
@@ -293,7 +301,8 @@ export const TicketDetailsPage: React.FC = () => {
     );
   }
 
-  const displayReference = getTicketDisplayReference(ticket);
+  const displayReference =
+    ticket?.displayId?.trim() || ticket?.title?.trim() || 'Ticket Details';
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">

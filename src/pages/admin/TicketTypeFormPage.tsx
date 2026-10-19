@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { ROUTES } from '../../constants';
+import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import { SchemaBuilder } from '../../components/admin/SchemaBuilder';
 import { SlaConfigSection } from '../../components/admin/SlaConfigSection';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
@@ -144,6 +145,12 @@ export const TicketTypeFormPage: React.FC = () => {
     setShowWarningModal(false);
     await handleSubmit();
   };
+
+  React.useEffect(() => {
+    if (ticketTypeId && title) {
+      useBreadcrumbStore.getState().setLabel(ticketTypeId, title);
+    }
+  }, [ticketTypeId, title]);
 
   // Derive folder path breadcrumbs and folder name
   const currentFolderPath = useMemo(() => {
