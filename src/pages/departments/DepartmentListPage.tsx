@@ -11,8 +11,6 @@ import {
   Sparkles,
   RefreshCw,
   AlertCircle,
-  Shield,
-  Layers,
 } from 'lucide-react';
 import { departmentApi } from '../../api/departmentApi';
 import { useAuth } from '../../store/authStore';
