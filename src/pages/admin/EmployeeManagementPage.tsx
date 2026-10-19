@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router';
 import {
   Users,
@@ -15,6 +15,7 @@ import {
   AlertCircle,
   X,
   ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
@@ -43,6 +44,16 @@ export const EmployeeManagementPage: React.FC = () => {
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resendSuccessId, setResendSuccessId] = useState<string | null>(null);
+
+  // Pagination state: default 50 employees per page
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(50);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, statusFilter, roleFilter]);
+
 
   const [inviteForm, setInviteForm] = useState<InviteEmployeeRequest>({
     email: '',
@@ -102,6 +113,13 @@ export const EmployeeManagementPage: React.FC = () => {
       return true;
     });
   }, [users, searchQuery, statusFilter, roleFilter]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+  const paginatedUsers = useMemo(() => {
+    const start = page * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, page, pageSize]);
 
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
@@ -352,7 +370,7 @@ export const EmployeeManagementPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
-                    {filteredUsers.map((user) => {
+                    {paginatedUsers.map((user) => {
                       const isActive = (user.status || 'ACTIVE') === 'ACTIVE';
                       return (
                         <tr key={user.id} className="hover:bg-slate-50/60 transition-colors">
@@ -504,6 +522,70 @@ export const EmployeeManagementPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Footer */}
+              {filteredUsers.length > 0 && (
+                <div className="p-4 bg-slate-50/80 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <span>
+                      Showing{' '}
+                      <strong className="text-slate-900 font-semibold">{page * pageSize + 1}</strong>{' '}
+                      to{' '}
+                      <strong className="text-slate-900 font-semibold">
+                        {Math.min((page + 1) * pageSize, filteredUsers.length)}
+                      </strong>{' '}
+                      of{' '}
+                      <strong className="text-slate-900 font-semibold">{filteredUsers.length}</strong>{' '}
+                      employees
+                    </span>
+                    {filteredUsers.length > 50 && (
+                      <div className="hidden md:flex items-center gap-1.5 ml-3 border-l border-slate-200 pl-3">
+                        <span className="text-slate-400">Per page:</span>
+                        <select
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPage(0);
+                          }}
+                          className="bg-white border border-slate-200 rounded-md px-2 py-0.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                        >
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={page <= 0}
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                        className="inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                        title="Previous page"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="px-2 font-medium text-slate-700">
+                        Page {page + 1} of {totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={page + 1 >= totalPages}
+                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                        className="inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                        title="Next page"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

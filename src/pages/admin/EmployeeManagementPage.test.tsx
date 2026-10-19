@@ -123,4 +123,51 @@ describe('EmployeeManagementPage Component', () => {
 
     expect(mockSetIsInviteModalOpen).toHaveBeenCalledWith(true);
   });
+
+  it('paginates 50 employees per page and navigates between pages', () => {
+    // Generate 65 mock employees
+    const manyUsers: User[] = Array.from({ length: 65 }, (_, i) => ({
+      id: `usr-${i + 1}`,
+      fullName: `Employee ${i + 1}`,
+      email: `employee${i + 1}@company.com`,
+      title: 'Engineer',
+      roles: ['EMPLOYEE'],
+      status: 'ACTIVE',
+    }));
+
+    vi.spyOn(empHook, 'useEmployeeManagement').mockReturnValue({
+      users: manyUsers,
+      loading: false,
+      error: null,
+      inviteError: null,
+      isInviteModalOpen: false,
+      setIsInviteModalOpen: mockSetIsInviteModalOpen,
+      inviteLoading: false,
+      handleInvite: mockHandleInvite,
+      handleResendInvite: mockHandleResendInvite,
+      refresh: mockRefresh,
+    });
+
+    render(
+      <MemoryRouter>
+        <EmployeeManagementPage />
+      </MemoryRouter>
+    );
+
+    // Should show 1 to 50 of 65 employees on page 1
+    expect(screen.getByText('Employee 1')).toBeDefined();
+    expect(screen.getByText('Employee 50')).toBeDefined();
+    expect(screen.queryByText('Employee 51')).toBeNull();
+    expect(screen.getByText('Page 1 of 2')).toBeDefined();
+
+    // Click next page
+    const nextBtn = screen.getByRole('button', { name: /next page/i });
+    fireEvent.click(nextBtn);
+
+    // Should show page 2 (employees 51 to 65)
+    expect(screen.getByText('Page 2 of 2')).toBeDefined();
+    expect(screen.getByText('Employee 51')).toBeDefined();
+    expect(screen.getByText('Employee 65')).toBeDefined();
+    expect(screen.queryByText('Employee 1')).toBeNull();
+  });
 });
