@@ -13,6 +13,7 @@ vi.mock('../../api/folderApi', () => ({
   folderApi: {
     getFolderTree: vi.fn(),
     getFolderContents: vi.fn(),
+    updateFolder: vi.fn(),
   },
 }));
 
@@ -89,6 +90,62 @@ describe('BrowseFoldersPage Return to All Categories', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Return to All Categories')).toBeNull();
+    });
+  });
+
+  it('preserves parentId when renaming a subfolder inside a folder', async () => {
+    vi.mocked(folderApi.getFolderContents).mockResolvedValue({
+      folderId: 'folder-1',
+      folderName: 'IT Support',
+      subfolders: [
+        {
+          id: 'sub-1',
+          name: 'Hardware',
+          parentId: 'folder-1',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+      ticketTypes: [],
+    });
+    vi.mocked(folderApi.updateFolder).mockResolvedValue({});
+
+    render(
+      <MemoryRouter initialEntries={['/admin/ticket-types?folderId=folder-1']}>
+        <Routes>
+          <Route path="/admin/ticket-types" element={<BrowseFoldersPage isAdminMode={true} />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Hardware')).toBeDefined();
+    });
+
+    const optionsBtn = screen.getByLabelText('Folder Options');
+    fireEvent.click(optionsBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Rename Folder')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText('Rename Folder'));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Folder Name/i)).toBeDefined();
+    });
+
+    const input = screen.getByLabelText(/Folder Name/i);
+    fireEvent.change(input, { target: { value: 'Hardware & Accessories' } });
+
+    const saveBtn = screen.getByText('Save Changes');
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(folderApi.updateFolder).toHaveBeenCalledWith('sub-1', {
+        name: 'Hardware & Accessories',
+        parentId: 'folder-1',
+      });
     });
   });
 });

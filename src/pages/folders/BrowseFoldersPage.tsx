@@ -238,6 +238,7 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
       } else if (folderModalTarget) {
         await folderApi.updateFolder(folderModalTarget.id, {
           name: folderInputName.trim(),
+          parentId: folderModalTarget.parentId ?? undefined,
         });
       }
       setIsFolderModalOpen(false);
@@ -267,6 +268,7 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
         await folderApi.updateFolder(moveItem.id, {
           name: moveItem.name,
           parentId: targetFolderId === 'root' ? undefined : targetFolderId,
+          moveToRoot: targetFolderId === 'root',
         });
       } else {
         if (targetFolderId === 'root') {

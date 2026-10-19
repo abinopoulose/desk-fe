@@ -18,7 +18,7 @@ export const folderApi = {
     return response.data;
   },
 
-  updateFolder: async (id: string, data: { name: string; parentId?: string }): Promise<any> => {
+  updateFolder: async (id: string, data: { name: string; parentId?: string | null; moveToRoot?: boolean }): Promise<any> => {
     const response = await axiosInstance.put(`${API_PATHS.FOLDERS.BASE}/${id}`, data);
     return response.data;
   },

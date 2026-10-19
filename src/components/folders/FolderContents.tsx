@@ -27,10 +27,10 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const [actionMenu, setActionMenu] = useState<{ id: string, type: 'folder' | 'ticket', name: string, x: number, y: number } | null>(null);
-  const [renameItem, setRenameItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string } | null>(null);
+  const [actionMenu, setActionMenu] = useState<{ id: string, type: 'folder' | 'ticket', name: string, parentId?: string | null, x: number, y: number } | null>(null);
+  const [renameItem, setRenameItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string, parentId?: string | null } | null>(null);
   const [deleteItem, setDeleteItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string } | null>(null);
-  const [moveItem, setMoveItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string } | null>(null);
+  const [moveItem, setMoveItem] = useState<{ id: string, type: 'folder' | 'ticket', name: string, parentId?: string | null } | null>(null);
 
   const [newName, setNewName] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -68,7 +68,10 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
     setActionLoading(true);
     try {
       if (renameItem.type === 'folder') {
-        await folderApi.updateFolder(renameItem.id, { name: newName.trim() });
+        await folderApi.updateFolder(renameItem.id, { 
+          name: newName.trim(),
+          parentId: renameItem.parentId ?? (folderId && folderId !== 'root' ? folderId : undefined),
+        });
         setRenameItem(null);
         fetchContents();
         window.location.reload(); // Refresh tree
@@ -91,7 +94,8 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
       if (moveItem.type === 'folder') {
         await folderApi.updateFolder(moveItem.id, { 
           name: moveItem.name, 
-          parentId: targetFolderId === 'root' ? undefined : targetFolderId 
+          parentId: targetFolderId === 'root' ? undefined : targetFolderId,
+          moveToRoot: targetFolderId === 'root',
         });
         setMoveItem(null);
         fetchContents();
@@ -231,7 +235,14 @@ export const FolderContents: React.FC<FolderContentsProps> = ({ folderId, onSele
                       onClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setActionMenu({ id: sub.id, type: 'folder', name: sub.name, x: rect.right, y: rect.bottom });
+                        setActionMenu({ 
+                          id: sub.id, 
+                          type: 'folder', 
+                          name: sub.name, 
+                          parentId: sub.parentId ?? (folderId && folderId !== 'root' ? folderId : null),
+                          x: rect.right, 
+                          y: rect.bottom 
+                        });
                       }}
                     >
                       <MoreVertical className="w-4 h-4" />
