@@ -88,7 +88,7 @@ export const CreateTicketPage: React.FC = () => {
 
   if (loadingSchema) {
     return (
-      <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full space-y-6">
         <PageHeaderSkeleton />
         <CardSkeleton />
       </div>
@@ -97,7 +97,7 @@ export const CreateTicketPage: React.FC = () => {
 
   if (error && !schemaResponse) {
     return (
-      <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+      <div className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full">
         <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-2xl flex items-start gap-3 shadow-xs" role="alert">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div>
@@ -124,7 +124,7 @@ export const CreateTicketPage: React.FC = () => {
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       {/* Top Header Card */}
       <div className="bg-white border-b border-slate-200/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 py-5">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-5">
           <div className="flex items-center gap-3 mb-3">
             <button
               type="button"
@@ -171,7 +171,7 @@ export const CreateTicketPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {/* Error notification banner */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center gap-3 text-sm shadow-xs" role="alert">

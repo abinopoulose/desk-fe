@@ -104,10 +104,10 @@ export const DepartmentAdminPage: React.FC = () => {
 
   return (
     <PrivilegeGate requiredPrivilege="DEPARTMENT_EDIT">
-      <div className="min-h-full bg-slate-50 text-slate-800 p-6 lg:p-8">
+      <div className="min-h-full bg-slate-50 text-slate-800 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
         
         {/* Header Area */}
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="w-full space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-2xs">

@@ -71,8 +71,8 @@ export const ArchiveBrowser: React.FC = () => {
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 flex flex-col">
       {/* Top Banner / Header Container */}
-      <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
           
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -119,7 +119,7 @@ export const ArchiveBrowser: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10 flex-1 w-full flex flex-col">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 flex-1 flex flex-col">
         
         {/* Navigation Bar: Back Button & Breadcrumbs */}
         {!isSearching && (
@@ -173,7 +173,7 @@ export const ArchiveBrowser: React.FC = () => {
 
         {/* LOADING SKELETON */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="animate-pulse bg-white rounded-2xl h-44 border border-slate-200 p-5 flex flex-col shadow-xs">
                 <div className="h-5 w-1/3 bg-slate-100 rounded mb-3"></div>
@@ -214,7 +214,7 @@ export const ArchiveBrowser: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
                 <AnimatePresence>
                   {searchResults.map((type, index) => (
                     <TicketTypeCard
@@ -244,7 +244,7 @@ export const ArchiveBrowser: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
                   <AnimatePresence>
                     {contents.subfolders.map((sub, index) => (
                       <FolderCard
@@ -272,7 +272,7 @@ export const ArchiveBrowser: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
                   <AnimatePresence>
                     {contents.ticketTypes.map((type, index) => (
                       <TicketTypeCard

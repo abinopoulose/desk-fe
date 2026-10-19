@@ -157,7 +157,7 @@ export const TicketTypeFormPage: React.FC = () => {
 
   if (formLoading || depsLoading || treeLoading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full space-y-6">
         <DataGridSkeleton rows={6} columns={4} />
       </div>
     );
@@ -173,7 +173,7 @@ export const TicketTypeFormPage: React.FC = () => {
         
         {/* Top Header */}
         <div className="bg-white border-b border-slate-200/80 shadow-2xs">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             
             <div className="flex items-center gap-3">
               <button
@@ -235,7 +235,7 @@ export const TicketTypeFormPage: React.FC = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="max-w-7xl mx-auto px-6 flex items-center gap-6 border-t border-slate-100 text-xs font-semibold">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 flex items-center gap-6 border-t border-slate-100 text-xs font-semibold">
             <button
               type="button"
               onClick={() => setActiveTab('details')}
@@ -289,7 +289,7 @@ export const TicketTypeFormPage: React.FC = () => {
         </div>
 
         {/* Content Body */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center gap-3 text-sm" role="alert">
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />

@@ -186,14 +186,14 @@ export const TicketDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full space-y-6">
         <PageHeaderSkeleton />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 xl:col-span-8 2xl:col-span-9 space-y-6">
             <CardSkeleton />
             <CardSkeleton />
           </div>
-          <div className="space-y-6">
+          <div className="lg:col-span-4 xl:col-span-4 2xl:col-span-3 space-y-6">
             <CardSkeleton />
           </div>
         </div>
@@ -274,7 +274,7 @@ export const TicketDetailsPage: React.FC = () => {
 
   if (error || !ticket) {
     return (
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full">
         <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-2xl flex items-start gap-3 shadow-xs" role="alert">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
           <div>
@@ -299,7 +299,7 @@ export const TicketDetailsPage: React.FC = () => {
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       {/* Top Header & Breadcrumbs Bar */}
       <div className="bg-white border-b border-slate-200/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -336,7 +336,7 @@ export const TicketDetailsPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {escalateSuccess && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center justify-between gap-3 text-sm font-medium">
             <div className="flex items-center gap-2.5">
@@ -376,9 +376,9 @@ export const TicketDetailsPage: React.FC = () => {
           escalating={escalating}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-8 xl:col-span-8 2xl:col-span-9 space-y-6">
             <TicketFormDataCard formData={ticket.formData} formSchema={formSchema || ticket.ticketType?.formSchema} />
             <TicketCommentsSection
               comments={comments}
@@ -393,7 +393,7 @@ export const TicketDetailsPage: React.FC = () => {
           </div>
 
           {/* Sidebar Column */}
-          <div className="space-y-6">
+          <div className="lg:col-span-4 xl:col-span-4 2xl:col-span-3 space-y-6">
             <TicketManagementCard
               currentStatus={ticket.currentStatus}
               assignee={ticket.assignee}

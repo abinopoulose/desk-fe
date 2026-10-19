@@ -147,7 +147,7 @@ export const EmployeeManagementPage: React.FC = () => {
         
         {/* Sticky Top Header */}
         <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -172,7 +172,7 @@ export const EmployeeManagementPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
           
           {/* Error Banner */}
           {error && (

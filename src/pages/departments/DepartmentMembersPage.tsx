@@ -252,7 +252,7 @@ export const DepartmentMembersPage: React.FC = () => {
 
   if (deptError || !department) {
     return (
-      <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
+      <div className="min-h-full bg-slate-50 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-12">
         <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
           <h2 className="text-base font-bold text-red-900">Department Not Found</h2>
@@ -275,7 +275,7 @@ export const DepartmentMembersPage: React.FC = () => {
   const isMemberOfDept = Boolean(myRole) || isCurrentDeptAdmin;
   if (!isMemberOfDept) {
     return (
-      <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
+      <div className="min-h-full bg-slate-50 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-12">
         <div className="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-3">
           <ShieldAlert className="w-8 h-8 text-amber-500 mx-auto" />
           <h2 className="text-base font-bold text-amber-900">Membership Required</h2>
@@ -311,7 +311,7 @@ export const DepartmentMembersPage: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {/* Controls Toolbar: Search, Role Filter & Add Member */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3 flex-1">

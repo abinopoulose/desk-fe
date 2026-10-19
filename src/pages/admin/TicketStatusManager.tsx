@@ -61,12 +61,12 @@ export const TicketStatusManager: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-        <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-2xs">
-          <div className="max-w-5xl mx-auto h-16 flex items-center">
+        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-2xs">
+          <div className="w-full h-16 flex items-center">
             <div className="h-6 w-48 bg-slate-200 animate-pulse rounded" />
           </div>
         </div>
-        <div className="max-w-5xl mx-auto px-6 lg:px-10 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8">
           <DataGridSkeleton rows={5} columns={4} />
         </div>
       </div>
@@ -77,8 +77,8 @@ export const TicketStatusManager: React.FC = () => {
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         {/* Top Header */}
-        <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-2xs">
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-2xs">
+          <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -117,7 +117,7 @@ export const TicketStatusManager: React.FC = () => {
         </div>
 
         {/* Content Container */}
-        <div className="max-w-5xl mx-auto px-6 lg:px-10 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8">
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />

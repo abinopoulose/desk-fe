@@ -128,8 +128,8 @@ export const RoleAdminPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-full bg-slate-50 text-slate-800 p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-full bg-slate-50 text-slate-800 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
+      <div className="w-full space-y-6">
         
         {/* Header Card */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">

@@ -59,8 +59,8 @@ export const TicketListPage: React.FC = () => {
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -103,7 +103,7 @@ export const TicketListPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         
         {/* Navigation Tabs & Filters Bar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col gap-4">

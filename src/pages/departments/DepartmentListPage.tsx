@@ -90,8 +90,8 @@ export const DepartmentListPage: React.FC = () => {
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/80 px-6 py-6 lg:px-10 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -125,7 +125,7 @@ export const DepartmentListPage: React.FC = () => {
         </div>
 
         {/* Quick KPI Stat Chips */}
-        <div className="max-w-7xl mx-auto mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="w-full mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
               <Building2 className="w-4 h-4" />
@@ -159,7 +159,7 @@ export const DepartmentListPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {/* Search & Filter Toolbar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
@@ -230,8 +230,8 @@ export const DepartmentListPage: React.FC = () => {
 
         {/* Loading Skeletons */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {[1, 2, 3, 4, 5].map((n) => (
               <div
                 key={n}
                 className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs animate-pulse space-y-4"
@@ -281,7 +281,7 @@ export const DepartmentListPage: React.FC = () => {
 
         {/* Department Cards Grid */}
         {!loading && filteredDepartments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
             {filteredDepartments.map((dept) => {
               const isAdmin = dept.myRole === 'ADMIN' || canEditAnyDept;
 

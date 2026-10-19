@@ -122,7 +122,7 @@ export const UserProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div data-testid="loading-skeleton" className="p-8 max-w-5xl mx-auto space-y-6">
+      <div data-testid="loading-skeleton" className="p-4 sm:p-6 lg:p-8 xl:p-10 w-full space-y-6">
         <div className="h-44 bg-slate-100 animate-pulse rounded-2xl border border-slate-200"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="h-48 bg-slate-100 animate-pulse rounded-2xl border border-slate-200"></div>
@@ -177,7 +177,7 @@ export const UserProfilePage: React.FC = () => {
       
       {/* Top Breadcrumb & Actions Bar */}
       <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
-        <div className="max-w-5xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -223,7 +223,7 @@ export const UserProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
 
         {/* Tab Navigation for Self Settings */}
         {isSelf && (

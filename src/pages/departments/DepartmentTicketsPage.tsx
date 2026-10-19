@@ -287,7 +287,7 @@ export const DepartmentTicketsPage: React.FC = () => {
 
   if (deptError || !department) {
     return (
-      <div className="min-h-full bg-slate-50 max-w-7xl mx-auto px-6 py-12">
+      <div className="min-h-full bg-slate-50 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-12">
         <div className="p-8 bg-white border border-slate-200 rounded-2xl text-center space-y-4 shadow-xs max-w-lg mx-auto">
           <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
             <Building2 className="w-6 h-6" />
@@ -341,7 +341,7 @@ export const DepartmentTicketsPage: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {/* Success Banner */}
         {actionSuccessMessage && (
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-2xs">
