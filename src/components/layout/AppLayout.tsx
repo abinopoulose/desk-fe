@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
 import { getUserSlug } from '../../utils/userUtils';
+import { LogoIcon } from '../common/Logo';
 import { useBreadcrumbStore } from '../../store/breadcrumbStore';
 import {
   isUuidLike,
@@ -300,9 +301,7 @@ export function AppLayout() {
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200/80 shrink-0 bg-white">
         {isSidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
-              <ShieldCheck className="w-5 h-5 text-white" />
-            </div>
+            <LogoIcon size={36} badge={true} className="shrink-0 shadow-xs rounded-xl" />
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
                 {APP_NAME}
@@ -317,9 +316,9 @@ export function AppLayout() {
             <button
               type="button"
               onClick={toggleSidebar}
-              className="w-9 h-9 mx-auto rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-600 text-white flex items-center justify-center shadow-xs hover:shadow transition-all cursor-pointer"
+              className="mx-auto flex items-center justify-center cursor-pointer"
             >
-              <ShieldCheck className="w-5 h-5 text-white" />
+              <LogoIcon size={36} badge={true} className="shadow-xs rounded-xl hover:shadow transition-all" />
             </button>
           </Tooltip>
         )}

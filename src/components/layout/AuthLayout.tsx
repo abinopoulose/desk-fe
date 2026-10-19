@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
-import { Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { APP_NAME } from '../../constants';
+import { LogoIcon } from '../common/Logo';
 
 export function AuthLayout({
   children,
@@ -87,21 +87,7 @@ export function AuthLayout({
                 gap: 1.5,
               }}
             >
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 2.5,
-                  background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 8px 16px -4px rgba(79, 70, 229, 0.4)',
-                  border: '1px solid rgba(129, 140, 248, 0.3)',
-                }}
-              >
-                <Layers size={24} color="white" />
-              </Box>
+              <LogoIcon size={46} badge={true} />
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="h6" component="span" sx={{ fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
