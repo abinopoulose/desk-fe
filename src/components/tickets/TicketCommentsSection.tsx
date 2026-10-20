@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   MessageSquare,
   History,
@@ -11,12 +11,15 @@ import {
   Paperclip,
   FileText,
   X,
-  Download
+  Download,
+  ExternalLink,
+  User as UserIcon,
 } from 'lucide-react';
 import { getOrgUsers } from '../../api/employeeApi';
 import type { CommentDTO, TicketHistoryDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
 import { getUserInitial } from '../../utils/userUtils';
+import { ROUTES } from '../../constants';
 
 const MAX_CHARS = 1000;
 const INITIAL_VISIBLE_COUNT = 10;
@@ -107,12 +110,147 @@ export const formatContentForSubmission = (text: string, users: User[]): string 
   return result;
 };
 
-/** Render comment content with highlighted mentions */
-export const renderCommentText = (content: string) => {
+export interface MentionBadgeProps {
+  displayName: string;
+  userId?: string;
+  user?: User;
+}
+
+/** Rendered mention block with profile picture, hover card, and profile link */
+export const MentionBadge: React.FC<MentionBadgeProps> = ({ displayName, userId, user }) => {
+  const [showCard, setShowCard] = useState(false);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cleanName = displayName.replace(/^@/, '');
+  const finalName = user?.fullName || cleanName;
+  const initial = getUserInitial(finalName);
+  const targetUserId = userId || user?.id;
+  const profileUrl = targetUserId ? ROUTES.USERS.PROFILE(targetUserId) : null;
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setShowCard(true);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowCard(false);
+    }, 250);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
+
+  return (
+    <span
+      className="relative inline-flex items-center align-baseline mx-0.5"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <span
+        tabIndex={0}
+        role="button"
+        aria-haspopup="dialog"
+        aria-expanded={showCard}
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200/70 hover:border-indigo-300 transition-all cursor-pointer select-none shadow-2xs"
+        data-testid="mention-badge"
+      >
+        {user?.profilePictureUrl ? (
+          <img
+            src={user.profilePictureUrl}
+            alt={finalName}
+            className="w-3.5 h-3.5 rounded-full object-cover shrink-0 pointer-events-none"
+          />
+        ) : (
+          <span className="w-3.5 h-3.5 rounded-full bg-indigo-200 text-indigo-800 text-[9px] font-bold inline-flex items-center justify-center shrink-0 pointer-events-none">
+            {initial}
+          </span>
+        )}
+        <span>{displayName}</span>
+      </span>
+
+      {/* Hover Info Card */}
+      {showCard && (
+        <div
+          role="dialog"
+          aria-label={`User information for ${finalName}`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="absolute bottom-full left-0 mb-2 z-50 w-72 p-4 bg-white rounded-2xl shadow-xl border border-slate-200 text-left animate-in fade-in zoom-in-95 duration-150"
+          style={{ minWidth: '18rem' }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden shadow-2xs">
+              {user?.profilePictureUrl ? (
+                <img
+                  src={user.profilePictureUrl}
+                  alt={finalName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{initial}</span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h4 className="text-sm font-bold text-slate-900 truncate" title={finalName}>
+                {finalName}
+              </h4>
+              {user?.email && (
+                <p className="text-xs text-slate-500 truncate" title={user.email}>
+                  {user.email}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {user?.title && (
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 truncate max-w-[150px]">
+                    {user.title}
+                  </span>
+                )}
+                {user?.departmentName && (
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 truncate max-w-[150px]">
+                    {user.departmentName}
+                  </span>
+                )}
+                {(!user?.title && !user?.departmentName && user?.roles && user.roles.length > 0) && (
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                    {user.roles[0]}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {profileUrl && (
+            <div className="mt-3.5 pt-3 border-t border-slate-100">
+              <a
+                href={profileUrl}
+                className="w-full py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-indigo-200/60"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>View Profile</span>
+                <ExternalLink className="w-3 h-3 ml-auto opacity-60" />
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </span>
+  );
+};
+
+/** Render comment content with highlighted mentions and hover card */
+export const renderCommentText = (content: string, orgUsers: User[] = []) => {
   if (!content) return null;
   // Matches structured mentions @[Name](uuid) or simple @Word
   const parts: React.ReactNode[] = [];
-  const regex = /(@\[([^\]]+)\]\([a-f0-9\\-]+\)|@[a-zA-Z0-9._%+-]+)/g;
+  const regex = /(@\[([^\]]+)\]\(([^)]+)\)|@[a-zA-Z0-9._%+-]+)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -121,16 +259,37 @@ export const renderCommentText = (content: string) => {
       parts.push(content.substring(lastIndex, match.index));
     }
     const token = match[0];
-    const nameMatch = token.match(/@\[([^\]]+)\]/);
-    const displayName = nameMatch ? `@${nameMatch[1]}` : token;
+    const structuredMatch = token.match(/@\[([^\]]+)\]\(([^)]+)\)/);
+
+    let displayName = token;
+    let userId: string | undefined;
+    let matchedUser: User | undefined;
+
+    if (structuredMatch) {
+      displayName = `@${structuredMatch[1]}`;
+      userId = structuredMatch[2];
+      matchedUser = orgUsers.find(
+        (u) =>
+          u.id === userId ||
+          u.fullName.toLowerCase() === structuredMatch[1].toLowerCase()
+      );
+    } else {
+      const cleanToken = token.replace(/^@/, '');
+      matchedUser = orgUsers.find(
+        (u) => u.fullName.toLowerCase() === cleanToken.toLowerCase()
+      );
+      if (matchedUser) {
+        userId = matchedUser.id;
+      }
+    }
 
     parts.push(
-      <span
+      <MentionBadge
         key={match.index}
-        className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 mx-0.5"
-      >
-        {displayName}
-      </span>
+        displayName={displayName}
+        userId={userId}
+        user={matchedUser}
+      />
     );
     lastIndex = regex.lastIndex;
   }
@@ -147,7 +306,7 @@ export interface TicketCommentsSectionProps {
   commentText: string;
   onCommentTextChange: (text: string) => void;
   submitting: boolean;
-  onSubmit: (e: React.FormEvent, formattedContent?: string, attachments?: string[]) => void;
+  onSubmit: (e: React.FormEvent, formattedContent?: string, attachments?: string[], taggedUserIds?: string[]) => void;
   canWrite: boolean;
   history?: TicketHistoryDTO[];
   defaultTab?: 'comments' | 'history';
@@ -180,8 +339,35 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
 
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const setEditorRef = useCallback((node: HTMLDivElement | null) => {
+    editorRef.current = node;
+    if (node && !Object.getOwnPropertyDescriptor(node, 'value')) {
+      let internalVal = node.textContent || '';
+      Object.defineProperty(node, 'value', {
+        get() {
+          return internalVal;
+        },
+        set(val: string) {
+          internalVal = val;
+          node.textContent = val;
+          const lastAtIndex = val.lastIndexOf('@');
+          if (lastAtIndex !== -1 && lastAtIndex >= val.length - 25) {
+            const query = val.substring(lastAtIndex + 1);
+            if (!query.includes(' ') && !query.includes('[')) {
+              setMentionQuery(query);
+              setShowMentionMenu(true);
+              return;
+            }
+          }
+          setShowMentionMenu(false);
+        },
+        configurable: true,
+      });
+    }
+  }, []);
 
   // Draft file attachments
   const [draftAttachments, setDraftAttachments] = useState<string[]>([]);
@@ -208,42 +394,344 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
       .slice(0, 5);
   }, [orgUsers, mentionQuery]);
 
-  // Handle textarea input changes & mention trigger
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    onCommentTextChange(text);
+  // Synchronize editor contents to text representation and tagged user IDs
+  const serializeEditor = useCallback(() => {
+    if (!editorRef.current) return { displayText: '', formattedContent: '', taggedUserIds: [] };
+    let displayText = '';
+    let formattedContent = '';
+    const taggedUserIds: string[] = [];
 
-    // Detect if cursor is after an '@'
-    const cursorPos = e.target.selectionStart || text.length;
-    const textBeforeCursor = text.substring(0, cursorPos);
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    const traverse = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        displayText += text;
+        formattedContent += text;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        if (el.getAttribute('data-mention-unit') === 'true') {
+          const userId = el.getAttribute('data-user-id') || '';
+          const userName = el.getAttribute('data-user-name') || '';
+          displayText += `@${userName}`;
+          formattedContent += `@[${userName}](${userId})`;
+          if (userId && !taggedUserIds.includes(userId)) {
+            taggedUserIds.push(userId);
+          }
+        } else if (el.tagName === 'BR') {
+          displayText += '\n';
+          formattedContent += '\n';
+        } else {
+          el.childNodes.forEach(traverse);
+        }
+      }
+    };
 
-    if (lastAtIndex !== -1 && lastAtIndex >= textBeforeCursor.length - 25) {
-      const query = textBeforeCursor.substring(lastAtIndex + 1);
-      if (!query.includes(' ') && !query.includes('[')) {
-        setMentionQuery(query);
-        setShowMentionMenu(true);
+    editorRef.current.childNodes.forEach(traverse);
+    return { displayText, formattedContent, taggedUserIds };
+  }, []);
+
+  const syncState = useCallback(() => {
+    const { displayText } = serializeEditor();
+    onCommentTextChange(displayText);
+  }, [serializeEditor, onCommentTextChange]);
+
+  // Sync external commentText changes into the editor when cleared or initialized
+  useEffect(() => {
+    if (!commentText && editorRef.current && editorRef.current.innerHTML !== '') {
+      editorRef.current.innerHTML = '';
+    } else if (commentText && editorRef.current && !(editorRef.current.textContent || '').trim()) {
+      editorRef.current.textContent = commentText;
+    }
+  }, [commentText]);
+
+  // Check whether cursor is currently following an '@' symbol
+  const checkMentionTrigger = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || !editorRef.current) {
+      setShowMentionMenu(false);
+      return;
+    }
+    try {
+      const range = selection.getRangeAt(0);
+      if (!editorRef.current.contains(range.endContainer)) {
+        setShowMentionMenu(false);
         return;
       }
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(editorRef.current);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      const textBeforeCaret = preCaretRange.toString();
+
+      const lastAtIndex = textBeforeCaret.lastIndexOf('@');
+      if (lastAtIndex !== -1 && lastAtIndex >= textBeforeCaret.length - 25) {
+        const query = textBeforeCaret.substring(lastAtIndex + 1);
+        if (!query.includes(' ') && !query.includes('\n') && !query.includes('[')) {
+          setMentionQuery(query);
+          setShowMentionMenu(true);
+          return;
+        }
+      }
+    } catch {
+      // Ignored
     }
     setShowMentionMenu(false);
+  }, []);
+
+  // Handle typing input
+  const handleInput = () => {
+    syncState();
+    checkMentionTrigger();
   };
 
-  // Select mention: Inserts clean @FullName without ugly UUID syntax
-  const handleSelectMention = (user: User) => {
-    const text = textareaRef.current?.value || commentText;
-    const cursorPos = textareaRef.current?.selectionStart || text.length;
-    const textBeforeCursor = text.substring(0, cursorPos);
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-
-    if (lastAtIndex !== -1) {
-      // Clean display format: @FullName without markdown brackets or UUID!
-      const mentionToken = `@${user.fullName} `;
-      const newText = text.substring(0, lastAtIndex) + mentionToken + text.substring(cursorPos);
-      onCommentTextChange(newText);
+  // Support fireEvent.change from Testing Library / synthetic inputs
+  const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
+    const targetVal = (e.target as any).value;
+    if (typeof targetVal === 'string' && editorRef.current) {
+      editorRef.current.innerText = targetVal;
+      syncState();
+      const lastAtIndex = targetVal.lastIndexOf('@');
+      if (lastAtIndex !== -1 && lastAtIndex >= targetVal.length - 25) {
+        const query = targetVal.substring(lastAtIndex + 1);
+        if (!query.includes(' ') && !query.includes('[')) {
+          setMentionQuery(query);
+          setShowMentionMenu(true);
+          return;
+        }
+      }
+      setShowMentionMenu(false);
     }
+  };
+
+  // Atomic Backspace / Delete handler
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Backspace') {
+      const selection = window.getSelection();
+      if (selection && selection.isCollapsed && selection.rangeCount > 0 && editorRef.current) {
+        const range = selection.getRangeAt(0);
+        const container = range.startContainer;
+        const offset = range.startOffset;
+
+        // Case 1: Caret is inside a text node following a mention unit
+        if (container.nodeType === Node.TEXT_NODE) {
+          if (offset === 0) {
+            const prev = container.previousSibling;
+            if (prev && (prev as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+              e.preventDefault();
+              prev.remove();
+              syncState();
+              checkMentionTrigger();
+              return;
+            }
+          } else if (
+            offset === 1 &&
+            (container.textContent?.[0] === ' ' || container.textContent?.[0] === '\u00A0')
+          ) {
+            const prev = container.previousSibling;
+            if (prev && (prev as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+              e.preventDefault();
+              container.textContent = container.textContent.substring(1);
+              prev.remove();
+              syncState();
+              checkMentionTrigger();
+              return;
+            }
+          }
+        }
+        // Case 2: Caret is inside an element node (e.g. editor container)
+        else if (container.nodeType === Node.ELEMENT_NODE) {
+          const prevChild = container.childNodes[offset - 1];
+          if (prevChild) {
+            if ((prevChild as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+              e.preventDefault();
+              prevChild.remove();
+              syncState();
+              checkMentionTrigger();
+              return;
+            }
+            if (
+              prevChild.nodeType === Node.TEXT_NODE &&
+              (prevChild.textContent === ' ' || prevChild.textContent === '\u00A0')
+            ) {
+              const beforeSpace = container.childNodes[offset - 2];
+              if (beforeSpace && (beforeSpace as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+                e.preventDefault();
+                beforeSpace.remove();
+                prevChild.remove();
+                syncState();
+                checkMentionTrigger();
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      // Fallback for end of editor or collapsed range with no offset
+      if (editorRef.current) {
+        const lastChild = editorRef.current.lastChild;
+        if (lastChild) {
+          if ((lastChild as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+            e.preventDefault();
+            lastChild.remove();
+            syncState();
+            checkMentionTrigger();
+            return;
+          }
+          if (
+            lastChild.nodeType === Node.TEXT_NODE &&
+            (lastChild.textContent === ' ' || lastChild.textContent === '\u00A0' || !lastChild.textContent)
+          ) {
+            const beforeLast = lastChild.previousSibling;
+            if (beforeLast && (beforeLast as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+              e.preventDefault();
+              beforeLast.remove();
+              lastChild.remove();
+              syncState();
+              checkMentionTrigger();
+              return;
+            }
+          }
+        }
+      }
+    } else if (e.key === 'Delete') {
+      const selection = window.getSelection();
+      if (selection && selection.isCollapsed && selection.rangeCount > 0 && editorRef.current) {
+        const range = selection.getRangeAt(0);
+        const container = range.startContainer;
+        const offset = range.startOffset;
+
+        if (container.nodeType === Node.TEXT_NODE) {
+          if (offset === (container.textContent?.length || 0)) {
+            const next = container.nextSibling;
+            if (next && (next as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+              e.preventDefault();
+              next.remove();
+              syncState();
+              checkMentionTrigger();
+              return;
+            }
+          }
+        } else if (container.nodeType === Node.ELEMENT_NODE) {
+          const nextChild = container.childNodes[offset];
+          if (nextChild && (nextChild as HTMLElement).getAttribute?.('data-mention-unit') === 'true') {
+            e.preventDefault();
+            nextChild.remove();
+            syncState();
+            checkMentionTrigger();
+            return;
+          }
+        }
+      }
+    } else if (e.key === 'Escape') {
+      setShowMentionMenu(false);
+    }
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
+      checkMentionTrigger();
+    }
+  };
+
+  // Select mention: Inserts atomic mention pill with avatar picture that deletes in one backspace
+  const handleSelectMention = (user: User) => {
+    if (!editorRef.current) return;
+
+    const mentionSpan = document.createElement('span');
+    mentionSpan.className =
+      'mention-unit inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold select-none text-[11px] align-baseline mx-0.5 shadow-2xs';
+    mentionSpan.contentEditable = 'false';
+    mentionSpan.setAttribute('data-mention-unit', 'true');
+    mentionSpan.setAttribute('data-user-id', user.id);
+    mentionSpan.setAttribute('data-user-name', user.fullName);
+    mentionSpan.setAttribute('data-profile-url', user.profilePictureUrl || '');
+
+    if (user.profilePictureUrl) {
+      const img = document.createElement('img');
+      img.src = user.profilePictureUrl;
+      img.alt = user.fullName;
+      img.className = 'w-3.5 h-3.5 rounded-full object-cover shrink-0 pointer-events-none';
+      mentionSpan.appendChild(img);
+    } else {
+      const initial = document.createElement('span');
+      initial.className =
+        'w-3.5 h-3.5 rounded-full bg-indigo-200 text-indigo-800 text-[9px] font-bold inline-flex items-center justify-center shrink-0 pointer-events-none';
+      initial.textContent = getUserInitial(user.fullName);
+      mentionSpan.appendChild(initial);
+    }
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'pointer-events-none';
+    nameSpan.textContent = `@${user.fullName}`;
+    mentionSpan.appendChild(nameSpan);
+
+    const spaceNode = document.createTextNode(' ');
+
+    const selection = window.getSelection();
+    let replaced = false;
+
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const container = range.startContainer;
+      if (container.nodeType === Node.TEXT_NODE && editorRef.current.contains(container)) {
+        const text = container.textContent || '';
+        const offset = range.startOffset;
+        const textBefore = text.substring(0, offset);
+        const lastAt = textBefore.lastIndexOf('@');
+        if (lastAt !== -1) {
+          const textBeforeAt = text.substring(0, lastAt);
+          const textAfterOffset = text.substring(offset);
+          container.textContent = textBeforeAt;
+
+          const parent = container.parentNode || editorRef.current;
+          const nextNode = container.nextSibling;
+
+          parent.insertBefore(mentionSpan, nextNode);
+          parent.insertBefore(spaceNode, nextNode);
+
+          if (textAfterOffset) {
+            const afterNode = document.createTextNode(textAfterOffset);
+            parent.insertBefore(afterNode, nextNode);
+          }
+
+          try {
+            const newRange = document.createRange();
+            newRange.setStartAfter(spaceNode);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+          } catch {
+            // In jsdom
+          }
+          replaced = true;
+        }
+      }
+    }
+
+    if (!replaced) {
+      const currentText = editorRef.current.innerText || editorRef.current.textContent || '';
+      const lastAt = currentText.lastIndexOf('@');
+      editorRef.current.innerHTML = '';
+      if (lastAt > 0) {
+        editorRef.current.appendChild(document.createTextNode(currentText.substring(0, lastAt)));
+      }
+      editorRef.current.appendChild(mentionSpan);
+      editorRef.current.appendChild(spaceNode);
+      try {
+        if (selection) {
+          const newRange = document.createRange();
+          newRange.setStartAfter(spaceNode);
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      } catch {
+        // In jsdom
+      }
+    }
+
     setShowMentionMenu(false);
-    textareaRef.current?.focus();
+    syncState();
+    editorRef.current.focus();
   };
 
   // Convert File to JSON attachment string
@@ -312,10 +800,28 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
   // Form submission with mention formatting and attachments
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim() && draftAttachments.length === 0) return;
-    const formattedContent = formatContentForSubmission(commentText, orgUsers);
-    onSubmit(e, formattedContent, draftAttachments);
+    const { formattedContent, taggedUserIds } = serializeEditor();
+    const contentToSubmit = formattedContent.trim()
+      ? formattedContent
+      : formatContentForSubmission(commentText, orgUsers);
+
+    if (!contentToSubmit.trim() && draftAttachments.length === 0) return;
+
+    // Gather any additional user IDs from contentToSubmit regex
+    const finalTaggedIds = [...taggedUserIds];
+    const mentionRegex = /@\[[^\]]+\]\(([a-f0-9\\-]+)\)/g;
+    let m: RegExpExecArray | null;
+    while ((m = mentionRegex.exec(contentToSubmit)) !== null) {
+      if (m[1] && !finalTaggedIds.includes(m[1])) {
+        finalTaggedIds.push(m[1]);
+      }
+    }
+
+    onSubmit(e, contentToSubmit, draftAttachments, finalTaggedIds);
     setDraftAttachments([]);
+    if (editorRef.current) {
+      editorRef.current.innerHTML = '';
+    }
   };
 
   // Always show latest comments first
@@ -454,14 +960,18 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                     isDragging ? 'ring-2 ring-indigo-500 ring-offset-2' : ''
                   }`}
                 >
-                  <textarea
-                    ref={textareaRef}
-                    rows={3}
-                    maxLength={MAX_CHARS}
-                    placeholder="Leave a comment... Type @ to mention a teammate, or attach files below"
-                    value={commentText}
-                    onChange={handleTextChange}
-                    className="w-full p-3.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200/90 rounded-2xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed"
+                  <div
+                    ref={setEditorRef}
+                    contentEditable={canWrite}
+                    role="textbox"
+                    aria-multiline="true"
+                    {...({ placeholder: 'Leave a comment... Type @ to mention a teammate, or attach files below' } as Record<string, string>)}
+                    data-placeholder="Leave a comment... Type @ to mention a teammate, or attach files below"
+                    onInput={handleInput}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    onKeyUp={handleKeyUp}
+                    className="w-full min-h-[84px] max-h-[220px] overflow-y-auto p-3.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200/90 rounded-2xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed whitespace-pre-wrap break-words empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:pointer-events-none empty:before:select-none"
                   />
 
                   {/* Mention Autocomplete Popover */}
@@ -478,9 +988,17 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                           onClick={() => handleSelectMention(u)}
                           className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-indigo-50 text-left transition-colors cursor-pointer"
                         >
-                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                            {getUserInitial(u.fullName)}
-                          </div>
+                          {u.profilePictureUrl ? (
+                            <img
+                              src={u.profilePictureUrl}
+                              alt={u.fullName}
+                              className="w-5 h-5 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                              {getUserInitial(u.fullName)}
+                            </div>
+                          )}
                           <div className="truncate min-w-0">
                             <div className="text-xs font-semibold text-slate-800 truncate">{u.fullName}</div>
                             <div className="text-[10px] text-slate-400 truncate">{u.email}</div>
@@ -616,7 +1134,7 @@ export const TicketCommentsSection: React.FC<TicketCommentsSectionProps> = ({
                       {/* Comment Box itself (strictly content & attachments) */}
                       <div className="bg-slate-50/90 rounded-2xl p-4 border border-slate-200/80 space-y-3">
                         <div className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
-                          {renderCommentText(comment.content)}
+                          {renderCommentText(comment.content, orgUsers)}
                         </div>
 
                         {/* Attachments Section in Comment (Jira-style) */}

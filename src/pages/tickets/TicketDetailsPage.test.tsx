@@ -351,4 +351,69 @@ describe('TicketDetailsPage - SLA Escalation', () => {
       expect(mockSetTicket).toHaveBeenCalled();
     });
   });
+
+  it('automatically adds tagged users in comment to participants list via shareTicket', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: {
+        id: mockTicketId,
+        title: 'Test Ticket',
+        description: 'Test description',
+        status: 'Open',
+        priority: 'MEDIUM',
+        ticketType: { id: 'type-1', name: 'Support', category: 'General' },
+        currentStatus: { id: 's1', name: 'Open', color: '#6366f1' },
+        requester: { id: 'u1', fullName: 'Requester', email: 'req@example.com' },
+        assignee: null,
+        comments: [],
+        history: [],
+      } as any,
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    vi.mocked(hooks.useTicketComments).mockReturnValue({
+      comments: [],
+      commentText: 'Hey @[Alice](user-123)',
+      setCommentText: vi.fn(),
+      submitting: false,
+      handleSubmitComment: vi.fn().mockResolvedValue({} as any),
+    } as any);
+
+    vi.mocked(ticketApi.shareTicket).mockResolvedValue({} as any);
+    vi.mocked(ticketApi.getTicketDetails).mockResolvedValue({} as any);
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const postBtn = screen.getByRole('button', { name: /post comment/i });
+    expect(postBtn).toBeDefined();
+
+    const form = postBtn.closest('form');
+    expect(form).not.toBeNull();
+    fireEvent.submit(form!);
+
+    await waitFor(() => {
+      expect(ticketApi.shareTicket).toHaveBeenCalledWith(mockTicketId, {
+        shareType: 'USER',
+        targetId: 'user-123',
+      });
+    });
+  });
 });

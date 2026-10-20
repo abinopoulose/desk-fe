@@ -175,16 +175,44 @@ export const TicketDetailsPage: React.FC = () => {
   const handleCommentSubmit = async (
     e: React.FormEvent,
     formattedContent?: string,
-    attachments?: string[]
+    attachments?: string[],
+    taggedUserIds?: string[]
   ) => {
     try {
       await handleSubmitComment(e, formattedContent, attachments);
+
+      // Auto-add tagged users to participants list without checking department access
+      const userIdsToAdd = [...(taggedUserIds || [])];
+      if (formattedContent && userIdsToAdd.length === 0) {
+        const mentionRegex = /@\[[^\]]+\]\(([^)]+)\)/g;
+        let match: RegExpExecArray | null;
+        while ((match = mentionRegex.exec(formattedContent)) !== null) {
+          if (match[1] && !userIdsToAdd.includes(match[1])) {
+            userIdsToAdd.push(match[1]);
+          }
+        }
+      }
+
+      if (ticketId && userIdsToAdd.length > 0) {
+        await Promise.allSettled(
+          userIdsToAdd.map((targetId) =>
+            ticketApi.shareTicket(ticketId, {
+              shareType: 'USER',
+              targetId,
+            })
+          )
+        );
+      }
+
       // Refresh access list and reload ticket details (for audit history)
       setAccessRefreshTrigger((prev) => prev + 1);
-      if (ticketId) {
-        ticketApi.getTicketDetails(ticketId).then((fresh) => {
-          setTicket(fresh);
-        }).catch(() => {});
+      if (ticketId && typeof ticketApi.getTicketDetails === 'function') {
+        const detailsPromise = ticketApi.getTicketDetails(ticketId);
+        if (detailsPromise && typeof detailsPromise.then === 'function') {
+          detailsPromise.then((fresh) => {
+            if (fresh) setTicket(fresh);
+          }).catch(() => {});
+        }
       }
     } catch (err) {
       console.error(err);

@@ -293,4 +293,126 @@ describe('TicketCommentsSection', () => {
     expect(formatFileSize(2048)).toBe('2.0 KB');
     expect(formatFileSize(1048576)).toBe('1.0 MB');
   });
+
+  it('renders atomic mention unit with avatar and deletes entire unit on Backspace', async () => {
+    const onCommentTextChange = vi.fn();
+    const onSubmit = vi.fn();
+
+    const mockUsersWithAvatar: User[] = [
+      {
+        id: 'u-avatar',
+        fullName: 'John Doe',
+        email: 'john@example.com',
+        profilePictureUrl: 'https://example.com/avatar.jpg',
+        title: 'Senior Engineer',
+        departmentName: 'Platform',
+        roles: ['EMPLOYEE'],
+        status: 'ACTIVE',
+      },
+    ];
+
+    const TestHarness = () => {
+      const [text, setText] = React.useState('');
+      return (
+        <TicketCommentsSection
+          comments={[]}
+          commentText={text}
+          onCommentTextChange={(val) => {
+            setText(val);
+            onCommentTextChange(val);
+          }}
+          submitting={false}
+          onSubmit={onSubmit}
+          canWrite={true}
+          availableUsers={mockUsersWithAvatar}
+        />
+      );
+    };
+
+    render(<TestHarness />);
+
+    const editor = screen.getByPlaceholderText(/leave a comment/i);
+    fireEvent.change(editor, { target: { value: '@Joh' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeDefined();
+    });
+
+    const userBtn = screen.getByText('John Doe');
+    fireEvent.click(userBtn);
+
+    // Mention unit chip is in editor
+    const chip = editor.querySelector('[data-mention-unit="true"]');
+    expect(chip).not.toBeNull();
+    expect(chip?.getAttribute('data-user-id')).toBe('u-avatar');
+    expect(chip?.getAttribute('data-user-name')).toBe('John Doe');
+
+    // Profile picture image exists in chip
+    const avatarImg = chip?.querySelector('img');
+    expect(avatarImg?.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+
+    // Backspace deletes the entire mention unit in one stroke
+    fireEvent.keyDown(editor, { key: 'Backspace' });
+    expect(editor.querySelector('[data-mention-unit="true"]')).toBeNull();
+  });
+
+  it('renders mention badge with profile picture and displays hover card with details and profile link', async () => {
+    const commentsWithMention: CommentDTO[] = [
+      {
+        id: 'c-mention',
+        ticketId: 't1',
+        author: { id: 'u1', fullName: 'Alice Smith', email: 'alice@example.com' },
+        content: 'Hey @[John Doe](u-avatar), please check this request',
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const users: User[] = [
+      {
+        id: 'u-avatar',
+        fullName: 'John Doe',
+        email: 'john@example.com',
+        profilePictureUrl: 'https://example.com/john.png',
+        title: 'Tech Lead',
+        departmentName: 'Engineering',
+        roles: ['EMPLOYEE'],
+        status: 'ACTIVE',
+      },
+    ];
+
+    render(
+      <TicketCommentsSection
+        comments={commentsWithMention}
+        commentText=""
+        onCommentTextChange={vi.fn()}
+        submitting={false}
+        onSubmit={vi.fn()}
+        canWrite={true}
+        availableUsers={users}
+      />
+    );
+
+    // Mention badge is rendered
+    const badge = screen.getByTestId('mention-badge');
+    expect(badge).toBeDefined();
+    expect(badge.textContent).toContain('@John Doe');
+
+    // Profile picture is rendered inside badge
+    const img = badge.querySelector('img');
+    expect(img?.getAttribute('src')).toBe('https://example.com/john.png');
+
+    // Hover over badge to trigger hover card
+    fireEvent.mouseEnter(badge.parentElement!);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: /user information for John Doe/i })).toBeDefined();
+      expect(screen.getByText('john@example.com')).toBeDefined();
+      expect(screen.getByText('Tech Lead')).toBeDefined();
+      expect(screen.getByText('Engineering')).toBeDefined();
+    });
+
+    // Profile link exists and navigates to user profile
+    const profileLink = screen.getByRole('link', { name: /view profile/i });
+    expect(profileLink.getAttribute('href')).toBe('/users/u-avatar');
+  });
 });
