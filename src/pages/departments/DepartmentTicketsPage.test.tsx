@@ -16,9 +16,10 @@ vi.mock('../../store/authStore', () => ({
   }),
 }));
 
+let mockParams: { departmentId?: string } = { departmentId: 'dept-1' };
 const mockNavigate = vi.fn();
 vi.mock('react-router', () => ({
-  useParams: () => ({ departmentId: 'dept-1' }),
+  useParams: () => mockParams,
   useNavigate: () => mockNavigate,
   Link: ({ children, to }: any) => <a href={to}>{children}</a>,
 }));
@@ -26,6 +27,7 @@ vi.mock('react-router', () => ({
 describe('DepartmentTicketsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockParams = { departmentId: 'dept-1' };
     vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([
       {
         id: 'dept-1',
@@ -255,5 +257,110 @@ describe('DepartmentTicketsPage', () => {
         })
       );
     });
+  });
+
+  it('displays No Department Assigned when user has 0 assigned departments', async () => {
+    mockParams = { departmentId: undefined };
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([]);
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No Department Assigned')).toBeDefined();
+      expect(screen.getByText(/You are not currently assigned to any department/i)).toBeDefined();
+      expect(screen.getByText('Back to Dashboard')).toBeDefined();
+    });
+  });
+
+  it('displays Access Restricted gate when non-admin navigates to a department they are not assigned to', async () => {
+    mockParams = { departmentId: 'dept-unassigned' };
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        myRole: 'MEMBER',
+        memberCount: 8,
+      },
+    ]);
+    vi.mocked(departmentApi.getDepartmentById).mockResolvedValue({
+      id: 'dept-unassigned',
+      name: 'Finance & Accounting',
+      description: 'Finance matters',
+      alphaTags: ['FIN'],
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+    });
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Access Restricted')).toBeDefined();
+      expect(screen.getByText(/You are not assigned to this department/i)).toBeDefined();
+      expect(screen.getByText('Go to My Department')).toBeDefined();
+    });
+
+    // Verify ticketApi.getTickets was NOT called for unauthorized department
+    expect(ticketApi.getTickets).not.toHaveBeenCalled();
+
+    // Click Go to My Department
+    fireEvent.click(screen.getByText('Go to My Department'));
+    expect(mockNavigate).toHaveBeenCalledWith('/departments/dept-1/tickets');
+  });
+
+  it('displays Access Restricted gate when backend returns 403 Forbidden', async () => {
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        myRole: 'MEMBER',
+        memberCount: 8,
+      },
+    ]);
+    vi.mocked(ticketApi.getTickets).mockRejectedValue({
+      response: { status: 403, data: { message: 'Access is denied' } },
+    });
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Access Restricted')).toBeDefined();
+    });
+  });
+
+  it('only displays assigned departments in switcher tabs for regular users even if org has more departments', async () => {
+    // Org has 3 departments
+    vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([
+      { id: 'dept-1', name: 'Technical Support', createdAt: '', updatedAt: '' },
+      { id: 'dept-2', name: 'Human Resources', createdAt: '', updatedAt: '' },
+      { id: 'dept-3', name: 'Engineering', createdAt: '', updatedAt: '' },
+    ]);
+
+    // Regular employee only belongs to 2 departments
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      { id: 'dept-1', name: 'Technical Support', myRole: 'MEMBER', memberCount: 5 },
+      { id: 'dept-2', name: 'Human Resources', myRole: 'MEMBER', memberCount: 2 },
+    ]);
+
+    vi.mocked(ticketApi.getTickets).mockResolvedValue({
+      tickets: [],
+      totalElements: 0,
+      totalPages: 0,
+      currentPage: 0,
+    });
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('tablist', { name: /available departments/i })).toBeDefined();
+    });
+
+    expect(screen.getByRole('tab', { name: 'Technical Support' })).toBeDefined();
+    expect(screen.getByRole('tab', { name: 'Human Resources' })).toBeDefined();
+    // dept-3 Engineering must NOT be in the switcher tabs
+    expect(screen.queryByRole('tab', { name: 'Engineering' })).toBeNull();
   });
 });
