@@ -187,4 +187,18 @@ describe('AppLayout Breadcrumbs', () => {
     expect(within(nav).getByText('Home')).toBeDefined();
     expect(within(nav).getByText('Organization Chart')).toBeDefined();
   });
+
+  it('does not render breadcrumbs on department tickets page (/department-tickets)', () => {
+    render(
+      <MemoryRouter initialEntries={['/department-tickets']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="department-tickets" element={<div>Department Tickets Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole('navigation', { name: /breadcrumb/i })).toBeNull();
+  });
 });

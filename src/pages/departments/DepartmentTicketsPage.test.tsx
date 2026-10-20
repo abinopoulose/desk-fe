@@ -186,4 +186,74 @@ describe('DepartmentTicketsPage', () => {
       );
     });
   });
+
+  it('renders horizontal department tabs when user has multiple departments and switches department on tab click', async () => {
+    vi.mocked(departmentApi.getAllDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+      {
+        id: 'dept-2',
+        name: 'Human Resources',
+        description: 'HR matters',
+        alphaTags: ['HR'],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ]);
+
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        myRole: 'MEMBER',
+        memberCount: 8,
+      },
+      {
+        id: 'dept-2',
+        name: 'Human Resources',
+        description: 'HR matters',
+        alphaTags: ['HR'],
+        myRole: 'ADMIN',
+        memberCount: 3,
+      },
+    ]);
+
+    vi.mocked(ticketApi.getTickets).mockResolvedValue({
+      tickets: [],
+      totalElements: 0,
+      totalPages: 0,
+      currentPage: 0,
+    });
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('tablist', { name: /available departments/i })).toBeDefined();
+    });
+
+    const hrTab = screen.getByRole('tab', { name: 'Human Resources' });
+    expect(hrTab).toBeDefined();
+    expect(hrTab.getAttribute('aria-selected')).toBe('false');
+
+    const techTab = screen.getByRole('tab', { name: 'Technical Support' });
+    expect(techTab.getAttribute('aria-selected')).toBe('true');
+
+    fireEvent.click(hrTab);
+
+    await waitFor(() => {
+      expect(ticketApi.getTickets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          departmentId: 'dept-2',
+        })
+      );
+    });
+  });
 });
