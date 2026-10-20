@@ -51,9 +51,9 @@ export const DepartmentTicketsPage: React.FC = () => {
   // Filter State
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [mappedState, setMappedState] = useState<'' | 'OPEN' | 'CLOSED'>('');
+  const [mappedState, setMappedState] = useState<'' | 'OPEN' | 'CLOSED'>('OPEN');
   const [priority, setPriority] = useState<string>('');
-  const [assigneeMode, setAssigneeMode] = useState<'all' | 'unassigned' | 'me'>('all');
+  const [assigneeMode, setAssigneeMode] = useState<'all' | 'unassigned' | 'me'>('me');
   const [sort, setSort] = useState<string>('createdAt,desc');
 
   // Pagination State

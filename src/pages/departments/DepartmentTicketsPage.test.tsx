@@ -154,4 +154,36 @@ describe('DepartmentTicketsPage', () => {
       );
     });
   });
+
+  it('defaults filters to status=OPEN and queue=assigned to me upon opening', async () => {
+    vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([
+      {
+        id: 'dept-1',
+        name: 'Technical Support',
+        description: 'Tech triage',
+        alphaTags: ['TECH'],
+        myRole: 'MEMBER',
+        memberCount: 8,
+      },
+    ]);
+
+    vi.mocked(ticketApi.getTickets).mockResolvedValue({
+      tickets: [],
+      totalElements: 0,
+      totalPages: 0,
+      currentPage: 0,
+    });
+
+    render(<DepartmentTicketsPage />);
+
+    await waitFor(() => {
+      expect(ticketApi.getTickets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          departmentId: 'dept-1',
+          mappedState: 'OPEN',
+          assigneeId: 'user-123',
+        })
+      );
+    });
+  });
 });
