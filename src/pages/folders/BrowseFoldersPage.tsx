@@ -813,7 +813,7 @@ const AdminFolderCard = ({
           onClick();
         }
       }}
-      className="relative cursor-pointer group pt-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-2xl select-none"
+      className="relative cursor-pointer group pt-2.5 focus:outline-none rounded-2xl select-none"
     >
       {/* Physical Folder Tab cutout */}
       <div className="absolute top-0 left-3 w-2/5 h-3 bg-amber-200/90 group-hover:bg-amber-300 rounded-t-md border-t border-x border-amber-300/80 transition-colors z-0" />
@@ -887,7 +887,7 @@ const AdminTicketTypeCard = ({
           onClick();
         }
       }}
-      className={`cursor-pointer relative bg-white rounded-2xl border shadow-xs hover:shadow-md transition-all flex flex-col justify-between p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500 group select-none overflow-hidden ${
+      className={`cursor-pointer relative bg-white rounded-2xl border shadow-xs hover:shadow-md transition-all flex flex-col justify-between p-5 focus:outline-none group select-none overflow-hidden ${
         isActive ? 'border-slate-200/90 hover:border-indigo-300' : 'border-dashed border-slate-300/80 bg-slate-50/50 opacity-80'
       }`}
     >

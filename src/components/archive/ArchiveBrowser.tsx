@@ -334,7 +334,7 @@ const FolderCard = ({ folder, index, onClick }: { folder: FolderDTO; index: numb
           onClick();
         }
       }}
-      className="relative cursor-pointer group pt-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-2xl select-none"
+      className="relative cursor-pointer group pt-2.5 focus:outline-none rounded-2xl select-none"
     >
       {/* Physical Folder Tab cutout */}
       <div className="absolute top-0 left-3 w-2/5 h-3 bg-amber-200/90 group-hover:bg-amber-300 rounded-t-md border-t border-x border-amber-300/80 transition-colors z-0" />
@@ -386,7 +386,7 @@ const TicketTypeCard = ({ type, index, onClick }: { type: TicketItem; index: num
           onClick();
         }
       }}
-      className="cursor-pointer relative bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500 group select-none overflow-hidden"
+      className="cursor-pointer relative bg-white rounded-2xl border border-slate-200/90 hover:border-indigo-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between p-5 focus:outline-none group select-none overflow-hidden"
     >
       {/* Top Department Color Strip */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${badgeStyle.bar}`} />
