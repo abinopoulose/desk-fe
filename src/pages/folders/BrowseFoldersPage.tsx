@@ -319,18 +319,12 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
   return (
     <PrivilegeGate requiredPrivilege={isAdminMode ? 'TICKET_TYPE_EDIT' : undefined}>
       <div className="min-h-full bg-slate-50 text-slate-800 flex flex-col">
-        {/* Top Header Card */}
-        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
-          <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
-            
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
-                {currentFolderName ? currentFolderName : 'All Ticket Categories'}
-              </h1>
-              <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Organize categories, configure ticket form questions, SLA targets, and statuses.
-              </p>
-            </div>
+        {/* Top Header */}
+        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-xs">
+          <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {currentFolderName ? currentFolderName : 'All Ticket Categories'}
+            </h1>
 
             {/* Quick Actions & Search */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

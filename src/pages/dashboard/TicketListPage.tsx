@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { 
   Search, 
   Plus, 
-  Sparkles, 
   Inbox, 
   X, 
   ChevronLeft, 
@@ -58,27 +57,12 @@ export const TicketListPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-      {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                Service Queue
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                • {pagination.totalElements} Total Requests
-              </span>
-            </div>
-
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
-              Support Requests
-            </h1>
-            <p className="text-slate-500 text-sm mt-1 max-w-xl">
-              Track, triage, and fulfill workplace service requests across your organization.
-            </p>
-          </div>
+      {/* Top Header */}
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-xs">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Support Requests
+          </h1>
 
           <div className="flex items-center gap-3">
             <button

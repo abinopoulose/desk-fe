@@ -4,6 +4,7 @@ import {
   formatRouteSegment,
   getFallbackSegmentLabel,
   getBreadcrumbHref,
+  getPageTitle,
 } from './breadcrumbUtils';
 
 describe('breadcrumbUtils', () => {
@@ -72,6 +73,39 @@ describe('breadcrumbUtils', () => {
     it('generates /dashboard for tickets root', () => {
       const paths = ['tickets', 'uuid-1234'];
       expect(getBreadcrumbHref(paths, 0)).toBe('/dashboard');
+    });
+  });
+
+  describe('getPageTitle', () => {
+    const user = { id: 'u-1', fullName: 'Abino Poulose', email: 'abino@desk.com' };
+
+    it('resolves core and admin page titles accurately', () => {
+      expect(getPageTitle('/')).toBe('Dashboard');
+      expect(getPageTitle('/dashboard')).toBe('Dashboard');
+      expect(getPageTitle('/org-chart')).toBe('Organization Chart');
+      expect(getPageTitle('/department-tickets')).toBe('Department Tickets');
+      expect(getPageTitle('/departments/dept-1/tickets')).toBe('Department Tickets');
+      expect(getPageTitle('/departments/dept-1/members')).toBe('Department Members');
+      expect(getPageTitle('/departments/dept-1/metrics')).toBe('Department Metrics');
+      expect(getPageTitle('/departments')).toBe('Departments');
+      expect(getPageTitle('/admin/roles')).toBe('Roles & Permissions');
+      expect(getPageTitle('/admin/employees')).toBe('Employees');
+      expect(getPageTitle('/admin/departments')).toBe('Departments');
+      expect(getPageTitle('/admin/ticket-types')).toBe('Ticket Types');
+      expect(getPageTitle('/admin/ticket-types/new')).toBe('Create Ticket Type');
+      expect(getPageTitle('/admin/ticket-types/tt-1/edit')).toBe('Edit Ticket Type');
+      expect(getPageTitle('/admin/ticket-types/tt-1/statuses')).toBe('Ticket Statuses');
+      expect(getPageTitle('/metrics')).toBe('Performance Metrics');
+      expect(getPageTitle('/tickets/new')).toBe('Create Request');
+      expect(getPageTitle('/tickets/t-1')).toBe('Ticket Details');
+      expect(getPageTitle('/browse')).toBe('Service Catalog');
+    });
+
+    it('distinguishes between My Profile and other User Profile', () => {
+      expect(getPageTitle('/users/u-1', user)).toBe('My Profile');
+      expect(getPageTitle('/users/abino-poulose', user)).toBe('My Profile');
+      expect(getPageTitle('/users/abino', user)).toBe('My Profile');
+      expect(getPageTitle('/users/other-user-99', user)).toBe('User Profile');
     });
   });
 });

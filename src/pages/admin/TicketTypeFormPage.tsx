@@ -192,30 +192,23 @@ export const TicketTypeFormPage: React.FC = () => {
                 <ArrowLeft className="w-4 h-4" />
               </button>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Service Catalog
-                  </span>
-                  <span className="text-slate-300">•</span>
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                    isActive 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                      : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
-                    {isActive ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
-                    {isActive ? 'Available to Staff' : 'Draft / Inactive'}
-                  </span>
-                  {ticketTypeId && (
-                    <span className="text-[11px] text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
-                      #{ticketTypeId.slice(0, 8)}
-                    </span>
-                  )}
-                </div>
-                
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mt-0.5">
-                  <span>{isEditMode ? title || 'Edit Ticket Type' : 'Create New Ticket Type'}</span>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  {isEditMode ? title || 'Edit Ticket Type' : 'Create New Ticket Type'}
                 </h1>
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  isActive 
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                }`}>
+                  {isActive ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
+                  {isActive ? 'Available to Staff' : 'Draft / Inactive'}
+                </span>
+                {ticketTypeId && (
+                  <span className="text-[11px] text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
+                    #{ticketTypeId.slice(0, 8)}
+                  </span>
+                )}
               </div>
             </div>
 

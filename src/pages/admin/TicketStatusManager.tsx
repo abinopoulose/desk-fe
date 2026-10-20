@@ -84,32 +84,20 @@ export const TicketStatusManager: React.FC = () => {
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
         {/* Top Header */}
-        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-2xs">
+        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-2xs">
           <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.ADMIN.TICKET_TYPES)}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 title="Back to Ticket Types"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    <Workflow className="w-3.5 h-3.5" />
-                    Lifecycle Stages
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    {statuses.length} {statuses.length === 1 ? 'stage' : 'stages'}
-                  </span>
-                </div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Manage Statuses</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Workflow progression stages for <span className="font-semibold text-slate-700">{ticketType?.title || 'Ticket Type'}</span>
-                </p>
-              </div>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900">
+                Manage Statuses {ticketType?.title ? `— ${ticketType.title}` : ''}
+              </h1>
             </div>
 
             <button

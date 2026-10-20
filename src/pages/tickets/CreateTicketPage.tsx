@@ -5,8 +5,7 @@ import {
   Send, 
   FileText, 
   AlertCircle, 
-  CheckCircle2, 
-  Sparkles
+  CheckCircle2
 } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
@@ -117,11 +116,6 @@ export const CreateTicketPage: React.FC = () => {
               {schemaResponse.description && (
                 <p className="text-sm text-slate-500 mt-1 max-w-2xl">{schemaResponse.description}</p>
               )}
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 self-start sm:self-auto">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Create New Request</span>
             </div>
           </div>
         </div>

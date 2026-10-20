@@ -12,7 +12,6 @@ import { CHART_PALETTE } from '../../theme/tokens';
 import type { User } from '../../types/user';
 import type { AgentProductivityDTO } from '../../types/metrics';
 import {
-  BarChart3,
   Ticket,
   CheckCircle2,
   Clock,
@@ -211,22 +210,10 @@ export const MetricsDashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-20">
-      {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-2xs">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <BarChart3 className="w-3.5 h-3.5" />
-                Productivity & Operations Intelligence
-              </span>
-              <span className="text-xs text-slate-400 font-medium">Live Telemetry</span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Performance Metrics</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Comprehensive telemetry for fulfillment velocity, team throughput, backlog aging, and SLA compliance.
-            </p>
-          </div>
+      {/* Top Header */}
+      <div className="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-2xs">
+        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Performance Metrics</h1>
 
           <div className="flex items-center gap-3">
             <button

@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
 import { getUserSlug } from '../../utils/userUtils';
+import { getPageTitle } from '../../utils/breadcrumbUtils';
 import { LogoIcon } from '../common/Logo';
 
 interface NavItemProps {
@@ -149,6 +150,7 @@ export function AppLayout() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const logout = useAuthStore((state) => state.logout);
+  const pageTitle = getPageTitle(location.pathname, user);
 
   useEffect(() => {
     if (isMobile && isSidebarOpen) {
@@ -158,9 +160,8 @@ export function AppLayout() {
   }, [location.pathname, isMobile]);
 
   useEffect(() => {
-    const routeName = location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
-    document.title = `${routeName.charAt(0).toUpperCase() + routeName.slice(1).replace(/-/g, " ")} | ${APP_NAME}`;
-  }, [location.pathname]);
+    document.title = `${pageTitle} | ${APP_NAME}`;
+  }, [pageTitle]);
 
   const handleLogout = () => {
     handleMenuClose();
@@ -310,8 +311,12 @@ export function AppLayout() {
                </IconButton>
              )}
              
+             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+               {pageTitle}
+             </h1>
+
              {/* Portal target so other components can still inject here if they want */}
-             <div id="header-portal-target" className="flex-1 flex items-center h-full min-w-0" />
+             <div id="header-portal-target" className="flex items-center h-full min-w-0" />
           </div>
           
           <div className="flex items-center gap-2 ml-auto shrink-0">

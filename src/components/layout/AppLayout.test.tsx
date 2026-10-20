@@ -26,20 +26,20 @@ describe('AppLayout Top Navigation', () => {
   });
 
   const routesToTest = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'User Profile', path: '/users/abino' },
-    { name: 'Other User Profile', path: '/users/abino.poulose.123' },
-    { name: 'Department Tickets', path: '/department-tickets' },
-    { name: 'Department Details Tickets', path: '/departments/c3cf6db0-0000-0000-0000-000000000020/tickets' },
-    { name: 'Department Members', path: '/departments/c3cf6db0-0000-0000-0000-000000000020/members' },
-    { name: 'Ticket Details', path: '/tickets/a0b1c2d3-0000-0000-0000-000000000001' },
-    { name: 'Admin Ticket Types Edit', path: '/admin/ticket-types/f5e6d7c8-0000-0000-0000-000000000099/edit' },
-    { name: 'Org Chart', path: '/org-chart' },
-    { name: 'Admin Employees', path: '/admin/employees' },
+    { name: 'Dashboard', path: '/dashboard', expectedTitle: 'Dashboard' },
+    { name: 'User Profile', path: '/users/abino', expectedTitle: 'My Profile' },
+    { name: 'Other User Profile', path: '/users/abino.poulose.123', expectedTitle: 'User Profile' },
+    { name: 'Department Tickets', path: '/department-tickets', expectedTitle: 'Department Tickets' },
+    { name: 'Department Details Tickets', path: '/departments/c3cf6db0-0000-0000-0000-000000000020/tickets', expectedTitle: 'Department Tickets' },
+    { name: 'Department Members', path: '/departments/c3cf6db0-0000-0000-0000-000000000020/members', expectedTitle: 'Department Members' },
+    { name: 'Ticket Details', path: '/tickets/a0b1c2d3-0000-0000-0000-000000000001', expectedTitle: 'Ticket Details' },
+    { name: 'Admin Ticket Types Edit', path: '/admin/ticket-types/f5e6d7c8-0000-0000-0000-000000000099/edit', expectedTitle: 'Edit Ticket Type' },
+    { name: 'Org Chart', path: '/org-chart', expectedTitle: 'Organization Chart' },
+    { name: 'Admin Employees', path: '/admin/employees', expectedTitle: 'Employees' },
   ];
 
-  routesToTest.forEach(({ name, path }) => {
-    it(`does not render top breadcrumbs on ${name} (${path})`, () => {
+  routesToTest.forEach(({ name, path, expectedTitle }) => {
+    it(`renders page heading "${expectedTitle}" and no breadcrumbs on ${name} (${path})`, () => {
       render(
         <MemoryRouter initialEntries={[path]}>
           <Routes>
@@ -50,6 +50,7 @@ describe('AppLayout Top Navigation', () => {
         </MemoryRouter>
       );
 
+      expect(screen.getByRole('heading', { level: 1, name: expectedTitle })).toBeDefined();
       expect(screen.queryByRole('navigation', { name: /breadcrumb/i })).toBeNull();
       expect(screen.queryByText('Home')).toBeNull();
     });

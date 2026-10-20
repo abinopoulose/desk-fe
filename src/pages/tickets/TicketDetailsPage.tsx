@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
-import { ArrowLeft, ChevronRight, AlertCircle, Lock, CheckCircle2, Loader2, Send, Flame } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router';
+import { ArrowLeft, AlertCircle, Lock, CheckCircle2, Loader2, Send, Flame } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import { useTicketDetails, useTicketComments } from '../../hooks';
 import { useAuth } from '../../store/authStore';
@@ -319,15 +319,9 @@ export const TicketDetailsPage: React.FC = () => {
               <span>Back to Requests</span>
             </button>
 
-            <span className="text-slate-300">•</span>
-
-            <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-              <Link to={ROUTES.TICKETS.BASE} className="hover:text-slate-600 transition-colors">
-                Queue
-              </Link>
-              <ChevronRight className="w-3 h-3 text-slate-300" />
-              <span className="font-mono text-slate-700 font-semibold">{displayReference}</span>
-            </nav>
+            <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+              {displayReference}
+            </span>
           </div>
 
           {canEscalate && (

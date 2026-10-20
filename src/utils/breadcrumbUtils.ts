@@ -98,3 +98,58 @@ export function getBreadcrumbHref(paths: string[], index: number): string {
 
   return `/${paths.slice(0, index + 1).join('/')}`;
 }
+
+/**
+ * Resolves a clean, user-friendly page heading for the top navigation bar.
+ */
+export function getPageTitle(
+  pathname: string,
+  user?: { id?: string; email?: string; fullName?: string } | null
+): string {
+  const cleanPath = pathname.split('?')[0].replace(/\/+$/, '') || '/';
+
+  if (cleanPath === '/' || cleanPath === '/dashboard') return 'Dashboard';
+  if (cleanPath === '/org-chart') return 'Organization Chart';
+  if (cleanPath === '/department-tickets') return 'Department Tickets';
+  if (cleanPath === '/browse') return 'Service Catalog';
+  if (cleanPath === '/tickets/new') return 'Create Request';
+  if (cleanPath.startsWith('/tickets/')) return 'Ticket Details';
+
+  if (cleanPath.startsWith('/departments/')) {
+    if (cleanPath.endsWith('/members')) return 'Department Members';
+    if (cleanPath.endsWith('/metrics')) return 'Department Metrics';
+    return 'Department Tickets';
+  }
+  if (cleanPath === '/departments') return 'Departments';
+
+  if (cleanPath === '/admin/ticket-types') return 'Ticket Types';
+  if (cleanPath === '/admin/ticket-types/new') return 'Create Ticket Type';
+  if (cleanPath.includes('/admin/ticket-types/') && cleanPath.endsWith('/edit')) return 'Edit Ticket Type';
+  if (cleanPath.includes('/admin/ticket-types/') && cleanPath.endsWith('/statuses')) return 'Ticket Statuses';
+  if (cleanPath === '/admin/departments') return 'Departments';
+  if (cleanPath === '/admin/roles') return 'Roles & Permissions';
+  if (cleanPath === '/admin/employees') return 'Employees';
+
+  if (cleanPath.startsWith('/users/')) {
+    const segment = cleanPath.replace('/users/', '');
+    if (user) {
+      const userSlug = user.fullName
+        ? user.fullName
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+        : '';
+      const emailPrefix = user.email ? user.email.split('@')[0].toLowerCase() : '';
+      if (segment === user.id || segment === userSlug || segment.toLowerCase() === emailPrefix) {
+        return 'My Profile';
+      }
+    }
+    return 'User Profile';
+  }
+
+  if (cleanPath === '/metrics') return 'Performance Metrics';
+  if (cleanPath === '/settings') return 'Settings';
+
+  return 'Dashboard';
+}

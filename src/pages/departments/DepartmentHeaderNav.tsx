@@ -25,7 +25,7 @@ interface DepartmentHeaderNavProps {
 export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
   departmentId,
   departmentName,
-  description,
+  description: _description,
   alphaTags = [],
   myRole,
   activeTab,
@@ -104,41 +104,33 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
         )}
 
         {/* Title and Badges */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  {departmentName || 'Department'}
-                </h1>
-                {alphaTags && alphaTags.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
-                    {alphaTags[0]}
-                  </span>
-                )}
-                {myRole === 'ADMIN' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                    Admin
-                  </span>
-                )}
-                {myRole === 'MEMBER' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                    <Users className="w-3.5 h-3.5 text-blue-600" />
-                    Member
-                  </span>
-                )}
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+              <Building2 className="w-4 h-4" />
             </div>
-
-            {description && (
-              <p className="text-slate-500 text-xs sm:text-sm max-w-2xl leading-relaxed pl-11">
-                {description}
-              </p>
-            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                {departmentName || 'Department'}
+              </h1>
+              {alphaTags && alphaTags.length > 0 && (
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                  {alphaTags[0]}
+                </span>
+              )}
+              {myRole === 'ADMIN' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                  Admin
+                </span>
+              )}
+              {myRole === 'MEMBER' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                  <Users className="w-3.5 h-3.5 text-blue-600" />
+                  Member
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

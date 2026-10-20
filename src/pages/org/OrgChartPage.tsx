@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router';
 import { OrgChartTree } from '../../components/org/OrgChartTree';
 import { useOrgChart } from '../../hooks/useOrgChart';
 import {
-  Network,
   Search,
   ZoomIn,
   ZoomOut,
@@ -79,25 +78,10 @@ export const OrgChartPage: React.FC = () => {
       ref={containerRef}
       className="flex flex-col flex-1 h-full min-h-[calc(100vh-4rem)] w-full bg-slate-50 text-slate-800 overflow-hidden"
     >
-      {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/80 px-6 py-4 lg:px-10 shadow-2xs flex-none z-10">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <Network className="w-3.5 h-3.5 text-indigo-600" />
-                Company Directory
-              </span>
-              <span className="text-xs text-slate-400 font-medium">• Reporting Structure</span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Organization Chart</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Interactive visualization of employee reporting lines and department hierarchies.
-            </p>
-          </div>
-
+      {/* Controls Toolbar */}
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-3 shadow-2xs flex-none z-10">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3">
           {/* Controls: Search + Zoom + Fullscreen */}
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div className="relative flex-grow md:flex-grow-0 min-w-[220px]">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -161,7 +145,6 @@ export const OrgChartPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Main Canvas - uses full screen height, pan/zoom enabled */}
       <div

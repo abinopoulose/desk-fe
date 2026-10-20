@@ -203,13 +203,9 @@ export const UserProfilePage: React.FC = () => {
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <Link to={ROUTES.ADMIN.EMPLOYEES} className="hover:text-slate-900 transition-colors">
-                    Employees
-                  </Link>
-                  <span className="text-slate-300">/</span>
-                  <span className="text-slate-900 font-semibold truncate max-w-xs">{profile.fullName}</span>
-                </div>
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight truncate max-w-md">
+                  {profile.fullName}
+                </h1>
               </>
             )}
           </div>
