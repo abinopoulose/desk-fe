@@ -588,9 +588,6 @@ export const MetricsDashboardPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 self-end sm:self-center">
-                <span className="text-2xs font-bold px-2.5 py-1 rounded-full bg-indigo-100/70 text-indigo-800">
-                  Target SLA: 90%
-                </span>
                 <span className={`text-2xs font-bold px-2.5 py-1 rounded-full ${
                   parseFloat(complianceRate) >= 90
                     ? 'bg-emerald-100 text-emerald-800'
