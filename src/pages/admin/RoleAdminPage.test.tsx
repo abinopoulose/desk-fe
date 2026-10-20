@@ -122,4 +122,47 @@ describe('RoleAdminPage', () => {
     expect(screen.getByText('Privileges')).toBeDefined();
     expect(screen.getByText('Select All')).toBeDefined();
   });
+
+  it('renders modal with full width privileges and full descriptions without truncation', () => {
+    vi.spyOn(rolesHook, 'useRoles').mockReturnValue({
+      roles: [],
+      data: null,
+      loading: false,
+      error: null,
+      formState: { name: 'SECURITY_AUDITOR', description: 'Audits access', permissions: ['USER_EDIT'] },
+      setFormField: vi.fn(),
+      togglePermission: vi.fn(),
+      isEditing: false,
+      editingRole: null,
+      isModalOpen: true,
+      startEdit: vi.fn(),
+      openModal: vi.fn(),
+      cancelEdit: vi.fn(),
+      closeModal: vi.fn(),
+      save: vi.fn(),
+      remove: vi.fn(),
+      refetch: vi.fn(),
+      fetchRoles: vi.fn(),
+      createRole: vi.fn(),
+      updateRole: vi.fn(),
+      deleteRole: vi.fn(),
+      assignRoles: vi.fn(),
+      fetchUserRoles: vi.fn(),
+    });
+
+    const { container } = render(<RoleAdminPage />);
+
+    // Check modal size class is max-w-4xl
+    const modalContainer = container.querySelector('.max-w-4xl');
+    expect(modalContainer).not.toBeNull();
+
+    // Check that permission label and description are rendered
+    expect(screen.getByText('User Edit')).toBeDefined();
+    expect(screen.getByText('USER_EDIT')).toBeDefined();
+    expect(screen.getByText('edit user details, manager, invite user, etc.')).toBeDefined();
+
+    // Verify there are no truncate classes on permission labels
+    const truncateElements = container.querySelectorAll('label .truncate');
+    expect(truncateElements.length).toBe(0);
+  });
 });

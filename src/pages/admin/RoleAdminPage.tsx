@@ -17,7 +17,7 @@ import {
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { useRoles } from '../../hooks';
-import { AVAILABLE_PERMISSIONS, PERMISSION_LABELS } from '../../constants';
+import { PERMISSION_LABELS } from '../../constants';
 import type { RoleDTO } from '../../types/role';
 
 interface PermissionGroup {
@@ -38,6 +38,15 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
 ];
+
+function parsePermissionLabel(priv: string): { title: string; desc: string | null } {
+  const raw = PERMISSION_LABELS[priv] || priv;
+  const match = raw.match(/^(.*?)\s*\((.*?)\)$/);
+  if (match) {
+    return { title: match[1].trim(), desc: match[2].trim() };
+  }
+  return { title: raw, desc: null };
+}
 
 export const RoleAdminPage: React.FC = () => {
   const {
@@ -119,8 +128,24 @@ export const RoleAdminPage: React.FC = () => {
     setFormField('permissions', nextPermissions);
   };
 
+  const displayGroups = useMemo(() => {
+    const basePerms = PERMISSION_GROUPS[0].permissions;
+    const extraPerms = formState.permissions.filter((p) => !basePerms.includes(p as any));
+    const combined = [...basePerms, ...extraPerms];
+    return [
+      {
+        id: 'simplified_privileges',
+        title: 'Privileges',
+        permissions: combined,
+      },
+    ];
+  }, [formState.permissions]);
+
+  const totalPermCount = displayGroups[0].permissions.length;
+
   const handleSelectAllPermissions = () => {
-    setFormField('permissions', [...AVAILABLE_PERMISSIONS]);
+    const all = displayGroups.flatMap((g) => g.permissions);
+    setFormField('permissions', Array.from(new Set(all)));
   };
 
   const handleClearAllPermissions = () => {
@@ -337,24 +362,24 @@ export const RoleAdminPage: React.FC = () => {
 
         {/* Create / Edit Role Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 z-50 animate-in fade-in duration-150">
             <div 
-              className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
               role="dialog"
               aria-modal="true"
               aria-labelledby="role-modal-title"
             >
               {/* Modal Header */}
-              <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4" />
+              <div className="px-6 sm:px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 id="role-modal-title" className="text-base font-bold text-slate-900">
+                    <h2 id="role-modal-title" className="text-base sm:text-lg font-bold text-slate-900">
                       {isEditing ? `Edit Role: ${formState.name}` : 'Create New Role'}
                     </h2>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {isEditing ? 'Modify permissions and role description' : 'Define name, purpose, and system privileges'}
                     </p>
                   </div>
@@ -362,7 +387,8 @@ export const RoleAdminPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
+                  className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-200/60 transition-colors cursor-pointer"
+                  aria-label="Close dialog"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -370,15 +396,15 @@ export const RoleAdminPage: React.FC = () => {
 
               {/* Modal Form */}
               <form onSubmit={handleSaveRole} className="flex flex-col flex-1 overflow-hidden">
-                <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
                   {modalError && (
-                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2.5">
                       <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                       <span>{modalError}</span>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
                       <label htmlFor="roleName" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                         Role Identifier <span className="text-rose-500">*</span>
@@ -390,14 +416,18 @@ export const RoleAdminPage: React.FC = () => {
                         value={formState.name}
                         onChange={(e) => setFormField('name', e.target.value)}
                         disabled={isEditing}
-                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white disabled:bg-slate-100 disabled:text-slate-500 border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white disabled:bg-slate-100 disabled:text-slate-500 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100 font-medium"
                         required
                         autoFocus={!isEditing}
                       />
-                      {isEditing && (
-                        <span className="text-[10px] text-slate-400 mt-1 block flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-slate-400" />
+                      {isEditing ? (
+                        <span className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-slate-400" />
                           Role identifiers cannot be renamed once created
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 mt-1 block">
+                          Unique system identifier (e.g. COMPLIANCE_OFFICER, TIER_1_SUPPORT)
                         </span>
                       )}
                     </div>
@@ -412,24 +442,24 @@ export const RoleAdminPage: React.FC = () => {
                         placeholder="e.g. Handles initial triage and customer queries"
                         value={formState.description}
                         onChange={(e) => setFormField('description', e.target.value)}
-                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
+                        className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-indigo-100"
                       />
                     </div>
                   </div>
 
                   {/* Permissions Selection Header */}
                   <div className="pt-2">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
                       <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                          Role Privileges ({formState.permissions.length} of {AVAILABLE_PERMISSIONS.length})
+                        <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
+                          Role Privileges ({formState.permissions.length} of {totalPermCount})
                         </h3>
-                        <p className="text-[11px] text-slate-400">
-                          Select the specific operations this role is allowed to perform
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Select the specific operations and capabilities this role is allowed to perform
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
                         <button
                           type="button"
                           onClick={handleSelectAllPermissions}
@@ -450,58 +480,71 @@ export const RoleAdminPage: React.FC = () => {
 
                     {/* Categorized Permission Groups */}
                     <div className="space-y-4 mt-4">
-                      {PERMISSION_GROUPS.map((group) => {
+                      {displayGroups.map((group) => {
                         const groupActiveCount = group.permissions.filter((p) => formState.permissions.includes(p)).length;
                         const isAllSelected = groupActiveCount === group.permissions.length;
 
                         return (
-                          <div key={group.id} className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-3.5">
-                            <div className="flex items-center justify-between mb-2.5">
-                              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                          <div key={group.id} className="bg-slate-50/60 border border-slate-200/80 rounded-2xl p-4 sm:p-5">
+                            <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-slate-200/60">
+                              <span className="text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                                <Layers className="w-4 h-4 text-indigo-500" />
                                 {group.title}
                               </span>
 
                               <button
                                 type="button"
                                 onClick={() => handleToggleGroup(group.permissions)}
-                                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center gap-1"
+                                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center gap-1.5"
                               >
                                 {isAllSelected ? (
                                   <>
-                                    <Square className="w-3 h-3" />
+                                    <Square className="w-3.5 h-3.5" />
                                     <span>Deselect Group</span>
                                   </>
                                 ) : (
                                   <>
-                                    <CheckSquare className="w-3 h-3" />
+                                    <CheckSquare className="w-3.5 h-3.5" />
                                     <span>Select Group</span>
                                   </>
                                 )}
                               </button>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="flex flex-col gap-2.5">
                               {group.permissions.map((priv) => {
                                 const isChecked = formState.permissions.includes(priv);
+                                const { title, desc } = parsePermissionLabel(priv);
                                 return (
                                   <label
                                     key={priv}
-                                    className={`flex items-center gap-2.5 p-2 rounded-lg border transition-all cursor-pointer select-none text-xs ${
+                                    className={`w-full flex items-start gap-3.5 p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
                                       isChecked
-                                        ? 'bg-indigo-50/80 border-indigo-300 text-indigo-950 font-medium'
-                                        : 'bg-white border-slate-200/80 text-slate-600 hover:border-slate-300'
+                                        ? 'bg-indigo-50/70 border-indigo-300 ring-1 ring-indigo-500/20 text-indigo-950 shadow-2xs'
+                                        : 'bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/50'
                                     }`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={isChecked}
                                       onChange={() => togglePermission(priv)}
-                                      className="w-3.5 h-3.5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                                      className="w-4 h-4 mt-0.5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 shrink-0 cursor-pointer"
                                     />
-                                    <span className="truncate">
-                                      {PERMISSION_LABELS[priv] || priv}
-                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-semibold text-slate-900 text-xs sm:text-sm">
+                                          {title}
+                                        </span>
+                                        <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200/70">
+                                          {priv}
+                                        </span>
+                                      </div>
+                                      {desc && (
+                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                          {desc}
+                                        </p>
+                                      )}
+                                    </div>
                                   </label>
                                 );
                               })}
@@ -514,20 +557,20 @@ export const RoleAdminPage: React.FC = () => {
                 </div>
 
                 {/* Modal Action Footer */}
-                <div className="p-4 px-6 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/70 shrink-0">
+                <div className="p-4 sm:p-5 px-6 sm:px-8 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/70 shrink-0">
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+                    className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || !formState.name.trim()}
-                    className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
                   >
-                    <Check className="w-3.5 h-3.5" />
+                    <Check className="w-4 h-4" />
                     <span>{isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Role'}</span>
                   </button>
                 </div>
