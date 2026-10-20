@@ -54,7 +54,7 @@ describe('AppLayout Breadcrumbs', () => {
     cleanup();
   });
 
-  it('renders Home / Users / abino for /users/abino', () => {
+  it('does not render breadcrumbs when viewing own profile (/users/abino)', () => {
     render(
       <MemoryRouter initialEntries={['/users/abino']}>
         <Routes>
@@ -65,10 +65,7 @@ describe('AppLayout Breadcrumbs', () => {
       </MemoryRouter>
     );
 
-    const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
-    expect(within(nav).getByText('Home')).toBeDefined();
-    expect(within(nav).getByText('Users')).toBeDefined();
-    expect(within(nav).getByText('abino')).toBeDefined();
+    expect(screen.queryByRole('navigation', { name: /breadcrumb/i })).toBeNull();
   });
 
   it('renders Home / Users / abino.poulose.123 for /users/abino.poulose.123', () => {

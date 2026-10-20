@@ -189,35 +189,29 @@ export const UserProfilePage: React.FC = () => {
       <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.ADMIN.EMPLOYEES)}
-              className="w-9 h-9 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-              title="Back to Employees"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <Link to={ROUTES.ADMIN.EMPLOYEES} className="hover:text-slate-900 transition-colors">
-                Employees
-              </Link>
-              <span className="text-slate-300">/</span>
-              <span className="text-slate-900 font-semibold truncate max-w-xs">{profile.fullName}</span>
-              {isSelf && activeTab !== 'profile' && (
-                <>
+            {isSelf ? (
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                My Profile
+              </h1>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.ADMIN.EMPLOYEES)}
+                  className="w-9 h-9 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  title="Back to Employees"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                  <Link to={ROUTES.ADMIN.EMPLOYEES} className="hover:text-slate-900 transition-colors">
+                    Employees
+                  </Link>
                   <span className="text-slate-300">/</span>
-                  <span className="text-indigo-600 font-semibold capitalize">
-                    {activeTab === 'sessions'
-                      ? 'Active Sessions'
-                      : activeTab === 'history'
-                      ? 'Login History'
-                      : activeTab === 'security'
-                      ? 'Security'
-                      : activeTab}
-                  </span>
-                </>
-              )}
-            </div>
+                  <span className="text-slate-900 font-semibold truncate max-w-xs">{profile.fullName}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

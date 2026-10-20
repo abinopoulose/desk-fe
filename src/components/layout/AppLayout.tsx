@@ -155,9 +155,22 @@ const pendingBreadcrumbFetches = new Set<string>();
 function HeaderBreadcrumbs({ pathname }: { pathname: string }) {
   const navigate = useNavigate();
   const { labels, setLabel } = useBreadcrumbStore();
+  const { user } = useAuth();
   const paths = pathname.split('/').filter(Boolean);
 
+  const isMyProfile = paths[0] === 'users' && (
+    paths.length === 1 ||
+    paths[1] === 'me' ||
+    (Boolean(user) && (
+      paths[1] === user?.id ||
+      paths[1] === getUserSlug(user) ||
+      paths[1].toLowerCase() === (user?.email ? user.email.split('@')[0].toLowerCase() : '') ||
+      labels[paths[1]] === user?.fullName
+    ))
+  );
+
   useEffect(() => {
+    if (isMyProfile) return;
     paths.forEach((segment, index) => {
       if (!segment || labels[segment] || pendingBreadcrumbFetches.has(segment)) return;
       const prevSegment = index > 0 ? paths[index - 1].toLowerCase() : undefined;
@@ -208,9 +221,10 @@ function HeaderBreadcrumbs({ pathname }: { pathname: string }) {
           });
       }
     });
-  }, [pathname, labels, setLabel]);
+  }, [pathname, labels, setLabel, isMyProfile]);
 
   if (paths.length === 0) return <span className="font-semibold text-slate-800 text-lg">Dashboard</span>;
+  if (isMyProfile) return null;
 
   return (
     <Breadcrumbs aria-label="breadcrumb">
