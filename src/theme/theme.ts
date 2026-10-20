@@ -85,6 +85,19 @@ const getDesignTokens = (mode: 'light' | 'dark') => ({
         },
       },
     },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        input: {
+          '&:-webkit-autofill': {
+            WebkitBoxShadow: '0 0 0 1000px #ffffff inset !important',
+            boxShadow: '0 0 0 1000px #ffffff inset !important',
+            WebkitTextFillColor: '#0f172a !important',
+            caretColor: '#0f172a',
+            transition: 'background-color 50000s ease-in-out 0s',
+          },
+        },
+      },
+    },
   },
 });
 

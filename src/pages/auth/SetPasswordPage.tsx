@@ -54,6 +54,14 @@ const lightInputSx = {
     color: '#94a3b8',
     opacity: 1,
   },
+  '& .MuiInputBase-input:-webkit-autofill': {
+    WebkitBoxShadow: '0 0 0 1000px #ffffff inset !important',
+    boxShadow: '0 0 0 1000px #ffffff inset !important',
+    WebkitTextFillColor: '#0f172a !important',
+    caretColor: '#0f172a',
+    borderRadius: 'inherit',
+    transition: 'background-color 50000s ease-in-out 0s',
+  },
 };
 
 export const SetPasswordPage: React.FC = () => {

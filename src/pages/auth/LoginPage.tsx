@@ -27,6 +27,27 @@ import { resolveOrganization, type OrganizationDTO } from '../../api/organizatio
 import { useAuthStore } from '../../store/authStore';
 import { tokenStorage } from '../../utils/tokenStorage';
 
+const authInputSx = {
+  '& .MuiOutlinedInput-root': {
+    bgcolor: '#ffffff',
+    borderRadius: 2,
+    color: '#0f172a',
+    fontSize: '0.875rem',
+    '& fieldset': { borderColor: '#cbd5e1' },
+    '&:hover fieldset': { borderColor: '#6366f1' },
+    '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
+  },
+  '& .MuiInputBase-input::placeholder': { color: '#94a3b8', opacity: 1 },
+  '& .MuiInputBase-input:-webkit-autofill': {
+    WebkitBoxShadow: '0 0 0 1000px #ffffff inset !important',
+    boxShadow: '0 0 0 1000px #ffffff inset !important',
+    WebkitTextFillColor: '#0f172a !important',
+    caretColor: '#0f172a',
+    borderRadius: 'inherit',
+    transition: 'background-color 50000s ease-in-out 0s',
+  },
+};
+
 export const LoginPage: React.FC = () => {
   const { formState, setField, submit, loading, error } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
@@ -156,18 +177,7 @@ export const LoginPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#ffffff',
-                  borderRadius: 2,
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                  '& fieldset': { borderColor: '#cbd5e1' },
-                  '&:hover fieldset': { borderColor: '#6366f1' },
-                  '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
-                },
-                '& .MuiInputBase-input::placeholder': { color: '#94a3b8', opacity: 1 },
-              }}
+              sx={authInputSx}
             />
           </div>
 
@@ -225,18 +235,7 @@ export const LoginPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: '#ffffff',
-                  borderRadius: 2,
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                  '& fieldset': { borderColor: '#cbd5e1' },
-                  '&:hover fieldset': { borderColor: '#6366f1' },
-                  '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
-                },
-                '& .MuiInputBase-input::placeholder': { color: '#94a3b8', opacity: 1 },
-              }}
+              sx={authInputSx}
             />
           </div>
 
