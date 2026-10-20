@@ -17,7 +17,6 @@ import { MetricsDashboardPage } from './pages/metrics/MetricsDashboardPage';
 import { PrivilegeGate } from './components/auth/PrivilegeGate';
 import UserProfilePage from './pages/user/UserProfilePage';
 import { DepartmentAdminPage } from './pages/admin/DepartmentAdminPage';
-import { DepartmentListPage } from './pages/departments/DepartmentListPage';
 import { DepartmentTicketsPage } from './pages/departments/DepartmentTicketsPage';
 import { DepartmentMembersPage } from './pages/departments/DepartmentMembersPage';
 import { DepartmentMetricsPage } from './pages/departments/DepartmentMetricsPage';
@@ -37,7 +36,7 @@ function SettingsRedirect() {
 
 function DepartmentRedirect() {
   const { departmentId } = useParams<{ departmentId: string }>();
-  return <Navigate to={ROUTES.DEPARTMENT_DETAILS.MEMBERS(departmentId || '')} replace />;
+  return <Navigate to={ROUTES.DEPARTMENT_DETAILS.TICKETS(departmentId || '')} replace />;
 }
 
 function App() {
@@ -55,7 +54,7 @@ function App() {
             {/* Workspace Routes (Accessible to all authenticated firm members) */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<TicketListPage />} />
-            <Route path={ROUTES.DEPARTMENTS} element={<DepartmentListPage />} />
+            <Route path={ROUTES.DEPARTMENTS} element={<Navigate to={ROUTES.DEPARTMENT_TICKETS} replace />} />
             <Route path={ROUTES.DEPARTMENT_TICKETS} element={<DepartmentTicketsPage />} />
             <Route path="/departments/:departmentId" element={<DepartmentRedirect />} />
             <Route path={ROUTES.DEPARTMENT_DETAILS.TICKETS_PATH} element={<DepartmentTicketsPage />} />

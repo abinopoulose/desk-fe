@@ -63,11 +63,11 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
         {/* Breadcrumb & Back Link */}
         <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3">
           <Link
-            to={ROUTES.DEPARTMENTS}
+            to={ROUTES.DEPARTMENT_TICKETS}
             className="hover:text-indigo-600 transition-colors flex items-center gap-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>My Departments</span>
+            <span>Department Tickets</span>
           </Link>
           <ChevronRight className="w-3 h-3 text-slate-400" />
           <span className="text-slate-900 font-semibold truncate max-w-xs">

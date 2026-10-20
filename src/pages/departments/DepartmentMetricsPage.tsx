@@ -118,10 +118,10 @@ export const DepartmentMetricsPage: React.FC = () => {
           </p>
           <button
             type="button"
-            onClick={() => navigate(ROUTES.DEPARTMENTS)}
+            onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
             className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 transition-colors cursor-pointer"
           >
-            Back to My Departments
+            Back to Department Tickets
           </button>
         </div>
       </div>
@@ -148,10 +148,10 @@ export const DepartmentMetricsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => navigate(ROUTES.DEPARTMENTS)}
+              onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
               className="px-4 py-2 bg-white text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              Back to My Departments
+              Back to Department Tickets
             </button>
           </div>
         </div>

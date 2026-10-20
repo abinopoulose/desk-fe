@@ -39,42 +39,53 @@ interface NavItemProps {
 }
 
 function NavItem({ to, icon: Icon, label, isSidebarOpen }: NavItemProps) {
+  const location = useLocation();
+  const isDepartmentItem = to === ROUTES.DEPARTMENT_TICKETS;
+  const isCustomActive = isDepartmentItem && (
+    location.pathname === ROUTES.DEPARTMENT_TICKETS ||
+    location.pathname.startsWith('/departments')
+  );
+
   const linkNode = (
     <NavLink
       to={to}
-      className={({ isActive }) =>
-        `relative transition-all duration-150 flex items-center group ${
+      className={({ isActive }) => {
+        const active = isActive || isCustomActive;
+        return `relative transition-all duration-150 flex items-center group ${
           isSidebarOpen
             ? `px-3 py-2 rounded-xl text-xs gap-3 font-medium ${
-                isActive
+                active
                   ? 'bg-indigo-50/90 text-indigo-700 font-semibold border border-indigo-100/90 shadow-2xs'
                   : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
               }`
             : `w-10 h-10 mx-auto justify-center rounded-xl ${
-                isActive
+                active
                   ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs'
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
               }`
-        }`
-      }
+        }`;
+      }}
     >
-      {({ isActive }) => (
-        <>
-          {isActive && isSidebarOpen && (
-            <span className="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 rounded-r-full" />
-          )}
-          <Icon
-            className={`w-4 h-4 shrink-0 transition-colors ${
-              isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
-            }`}
-          />
-          {isSidebarOpen && (
-            <span className="truncate whitespace-nowrap text-xs">
-              {label}
-            </span>
-          )}
-        </>
-      )}
+      {({ isActive }) => {
+        const active = isActive || isCustomActive;
+        return (
+          <>
+            {active && isSidebarOpen && (
+              <span className="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 rounded-r-full" />
+            )}
+            <Icon
+              className={`w-4 h-4 shrink-0 transition-colors ${
+                active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+              }`}
+            />
+            {isSidebarOpen && (
+              <span className="truncate whitespace-nowrap text-xs">
+                {label}
+              </span>
+            )}
+          </>
+        );
+      }}
     </NavLink>
   );
 

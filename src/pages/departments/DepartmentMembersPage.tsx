@@ -261,10 +261,10 @@ export const DepartmentMembersPage: React.FC = () => {
           </p>
           <button
             type="button"
-            onClick={() => navigate(ROUTES.DEPARTMENTS)}
+            onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
             className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 transition-colors cursor-pointer"
           >
-            Back to My Departments
+            Back to Department Tickets
           </button>
         </div>
       </div>
@@ -285,10 +285,10 @@ export const DepartmentMembersPage: React.FC = () => {
           <div className="flex items-center justify-center gap-3 mt-4">
             <button
               type="button"
-              onClick={() => navigate(ROUTES.DEPARTMENTS)}
+              onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
               className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors cursor-pointer"
             >
-              Back to My Departments
+              Back to Department Tickets
             </button>
           </div>
         </div>
