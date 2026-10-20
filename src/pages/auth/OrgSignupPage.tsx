@@ -34,14 +34,14 @@ const getStrengthColor = (strength: number) => {
   return 'success';
 };
 
-const darkInputSx = {
+const lightInputSx = {
   '& .MuiOutlinedInput-root': {
-    bgcolor: 'rgba(15, 23, 42, 0.6)',
+    bgcolor: '#ffffff',
     borderRadius: 2,
-    color: 'white',
+    color: '#0f172a',
     fontSize: '0.875rem',
     '& fieldset': {
-      borderColor: 'rgba(51, 65, 85, 0.8)',
+      borderColor: '#cbd5e1',
     },
     '&:hover fieldset': {
       borderColor: '#6366f1',
@@ -52,7 +52,7 @@ const darkInputSx = {
     },
   },
   '& .MuiInputBase-input::placeholder': {
-    color: '#64748b',
+    color: '#94a3b8',
     opacity: 1,
   },
 };
@@ -73,13 +73,12 @@ export const OrgSignupPage: React.FC = () => {
         {error && (
           <Alert
             severity="error"
-            variant="filled"
             sx={{
               mb: 3,
               borderRadius: 2,
-              bgcolor: 'rgba(239, 68, 68, 0.15)',
-              color: '#fca5a5',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
+              bgcolor: '#fef2f2',
+              color: '#b91c1c',
+              border: '1px solid #fecaca',
               '& .MuiAlert-icon': { color: '#ef4444' },
             }}
             role="alert"
@@ -93,7 +92,7 @@ export const OrgSignupPage: React.FC = () => {
           <div>
             <label
               htmlFor="name"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Organization Name
             </label>
@@ -115,7 +114,7 @@ export const OrgSignupPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={darkInputSx}
+              sx={lightInputSx}
             />
           </div>
 
@@ -123,7 +122,7 @@ export const OrgSignupPage: React.FC = () => {
           <div>
             <label
               htmlFor="adminFullName"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Admin Full Name
             </label>
@@ -145,7 +144,7 @@ export const OrgSignupPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={darkInputSx}
+              sx={lightInputSx}
             />
           </div>
 
@@ -153,7 +152,7 @@ export const OrgSignupPage: React.FC = () => {
           <div>
             <label
               htmlFor="adminEmail"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Admin Email Address
             </label>
@@ -175,7 +174,7 @@ export const OrgSignupPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={darkInputSx}
+              sx={lightInputSx}
             />
           </div>
 
@@ -183,7 +182,7 @@ export const OrgSignupPage: React.FC = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Password
             </label>
@@ -210,7 +209,7 @@ export const OrgSignupPage: React.FC = () => {
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         size="small"
-                        sx={{ color: '#94a3b8', '&:hover': { color: 'white' } }}
+                        sx={{ color: '#64748b', '&:hover': { color: '#0f172a' } }}
                       >
                         {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                       </IconButton>
@@ -218,7 +217,7 @@ export const OrgSignupPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={darkInputSx}
+              sx={lightInputSx}
             />
             {formState.password && (
               <Box sx={{ mt: 1.5 }}>
@@ -229,12 +228,12 @@ export const OrgSignupPage: React.FC = () => {
                   sx={{
                     height: 5,
                     borderRadius: 3,
-                    bgcolor: 'rgba(51, 65, 85, 0.5)',
+                    bgcolor: '#e2e8f0',
                     mb: 0.75,
                   }}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '11px' }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '11px' }}>
                     Password strength:
                   </Typography>
                   <Typography
@@ -266,7 +265,7 @@ export const OrgSignupPage: React.FC = () => {
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Confirm Password
             </label>
@@ -288,7 +287,7 @@ export const OrgSignupPage: React.FC = () => {
                   ),
                 },
               }}
-              sx={darkInputSx}
+              sx={lightInputSx}
             />
           </div>
         </Box>
@@ -313,8 +312,8 @@ export const OrgSignupPage: React.FC = () => {
               boxShadow: '0 6px 16px rgba(79, 70, 229, 0.45)',
             },
             '&:disabled': {
-              background: 'rgba(51, 65, 85, 0.5)',
-              color: '#64748b',
+              background: '#e2e8f0',
+              color: '#94a3b8',
             },
           }}
         >
@@ -329,16 +328,16 @@ export const OrgSignupPage: React.FC = () => {
         </Button>
 
         <Box sx={{ mt: 3.5, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+          <Typography variant="body2" sx={{ color: '#64748b' }}>
             Already have an account?{' '}
             <Link
               component={RouterLink}
               to={ROUTES.AUTH.LOGIN}
               sx={{
-                color: '#818cf8',
+                color: '#4f46e5',
                 fontWeight: 600,
                 textDecoration: 'none',
-                '&:hover': { color: '#a5b4fc', textDecoration: 'underline' },
+                '&:hover': { color: '#4338ca', textDecoration: 'underline' },
               }}
             >
               Sign in

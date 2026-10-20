@@ -22,13 +22,14 @@ export function AuthLayout({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: '#020617', // slate-950
+        bgcolor: '#f8fafc', // slate-50
+        background: 'radial-gradient(circle at 50% 0%, #eef2ff 0%, #f8fafc 70%)',
         p: { xs: 2, sm: 4 },
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Ambient background glow orbs */}
+      {/* Ambient background glow accents */}
       <Box
         sx={{
           position: 'absolute',
@@ -37,7 +38,7 @@ export function AuthLayout({
           width: 400,
           height: 400,
           borderRadius: '50%',
-          bgcolor: 'rgba(99, 102, 241, 0.15)',
+          bgcolor: 'rgba(99, 102, 241, 0.08)',
           filter: 'blur(90px)',
           pointerEvents: 'none',
         }}
@@ -50,7 +51,7 @@ export function AuthLayout({
           width: 400,
           height: 400,
           borderRadius: '50%',
-          bgcolor: 'rgba(59, 130, 246, 0.12)',
+          bgcolor: 'rgba(59, 130, 246, 0.06)',
           filter: 'blur(90px)',
           pointerEvents: 'none',
         }}
@@ -65,17 +66,16 @@ export function AuthLayout({
           style={{ width: '100%', maxWidth, position: 'relative', zIndex: 10 }}
         >
           <Paper
-            elevation={12}
+            elevation={0}
             sx={{
               p: { xs: 3.5, sm: 5 },
               borderRadius: 3.5,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              bgcolor: 'rgba(15, 23, 42, 0.92)', // slate-900 with subtle transparency
-              border: '1px solid rgba(51, 65, 85, 0.8)',
-              backdropFilter: 'blur(16px)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0', // slate-200
+              boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
             }}
           >
             {/* Logo Badge */}
@@ -90,7 +90,7 @@ export function AuthLayout({
               <LogoIcon size={46} badge={true} />
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="h6" component="span" sx={{ fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+                  <Typography variant="h6" component="span" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
                     {APP_NAME}
                   </Typography>
                   <Typography
@@ -99,12 +99,12 @@ export function AuthLayout({
                       fontSize: '10px',
                       fontWeight: 700,
                       textTransform: 'uppercase',
-                      bgcolor: 'rgba(99, 102, 241, 0.2)',
-                      color: '#a5b4fc',
+                      bgcolor: 'rgba(99, 102, 241, 0.1)',
+                      color: '#4f46e5',
                       px: 1,
                       py: 0.25,
                       borderRadius: 999,
-                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      border: '1px solid rgba(99, 102, 241, 0.2)',
                     }}
                   >
                     Cloud
@@ -116,7 +116,7 @@ export function AuthLayout({
             <Typography
               variant="h5"
               component="h1"
-              sx={{ fontWeight: 700, color: 'white', mb: 1, letterSpacing: '-0.01em' }}
+              sx={{ fontWeight: 700, color: '#0f172a', mb: 1, letterSpacing: '-0.01em' }}
               align="center"
             >
               {title}
@@ -124,7 +124,7 @@ export function AuthLayout({
             {subtitle && (
               <Typography
                 variant="body2"
-                sx={{ color: '#94a3b8', mb: 3.5 }}
+                sx={{ color: '#64748b', mb: 3.5 }}
                 align="center"
               >
                 {subtitle}

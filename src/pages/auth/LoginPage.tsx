@@ -85,9 +85,9 @@ export const LoginPage: React.FC = () => {
       {/* Workspace Indicator Pill if on tenant subdomain */}
       {currentSubdomain && (
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-medium">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-            <span>Workspace: <strong className="text-white capitalize">{tenantOrg?.name || currentSubdomain}</strong></span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-medium">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+            <span>Workspace: <strong className="text-slate-900 capitalize">{tenantOrg?.name || currentSubdomain}</strong></span>
           </div>
         </Box>
       )}
@@ -96,13 +96,12 @@ export const LoginPage: React.FC = () => {
       {tenantError && (
         <Alert
           severity="warning"
-          variant="filled"
           sx={{
             mb: 3,
             borderRadius: 2,
-            bgcolor: 'rgba(245, 158, 11, 0.15)',
-            color: '#fcd34d',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
+            bgcolor: '#fffbeb',
+            color: '#b45309',
+            border: '1px solid #fde68a',
             '& .MuiAlert-icon': { color: '#f59e0b' },
           }}
         >
@@ -114,13 +113,12 @@ export const LoginPage: React.FC = () => {
       {error && (
         <Alert
           severity="error"
-          variant="filled"
           sx={{
             mb: 3,
             borderRadius: 2,
-            bgcolor: 'rgba(239, 68, 68, 0.15)',
-            color: '#fca5a5',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
+            bgcolor: '#fef2f2',
+            color: '#b91c1c',
+            border: '1px solid #fecaca',
             '& .MuiAlert-icon': { color: '#ef4444' },
           }}
           role="alert"
@@ -135,7 +133,7 @@ export const LoginPage: React.FC = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Work Email
             </label>
@@ -160,15 +158,15 @@ export const LoginPage: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  bgcolor: 'rgba(15, 23, 42, 0.6)',
+                  bgcolor: '#ffffff',
                   borderRadius: 2,
-                  color: 'white',
+                  color: '#0f172a',
                   fontSize: '0.875rem',
-                  '& fieldset': { borderColor: 'rgba(51, 65, 85, 0.8)' },
+                  '& fieldset': { borderColor: '#cbd5e1' },
                   '&:hover fieldset': { borderColor: '#6366f1' },
                   '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
                 },
-                '& .MuiInputBase-input::placeholder': { color: '#64748b', opacity: 1 },
+                '& .MuiInputBase-input::placeholder': { color: '#94a3b8', opacity: 1 },
               }}
             />
           </div>
@@ -178,7 +176,7 @@ export const LoginPage: React.FC = () => {
             <div className="flex items-center justify-between mb-1.5">
               <label
                 htmlFor="password"
-                className="block text-xs font-semibold uppercase tracking-wider text-slate-300"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
               >
                 Password
               </label>
@@ -187,10 +185,10 @@ export const LoginPage: React.FC = () => {
                 to={ROUTES.AUTH.FORGOT_PASSWORD}
                 variant="caption"
                 sx={{
-                  color: '#818cf8',
+                  color: '#4f46e5',
                   textDecoration: 'none',
-                  fontWeight: 500,
-                  '&:hover': { textDecoration: 'underline' },
+                  fontWeight: 600,
+                  '&:hover': { color: '#4338ca', textDecoration: 'underline' },
                 }}
               >
                 Forgot password?
@@ -219,7 +217,7 @@ export const LoginPage: React.FC = () => {
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         size="small"
-                        sx={{ color: '#94a3b8' }}
+                        sx={{ color: '#64748b', '&:hover': { color: '#0f172a' } }}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </IconButton>
@@ -229,15 +227,15 @@ export const LoginPage: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  bgcolor: 'rgba(15, 23, 42, 0.6)',
+                  bgcolor: '#ffffff',
                   borderRadius: 2,
-                  color: 'white',
+                  color: '#0f172a',
                   fontSize: '0.875rem',
-                  '& fieldset': { borderColor: 'rgba(51, 65, 85, 0.8)' },
+                  '& fieldset': { borderColor: '#cbd5e1' },
                   '&:hover fieldset': { borderColor: '#6366f1' },
                   '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
                 },
-                '& .MuiInputBase-input::placeholder': { color: '#64748b', opacity: 1 },
+                '& .MuiInputBase-input::placeholder': { color: '#94a3b8', opacity: 1 },
               }}
             />
           </div>
@@ -250,13 +248,13 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 size="small"
                 sx={{
-                  color: '#64748b',
-                  '&.Mui-checked': { color: '#6366f1' },
+                  color: '#94a3b8',
+                  '&.Mui-checked': { color: '#4f46e5' },
                 }}
               />
             }
             label={
-              <span className="text-xs text-slate-400 select-none">
+              <span className="text-xs text-slate-600 select-none">
                 Remember work email on this device
               </span>
             }
@@ -283,7 +281,7 @@ export const LoginPage: React.FC = () => {
               boxShadow: '0 6px 20px 0 rgba(79, 70, 229, 0.5)',
             },
             '&:disabled': {
-              background: 'rgba(51, 65, 85, 0.5)',
+              background: '#e2e8f0',
               color: '#94a3b8',
             },
           }}
@@ -303,17 +301,17 @@ export const LoginPage: React.FC = () => {
 
         {/* Register Organization CTA (Only on root / non-tenant domain) */}
         {!currentSubdomain && (
-          <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid rgba(51, 65, 85, 0.6)', textAlign: 'center' }}>
-            <span className="text-xs text-slate-400">
+          <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <span className="text-xs text-slate-600">
               Need a new workspace?{' '}
               <Link
                 component={RouterLink}
                 to={ROUTES.AUTH.REGISTER}
                 sx={{
-                  color: '#818cf8',
+                  color: '#4f46e5',
                   textDecoration: 'none',
                   fontWeight: 600,
-                  '&:hover': { textDecoration: 'underline' },
+                  '&:hover': { color: '#4338ca', textDecoration: 'underline' },
                 }}
               >
                 Register organization

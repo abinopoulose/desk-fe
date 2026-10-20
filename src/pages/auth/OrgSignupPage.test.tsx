@@ -33,7 +33,7 @@ describe('OrgSignupPage', () => {
     cleanup();
   });
 
-  it('renders Register your Organization form inputs and labels with dark mode layout', () => {
+  it('renders Register your Organization form inputs and labels', () => {
     render(
       <MemoryRouter initialEntries={['/signup']}>
         <Routes>

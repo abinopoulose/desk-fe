@@ -33,14 +33,14 @@ const getStrengthColor = (strength: number) => {
   return 'success';
 };
 
-const darkInputSx = {
+const lightInputSx = {
   '& .MuiOutlinedInput-root': {
-    bgcolor: 'rgba(15, 23, 42, 0.6)',
+    bgcolor: '#ffffff',
     borderRadius: 2,
-    color: 'white',
+    color: '#0f172a',
     fontSize: '0.875rem',
     '& fieldset': {
-      borderColor: 'rgba(51, 65, 85, 0.8)',
+      borderColor: '#cbd5e1',
     },
     '&:hover fieldset': {
       borderColor: '#6366f1',
@@ -51,7 +51,7 @@ const darkInputSx = {
     },
   },
   '& .MuiInputBase-input::placeholder': {
-    color: '#64748b',
+    color: '#94a3b8',
     opacity: 1,
   },
 };
@@ -85,15 +85,14 @@ export const SetPasswordPage: React.FC = () => {
       {!token ? (
         <Alert
           severity="error"
-          variant="filled"
           icon={<AlertCircle size={22} />}
           sx={{
             alignItems: 'center',
             py: 2,
             borderRadius: 2,
-            bgcolor: 'rgba(239, 68, 68, 0.15)',
-            color: '#fca5a5',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
+            bgcolor: '#fef2f2',
+            color: '#b91c1c',
+            border: '1px solid #fecaca',
             '& .MuiAlert-icon': { color: '#ef4444' },
           }}
         >
@@ -104,13 +103,12 @@ export const SetPasswordPage: React.FC = () => {
           {error && (
             <Alert
               severity="error"
-              variant="filled"
               sx={{
                 mb: 3,
                 borderRadius: 2,
-                bgcolor: 'rgba(239, 68, 68, 0.15)',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
+                bgcolor: '#fef2f2',
+                color: '#b91c1c',
+                border: '1px solid #fecaca',
                 '& .MuiAlert-icon': { color: '#ef4444' },
               }}
               role="alert"
@@ -123,7 +121,7 @@ export const SetPasswordPage: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
               >
                 New Password
               </label>
@@ -151,7 +149,7 @@ export const SetPasswordPage: React.FC = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                           size="small"
-                          sx={{ color: '#94a3b8', '&:hover': { color: 'white' } }}
+                          sx={{ color: '#64748b', '&:hover': { color: '#0f172a' } }}
                         >
                           {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                         </IconButton>
@@ -159,7 +157,7 @@ export const SetPasswordPage: React.FC = () => {
                     ),
                   },
                 }}
-                sx={darkInputSx}
+                sx={lightInputSx}
               />
               {formState.password && (
                 <Box sx={{ mt: 1.5 }}>
@@ -170,12 +168,12 @@ export const SetPasswordPage: React.FC = () => {
                     sx={{
                       height: 5,
                       borderRadius: 3,
-                      bgcolor: 'rgba(51, 65, 85, 0.5)',
+                      bgcolor: '#e2e8f0',
                       mb: 0.75,
                     }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '11px' }}>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '11px' }}>
                       Password strength:
                     </Typography>
                     <Typography
@@ -206,7 +204,7 @@ export const SetPasswordPage: React.FC = () => {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
               >
                 Confirm Password
               </label>
@@ -228,7 +226,7 @@ export const SetPasswordPage: React.FC = () => {
                     ),
                   },
                 }}
-                sx={darkInputSx}
+                sx={lightInputSx}
               />
             </div>
           </Box>
@@ -239,8 +237,8 @@ export const SetPasswordPage: React.FC = () => {
               mb: 3.5,
               p: 2,
               borderRadius: 2,
-              bgcolor: 'rgba(30, 41, 59, 0.5)',
-              border: '1px solid rgba(51, 65, 85, 0.7)',
+              bgcolor: '#f8fafc',
+              border: '1px solid #e2e8f0',
             }}
           >
             <FormControlLabel
@@ -250,19 +248,19 @@ export const SetPasswordPage: React.FC = () => {
                   onChange={(e) => setTerminateOtherSessions(e.target.checked)}
                   size="small"
                   sx={{
-                    color: '#64748b',
+                    color: '#94a3b8',
                     '&.Mui-checked': {
-                      color: '#6366f1',
+                      color: '#4f46e5',
                     },
                   }}
                 />
               }
               label={
                 <Box>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '0.825rem' }}>
+                  <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 600, fontSize: '0.825rem' }}>
                     Terminate all other logged in sessions
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 0.25 }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.25 }}>
                     Sign out of all other browsers, computers, and mobile devices immediately.
                   </Typography>
                 </Box>
@@ -275,16 +273,16 @@ export const SetPasswordPage: React.FC = () => {
                   mt: 1.5,
                   p: 1.25,
                   borderRadius: 1.5,
-                  bgcolor: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  bgcolor: '#fffbeb',
+                  border: '1px solid #fde68a',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
-                  color: '#fcd34d',
+                  color: '#b45309',
                   fontSize: '0.75rem',
                 }}
               >
-                <ShieldAlert size={16} className="text-amber-400 shrink-0" />
+                <ShieldAlert size={16} className="text-amber-500 shrink-0" />
                 <span>
                   Notice: You currently have {tokenInfo.activeSessionCount} active session(s) that will be terminated.
                 </span>
@@ -312,8 +310,8 @@ export const SetPasswordPage: React.FC = () => {
                 boxShadow: '0 6px 16px rgba(79, 70, 229, 0.45)',
               },
               '&:disabled': {
-                background: 'rgba(51, 65, 85, 0.5)',
-                color: '#64748b',
+                background: '#e2e8f0',
+                color: '#94a3b8',
               },
             }}
           >

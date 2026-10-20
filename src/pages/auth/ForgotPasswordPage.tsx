@@ -49,22 +49,22 @@ export const ForgotPasswordPage: React.FC = () => {
               width: 56,
               height: 56,
               borderRadius: '50%',
-              bgcolor: 'rgba(16, 185, 129, 0.15)',
+              bgcolor: '#ecfdf5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
+              border: '1px solid #a7f3d0',
             }}
           >
-            <CheckCircle2 size={32} className="text-emerald-400" />
+            <CheckCircle2 size={32} className="text-emerald-600" />
           </Box>
 
           <Alert
             severity="success"
             sx={{
-              bgcolor: 'rgba(16, 185, 129, 0.1)',
-              color: '#6ee7b7',
-              border: '1px solid rgba(16, 185, 129, 0.25)',
+              bgcolor: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
               width: '100%',
               textAlign: 'left',
             }}
@@ -96,9 +96,9 @@ export const ForgotPasswordPage: React.FC = () => {
               severity="error"
               sx={{
                 mb: 3,
-                bgcolor: 'rgba(239, 68, 68, 0.15)',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
+                bgcolor: '#fef2f2',
+                color: '#b91c1c',
+                border: '1px solid #fecaca',
               }}
               role="alert"
             >
@@ -109,7 +109,7 @@ export const ForgotPasswordPage: React.FC = () => {
           <Box sx={{ mb: 4 }}>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
             >
               Work Email Address
             </label>
@@ -134,12 +134,12 @@ export const ForgotPasswordPage: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  bgcolor: 'rgba(15, 23, 42, 0.6)',
+                  bgcolor: '#ffffff',
                   borderRadius: 2,
-                  color: 'white',
+                  color: '#0f172a',
                   fontSize: '0.875rem',
                   '& fieldset': {
-                    borderColor: 'rgba(51, 65, 85, 0.8)',
+                    borderColor: '#cbd5e1',
                   },
                   '&:hover fieldset': {
                     borderColor: '#6366f1',
@@ -150,7 +150,7 @@ export const ForgotPasswordPage: React.FC = () => {
                   },
                 },
                 '& .MuiInputBase-input::placeholder': {
-                  color: '#64748b',
+                  color: '#94a3b8',
                   opacity: 1,
                 },
               }}
@@ -173,6 +173,10 @@ export const ForgotPasswordPage: React.FC = () => {
               '&:hover': {
                 background: 'linear-gradient(135deg, #4338ca 0%, #2563eb 100%)',
               },
+              '&:disabled': {
+                background: '#e2e8f0',
+                color: '#94a3b8',
+              },
             }}
           >
             {loading ? (
@@ -194,13 +198,13 @@ export const ForgotPasswordPage: React.FC = () => {
               to={ROUTES.AUTH.LOGIN}
               variant="caption"
               sx={{
-                color: '#818cf8',
+                color: '#4f46e5',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.5,
-                '&:hover': { textDecoration: 'underline' },
+                '&:hover': { color: '#4338ca', textDecoration: 'underline' },
               }}
             >
               <ArrowLeft size={14} /> Back to Sign In
