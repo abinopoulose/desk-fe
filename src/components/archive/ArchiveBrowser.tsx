@@ -83,9 +83,9 @@ export const ArchiveBrowser: React.FC = () => {
               <span className="text-xs text-slate-400 font-medium">New Ticket Request</span>
             </div>
             
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
               {currentFolderName ? currentFolderName : 'Select Ticket Category'}
-            </h1>
+            </h2>
             <p className="text-slate-500 text-sm mt-1 max-w-xl">
               Browse categories and ticket templates below, or search directly to file a new ticket.
             </p>

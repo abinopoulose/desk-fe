@@ -156,35 +156,6 @@ export const RoleAdminPage: React.FC = () => {
     <div className="min-h-full bg-slate-50 text-slate-800 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
       <div className="w-full space-y-6">
         
-        {/* Header Card */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-2xs">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Roles & Permissions
-              </h1>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                {roles.length}
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setModalError(null);
-              startEdit();
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer self-start sm:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Role</span>
-          </button>
-        </div>
-
         {/* Global Error Banner */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex items-center gap-3 text-sm">
@@ -193,8 +164,8 @@ export const RoleAdminPage: React.FC = () => {
           </div>
         )}
 
-        {/* Search & Stats Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Toolbar: Search, Count & Create Role */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -202,7 +173,7 @@ export const RoleAdminPage: React.FC = () => {
               placeholder="Search roles or privileges..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white hover:border-slate-300 focus:border-indigo-500 border border-slate-200 rounded-xl py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 transition-all shadow-2xs"
+              className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 transition-all shadow-2xs"
             />
             {searchQuery && (
               <button
@@ -215,8 +186,22 @@ export const RoleAdminPage: React.FC = () => {
             )}
           </div>
 
-          <div className="text-xs text-slate-400">
-            Showing <span className="font-semibold text-slate-700">{filteredRoles.length}</span> of {roles.length} roles
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <span className="text-xs text-slate-500 font-medium">
+              Showing <span className="font-semibold text-slate-700">{filteredRoles.length}</span> of {roles.length} roles
+            </span>
+
+            <button
+              type="button"
+              onClick={() => {
+                setModalError(null);
+                startEdit();
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Role</span>
+            </button>
           </div>
         </div>
 

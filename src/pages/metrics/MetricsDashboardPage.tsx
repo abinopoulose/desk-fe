@@ -210,63 +210,58 @@ export const MetricsDashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-20">
-      {/* Top Header */}
-      <div className="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-2xs">
-        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Performance Metrics</h1>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
-              title="Reset all filters to defaults"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filters</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer"
-              title="Refresh metrics"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6 space-y-6">
         {/* Customizable Control & Filter Toolbar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
               <Sliders className="w-4 h-4 text-indigo-600" />
               <span>Customize Scope & Dimensions</span>
             </div>
 
-            {/* Interval Aggregator */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium">Interval:</span>
-              <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                {(['DAY', 'WEEK', 'MONTH'] as const).map((int) => (
-                  <button
-                    key={int}
-                    type="button"
-                    onClick={() => setFilter('interval', int)}
-                    className={`px-2.5 py-1 text-2xs font-semibold rounded-md transition-all ${
-                      (filters.interval || 'DAY') === int
-                        ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {int === 'DAY' ? 'Daily' : int === 'WEEK' ? 'Weekly' : 'Monthly'}
-                  </button>
-                ))}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Interval Aggregator */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-medium">Interval:</span>
+                <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                  {(['DAY', 'WEEK', 'MONTH'] as const).map((int) => (
+                    <button
+                      key={int}
+                      type="button"
+                      onClick={() => setFilter('interval', int)}
+                      className={`px-2.5 py-1 text-2xs font-semibold rounded-md transition-all ${
+                        (filters.interval || 'DAY') === int
+                          ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {int === 'DAY' ? 'Daily' : int === 'WEEK' ? 'Weekly' : 'Monthly'}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
+                title="Reset all filters to defaults"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+                title="Refresh metrics"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Refresh</span>
+              </button>
             </div>
           </div>
 

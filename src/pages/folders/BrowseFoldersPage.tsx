@@ -322,9 +322,9 @@ export const BrowseFoldersPage: React.FC<{ isAdminMode?: boolean }> = ({ isAdmin
         {/* Top Header */}
         <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-xs">
           <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {currentFolderName ? currentFolderName : 'All Ticket Categories'}
-            </h1>
+            </h2>
 
             {/* Quick Actions & Search */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

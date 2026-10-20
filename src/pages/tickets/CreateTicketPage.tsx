@@ -110,9 +110,9 @@ export const CreateTicketPage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 <span>{schemaResponse.title}</span>
-              </h1>
+              </h2>
               {schemaResponse.description && (
                 <p className="text-sm text-slate-500 mt-1 max-w-2xl">{schemaResponse.description}</p>
               )}

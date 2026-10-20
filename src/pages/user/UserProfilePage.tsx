@@ -185,43 +185,30 @@ export const UserProfilePage: React.FC = () => {
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
       
-      {/* Top Breadcrumb & Actions Bar */}
-      <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {isSelf ? (
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                My Profile
-              </h1>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigate(ROUTES.ADMIN.EMPLOYEES)}
-                  className="w-9 h-9 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                  title="Back to Employees"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-                <h1 className="text-lg font-bold text-slate-900 tracking-tight truncate max-w-md">
-                  {profile.fullName}
-                </h1>
-              </>
-            )}
-          </div>
+      {/* Top Actions Bar (shown when inspecting another employee's profile) */}
+      {!isSelf && (
+        <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.ADMIN.EMPLOYEES)}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Employees</span>
+            </button>
 
-          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={startEdit}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>Edit Details</span>
             </button>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
 
@@ -341,9 +328,9 @@ export const UserProfilePage: React.FC = () => {
                 {/* Profile Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2.5 mb-1">
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight truncate">
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight truncate">
                       {profile.fullName}
-                    </h1>
+                    </h2>
 
                     {(() => {
                       const isUserActive = profile.isActive ?? profile.active ?? true;
@@ -405,15 +392,15 @@ export const UserProfilePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Quick Edit CTA button on desktop */}
-                <div className="hidden sm:flex flex-col gap-2 shrink-0">
+                {/* Quick Edit CTA button */}
+                <div className="flex flex-col gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={startEdit}
                     className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Pencil className="w-3.5 h-3.5" />
-                    <span>Edit Profile</span>
+                    <span>Edit Details</span>
                   </button>
                 </div>
               </div>

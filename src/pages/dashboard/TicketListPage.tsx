@@ -57,37 +57,8 @@ export const TicketListPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-      {/* Top Header */}
-      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-xs">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Support Requests
-          </h1>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
-              className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Open your department support queue"
-            >
-              <Inbox className="w-4 h-4 text-indigo-600" />
-              <span>Department Tickets</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.TICKETS.NEW)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Request</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 space-y-6">
         
         {/* Navigation Tabs & Filters Bar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col gap-4">
@@ -124,26 +95,37 @@ export const TicketListPage: React.FC = () => {
               </button>
             </div>
 
-            {/* State filter: All / Open / Closed */}
-            <div className="flex items-center gap-1 self-start sm:self-auto bg-slate-100/80 p-1 rounded-xl">
-              {[
-                { value: '', label: 'All' },
-                { value: 'OPEN', label: 'Open' },
-                { value: 'CLOSED', label: 'Closed' },
-              ].map((st) => (
-                <button
-                  key={st.value}
-                  type="button"
-                  onClick={() => setFilter('mappedState', st.value)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    filters.mappedState === st.value
-                      ? 'bg-white text-slate-800 shadow-2xs font-semibold'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              ))}
+            {/* State filter: All / Open / Closed & Create Request */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl">
+                {[
+                  { value: '', label: 'All' },
+                  { value: 'OPEN', label: 'Open' },
+                  { value: 'CLOSED', label: 'Closed' },
+                ].map((st) => (
+                  <button
+                    key={st.value}
+                    type="button"
+                    onClick={() => setFilter('mappedState', st.value)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      filters.mappedState === st.value
+                        ? 'bg-white text-slate-800 shadow-2xs font-semibold'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.TICKETS.NEW)}
+                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Request</span>
+              </button>
             </div>
           </div>
 

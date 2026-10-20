@@ -93,7 +93,7 @@ describe('MetricsDashboardPage', () => {
     render(<MetricsDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Performance Metrics')).toBeDefined();
+      expect(screen.getByText('Customize Scope & Dimensions')).toBeDefined();
       expect(screen.getByText('250')).toBeDefined(); // Total Inflow
       expect(screen.getByText('50')).toBeDefined(); // Active Backlog
       expect(screen.getByText('200')).toBeDefined(); // Resolved Throughput

@@ -110,9 +110,9 @@ export const DepartmentHeaderNav: React.FC<DepartmentHeaderNavProps> = ({
               <Building2 className="w-4 h-4" />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                 {departmentName || 'Department'}
-              </h1>
+              </h2>
               {alphaTags && alphaTags.length > 0 && (
                 <span className="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                   {alphaTags[0]}

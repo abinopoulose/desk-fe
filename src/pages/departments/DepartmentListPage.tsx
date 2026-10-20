@@ -8,7 +8,6 @@ import {
   BarChart2,
   ShieldCheck,
   ChevronRight,
-  Sparkles,
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
@@ -97,45 +96,12 @@ export const DepartmentListPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-      {/* Top Header Card */}
-      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-6 shadow-xs">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                Team Directory
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                • {departments.length} Assigned {departments.length === 1 ? 'Department' : 'Departments'}
-              </span>
-            </div>
-
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
-              My Departments
-            </h1>
-            <p className="text-slate-500 text-sm mt-1 max-w-xl">
-              Overview of your assigned functional departments, team rosters, and administrative roles.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={fetchDepartments}
-              disabled={loading}
-              className="p-2 text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
-              title="Refresh departments"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
-            </button>
-          </div>
-        </div>
-
+      {/* Main Content Area */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 space-y-6">
         {/* Quick KPI Stat Chips */}
-        <div className="w-full mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+        <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
@@ -144,8 +110,8 @@ export const DepartmentListPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
@@ -154,8 +120,8 @@ export const DepartmentListPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl px-4 py-2.5 col-span-2 sm:col-span-1 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-3 col-span-2 sm:col-span-1 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4" />
             </div>
             <div>
@@ -164,10 +130,7 @@ export const DepartmentListPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
         {/* Search & Filter Toolbar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
@@ -181,40 +144,52 @@ export const DepartmentListPage: React.FC = () => {
             />
           </div>
 
-          {/* Role Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <div className="flex items-center gap-2">
+            {/* Role Filter Tabs */}
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setRoleFilter('ALL')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  roleFilter === 'ALL'
+                    ? 'bg-white text-slate-900 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All ({departments.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setRoleFilter('ADMIN')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  roleFilter === 'ADMIN'
+                    ? 'bg-white text-purple-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Admin ({totalAdminCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setRoleFilter('MEMBER')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  roleFilter === 'MEMBER'
+                    ? 'bg-white text-blue-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Member ({departments.length - totalAdminCount})
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() => setRoleFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                roleFilter === 'ALL'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={fetchDepartments}
+              disabled={loading}
+              className="p-2 text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+              title="Refresh departments"
             >
-              All ({departments.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setRoleFilter('ADMIN')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                roleFilter === 'ADMIN'
-                  ? 'bg-white text-purple-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Admin ({totalAdminCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setRoleFilter('MEMBER')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                roleFilter === 'MEMBER'
-                  ? 'bg-white text-blue-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Member ({departments.length - totalAdminCount})
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
             </button>
           </div>
         </div>

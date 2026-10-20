@@ -62,7 +62,7 @@ describe('EmployeeManagementPage Component', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Employee Directory')).toBeDefined();
+    expect(screen.getByText('Invite Employee')).toBeDefined();
     expect(screen.getByText('Total Employees')).toBeDefined();
     expect(screen.getByText('Active Staff')).toBeDefined();
     expect(screen.getByText('Pending Invites')).toBeDefined();

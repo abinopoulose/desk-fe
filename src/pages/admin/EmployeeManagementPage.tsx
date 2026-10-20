@@ -162,26 +162,7 @@ export const EmployeeManagementPage: React.FC = () => {
   return (
     <PrivilegeGate requiredPrivilege="USER_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-        
-        {/* Sticky Top Header */}
-        <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              Employee Directory
-            </h1>
-
-            <button
-              type="button"
-              onClick={() => setIsInviteModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Invite Employee</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8 space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-8 space-y-6">
           
           {/* Error Banner */}
           {error && (
@@ -306,6 +287,15 @@ export const EmployeeManagementPage: React.FC = () => {
                 <option value="MANAGER">Manager</option>
                 <option value="ADMIN">Administrator</option>
               </select>
+
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Invite Employee</span>
+              </button>
             </div>
           </div>
 

@@ -36,7 +36,7 @@ describe('DepartmentAdminPage', () => {
 
     render(<DepartmentAdminPage />);
 
-    expect(screen.getByText('Departments')).toBeDefined();
+    expect(screen.getByText(/Departments/i)).toBeDefined();
     expect(screen.getByText('Engineering')).toBeDefined();
     expect(screen.getByText('Customer Support')).toBeDefined();
     expect(screen.getByText('Software & Infrastructure')).toBeDefined();

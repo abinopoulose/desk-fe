@@ -51,7 +51,7 @@ describe('DepartmentListPage', () => {
 
     render(<DepartmentListPage />);
 
-    expect(screen.getByText('My Departments')).toBeDefined();
+    expect(screen.getByPlaceholderText('Search departments by name, tag, or description...')).toBeDefined();
 
     await waitFor(() => {
       expect(screen.getAllByText('IT').length).toBeGreaterThan(0);

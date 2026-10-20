@@ -83,27 +83,30 @@ export const TicketStatusManager: React.FC = () => {
   return (
     <PrivilegeGate requiredPrivilege="TICKET_TYPE_EDIT">
       <div className="min-h-full bg-slate-50 text-slate-800 pb-16">
-        {/* Top Header */}
-        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-4 shadow-2xs">
+        {/* Top Actions Bar */}
+        <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-3.5 shadow-2xs">
           <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.ADMIN.TICKET_TYPES)}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
                 title="Back to Ticket Types"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Ticket Types</span>
               </button>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">
-                Manage Statuses {ticketType?.title ? `— ${ticketType.title}` : ''}
-              </h1>
+              {ticketType?.title && (
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold text-xs">
+                  {ticketType.title}
+                </span>
+              )}
             </div>
 
             <button
               type="button"
               onClick={() => startEdit()}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors self-start sm:self-auto"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Status Stage

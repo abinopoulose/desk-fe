@@ -44,7 +44,7 @@ describe('RoleAdminPage', () => {
 
     render(<RoleAdminPage />);
 
-    expect(screen.getByText('Roles & Permissions')).toBeDefined();
+    expect(screen.getByText('Create Role')).toBeDefined();
     expect(screen.getByText('ADMIN')).toBeDefined();
     expect(screen.getByText('SUPPORT_AGENT')).toBeDefined();
     expect(screen.getByText('Admin Full Access')).toBeDefined();

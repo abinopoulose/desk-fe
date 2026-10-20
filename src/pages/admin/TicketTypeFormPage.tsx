@@ -193,9 +193,11 @@ export const TicketTypeFormPage: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-3">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  {isEditMode ? title || 'Edit Ticket Type' : 'Create New Ticket Type'}
-                </h1>
+                {isEditMode && title ? (
+                  <span className="text-base font-bold text-slate-900 tracking-tight truncate max-w-sm">
+                    {title}
+                  </span>
+                ) : null}
                 <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                   isActive 
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
