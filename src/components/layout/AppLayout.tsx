@@ -13,23 +13,12 @@ import {
 } from 'lucide-react';
 import { 
   SwipeableDrawer, Drawer, useMediaQuery, useTheme, IconButton, 
-  Collapse, Divider, Breadcrumbs, Link as MuiLink, 
+  Collapse, Divider, 
   Avatar, Menu as MuiMenu, MenuItem, Tooltip, Badge, InputBase, Box
 } from '@mui/material';
 import { LAYOUT } from '../../theme/tokens';
 import { getUserSlug } from '../../utils/userUtils';
 import { LogoIcon } from '../common/Logo';
-import { useBreadcrumbStore } from '../../store/breadcrumbStore';
-import {
-  isUuidLike,
-  formatRouteSegment,
-  getFallbackSegmentLabel,
-  getBreadcrumbHref,
-} from '../../utils/breadcrumbUtils';
-import { departmentApi } from '../../api/departmentApi';
-import { ticketApi } from '../../api/ticketApi';
-import { ticketTypeApi } from '../../api/ticketTypeApi';
-import { getUserProfile } from '../../api/userApi';
 
 interface NavItemProps {
   to: string;
@@ -147,140 +136,6 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
         </div>
       </Collapse>
     </div>
-  );
-}
-
-const pendingBreadcrumbFetches = new Set<string>();
-
-function HeaderBreadcrumbs({ pathname }: { pathname: string }) {
-  const navigate = useNavigate();
-  const { labels, setLabel } = useBreadcrumbStore();
-  const { user } = useAuth();
-  const paths = pathname.split('/').filter(Boolean);
-
-  const isMyProfile = paths[0] === 'users' && (
-    paths.length === 1 ||
-    paths[1] === 'me' ||
-    (Boolean(user) && (
-      paths[1] === user?.id ||
-      paths[1] === getUserSlug(user) ||
-      paths[1].toLowerCase() === (user?.email ? user.email.split('@')[0].toLowerCase() : '') ||
-      labels[paths[1]] === user?.fullName
-    ))
-  );
-
-  const isDepartmentTickets = paths[0] === 'department-tickets';
-
-  useEffect(() => {
-    if (isMyProfile || isDepartmentTickets) return;
-    paths.forEach((segment, index) => {
-      if (!segment || labels[segment] || pendingBreadcrumbFetches.has(segment)) return;
-      const prevSegment = index > 0 ? paths[index - 1].toLowerCase() : undefined;
-
-      if (prevSegment === 'departments' && isUuidLike(segment)) {
-        pendingBreadcrumbFetches.add(segment);
-        departmentApi
-          .getDepartmentById(segment)
-          .then((dept) => {
-            if (dept?.name) setLabel(segment, dept.name);
-          })
-          .catch(() => {})
-          .finally(() => {
-            pendingBreadcrumbFetches.delete(segment);
-          });
-      } else if (prevSegment === 'tickets' && isUuidLike(segment)) {
-        pendingBreadcrumbFetches.add(segment);
-        ticketApi
-          .getTicketDetails(segment)
-          .then((t) => {
-            const label = t?.displayId || t?.title || 'Ticket Details';
-            if (label) setLabel(segment, label);
-          })
-          .catch(() => {})
-          .finally(() => {
-            pendingBreadcrumbFetches.delete(segment);
-          });
-      } else if (prevSegment === 'ticket-types' && isUuidLike(segment)) {
-        pendingBreadcrumbFetches.add(segment);
-        ticketTypeApi
-          .getTicketTypeById(segment)
-          .then((tt) => {
-            if (tt?.title) setLabel(segment, tt.title);
-          })
-          .catch(() => {})
-          .finally(() => {
-            pendingBreadcrumbFetches.delete(segment);
-          });
-      } else if (prevSegment === 'users') {
-        pendingBreadcrumbFetches.add(segment);
-        getUserProfile(segment)
-          .then((u) => {
-            if (u?.fullName) setLabel(segment, u.fullName);
-          })
-          .catch(() => {})
-          .finally(() => {
-            pendingBreadcrumbFetches.delete(segment);
-          });
-      }
-    });
-  }, [pathname, labels, setLabel, isMyProfile, isDepartmentTickets]);
-
-  if (paths.length === 0) return <span className="font-semibold text-slate-800 text-lg">Dashboard</span>;
-  if (isMyProfile || isDepartmentTickets) return null;
-
-  return (
-    <Breadcrumbs aria-label="breadcrumb">
-      <MuiLink
-        underline="hover"
-        color="inherit"
-        href="/"
-        onClick={(e) => {
-          e.preventDefault();
-          navigate('/');
-        }}
-        className="cursor-pointer hover:text-indigo-600 transition-colors"
-      >
-        Home
-      </MuiLink>
-      {paths.map((path, index) => {
-        const isLast = index === paths.length - 1;
-        const prevSegment = index > 0 ? paths[index - 1] : undefined;
-        const isUuid = isUuidLike(path);
-
-        let name = '';
-        if (labels[path]) {
-          name = labels[path];
-        } else if (isUuid) {
-          name = getFallbackSegmentLabel(path, prevSegment);
-        } else if (paths[0] === 'users' && index === 1) {
-          name = path;
-        } else {
-          name = formatRouteSegment(path);
-        }
-
-        const href = getBreadcrumbHref(paths, index);
-
-        return isLast ? (
-          <span key={`${path}-${index}`} className="font-semibold text-slate-800">
-            {name}
-          </span>
-        ) : (
-          <MuiLink
-            key={`${path}-${index}`}
-            underline="hover"
-            color="inherit"
-            href={href}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(href);
-            }}
-            className="cursor-pointer hover:text-indigo-600 transition-colors"
-          >
-            {name}
-          </MuiLink>
-        );
-      })}
-    </Breadcrumbs>
   );
 }
 
@@ -454,9 +309,6 @@ export function AppLayout() {
                  <Menu className="w-5 h-5 text-slate-500" />
                </IconButton>
              )}
-             <Box sx={{ display: { xs: 'none', sm: 'block' }, ml: 1 }}>
-               <HeaderBreadcrumbs pathname={location.pathname} />
-             </Box>
              
              {/* Portal target so other components can still inject here if they want */}
              <div id="header-portal-target" className="flex-1 flex items-center h-full min-w-0" />

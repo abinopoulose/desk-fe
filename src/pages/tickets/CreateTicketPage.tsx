@@ -6,28 +6,14 @@ import {
   FileText, 
   AlertCircle, 
   CheckCircle2, 
-  Sparkles,
-  ChevronRight
+  Sparkles
 } from 'lucide-react';
 import { PageHeaderSkeleton, CardSkeleton } from '../../components/common/Skeletons';
 import { DynamicFormRenderer } from '../../components/forms/DynamicFormRenderer';
 import type { FormSchema, FormField } from '../../types/formSchema';
-import type { FolderNodeDTO } from '../../types/folder';
-import { useCreateTicket, useDepartments, useFolderTree } from '../../hooks';
+import { useCreateTicket } from '../../hooks';
 import { ROUTES, TICKET_PRIORITY_ITEMS } from '../../constants';
 import { ArchiveBrowser } from '../../components/archive/ArchiveBrowser';
-
-function findFolderPath(nodes: FolderNodeDTO[], targetId: string, path: string[] = []): string[] | null {
-  for (const node of nodes) {
-    const current = [...path, node.name];
-    if (node.id === targetId) return current;
-    if (node.children?.length) {
-      const found = findFolderPath(node.children, targetId, current);
-      if (found) return found;
-    }
-  }
-  return null;
-}
 
 export const CreateTicketPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,19 +36,6 @@ export const CreateTicketPage: React.FC = () => {
     handleFormSubmit,
     confirmSubmission,
   } = useCreateTicket();
-
-  const { departments } = useDepartments();
-  const { treeData } = useFolderTree();
-
-  const departmentName = useMemo(() => {
-    if (!schemaResponse?.departmentId) return null;
-    return departments.find((d) => d.id === schemaResponse.departmentId)?.name || null;
-  }, [departments, schemaResponse]);
-
-  const folderPath = useMemo(() => {
-    if (!schemaResponse?.folderId) return [];
-    return findFolderPath(treeData, schemaResponse.folderId) || [];
-  }, [treeData, schemaResponse]);
 
   const rawSchema = schemaResponse?.formSchema;
   const formSchema: FormSchema = useMemo(() => {
@@ -134,23 +107,6 @@ export const CreateTicketPage: React.FC = () => {
               <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
               <span>Back to Service Catalog</span>
             </button>
-          </div>
-
-          {/* Breadcrumbs */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400 mb-2">
-            <span>Service Catalog</span>
-            {departmentName && (
-              <>
-                <ChevronRight className="w-3 h-3 text-slate-300" />
-                <span className="text-slate-600 font-medium">{departmentName}</span>
-              </>
-            )}
-            {folderPath.map((folder, idx) => (
-              <React.Fragment key={idx}>
-                <ChevronRight className="w-3 h-3 text-slate-300" />
-                <span className="text-slate-600 font-medium">{folder}</span>
-              </React.Fragment>
-            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
