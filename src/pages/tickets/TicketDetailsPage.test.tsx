@@ -577,6 +577,79 @@ describe('TicketDetailsPage - Status & Assignee Permissions', () => {
       expect(screen.queryByRole('combobox')).toBeNull();
       expect(screen.getAllByText('Open').length).toBeGreaterThan(0);
       expect(screen.getByText('Specialist Alice')).toBeDefined();
+      expect(screen.queryByRole('button', { expanded: false })).toBeNull();
+    });
+  });
+
+  it('allows assignee management when canManageTicket is true', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: { ...baseTicket, canChangeStatus: false, canCloseTicket: false, canManageTicket: true },
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { expanded: false })).toBeDefined();
+      expect(screen.getByText('Specialist Alice')).toBeDefined();
+    });
+  });
+
+  it('allows assignee management when current logged-in user is the assignee even if canManageTicket is undefined and canChangeStatus is false', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: {
+        ...baseTicket,
+        assignee: { id: 'USER-1', fullName: 'Abino Poulose', email: 'abino@example.com' },
+        canChangeStatus: false,
+        canCloseTicket: false,
+        canManageTicket: undefined,
+      },
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { expanded: false })).toBeDefined();
+      expect(screen.getAllByText('Abino Poulose').length).toBeGreaterThan(0);
     });
   });
 });

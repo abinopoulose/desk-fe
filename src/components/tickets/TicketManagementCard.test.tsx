@@ -170,4 +170,29 @@ describe('TicketManagementCard Component', () => {
     // Search input or change button shouldn't allow editing
     expect(screen.queryByRole('button', { name: /change assignee/i })).toBeNull();
   });
+
+  it('allows assignee management when canManageAssignee is true', () => {
+    const handleStatusChange = vi.fn();
+    const handleAssigneeChange = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <TicketManagementCard
+          currentStatus={currentStatus}
+          assignee={mockAssignee}
+          availableStatuses={availableStatuses}
+          canChangeStatus={true}
+          canCloseTicket={true}
+          canManageAssignee={true}
+          onStatusChange={handleStatusChange}
+          onAssigneeChange={handleAssigneeChange}
+        />
+      </MemoryRouter>
+    );
+
+    // Interactive button with popup for assignee is rendered
+    const assigneeBtn = screen.getByRole('button', { expanded: false });
+    expect(assigneeBtn).toBeDefined();
+    expect(screen.getByText('Alice Smith')).toBeDefined();
+  });
 });

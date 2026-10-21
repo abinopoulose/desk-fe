@@ -121,11 +121,12 @@ export const TicketDetailsPage: React.FC = () => {
   const canEscalate = canUserEscalateTicket(ticket, user?.id);
 
   const isCreator = Boolean(user?.id && ticket?.requester?.id && user.id === ticket.requester.id);
+  const isAssignee = Boolean(user?.id && ticket?.assignee?.id && user.id === ticket.assignee.id);
   const isTicketOpen = ticket?.currentStatus?.mappedState === 'OPEN';
 
   const canChangeStatus = ticket?.canChangeStatus !== undefined ? ticket.canChangeStatus : isSuperAdmin;
   const canCloseTicket = ticket?.canCloseTicket !== undefined ? ticket.canCloseTicket : (canChangeStatus || (isCreator && isTicketOpen));
-  const canManageAssignee = ticket?.canManageTicket !== undefined ? ticket.canManageTicket : canChangeStatus;
+  const canManageAssignee = ticket?.canManageTicket !== undefined ? ticket.canManageTicket : (canChangeStatus || isAssignee);
 
   const handleEscalate = async () => {
     if (!ticketId || escalating) return;
