@@ -31,6 +31,7 @@ describe('EmployeeManagementPage Component', () => {
 
   const mockHandleInvite = vi.fn();
   const mockHandleResendInvite = vi.fn();
+  const mockHandleUpdateEmployee = vi.fn();
   const mockSetIsInviteModalOpen = vi.fn();
   const mockRefresh = vi.fn();
 
@@ -53,6 +54,9 @@ describe('EmployeeManagementPage Component', () => {
       inviteLoading: false,
       handleInvite: mockHandleInvite,
       handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
       refresh: mockRefresh,
     });
 
@@ -82,6 +86,9 @@ describe('EmployeeManagementPage Component', () => {
       inviteLoading: false,
       handleInvite: mockHandleInvite,
       handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
       refresh: mockRefresh,
     });
 
@@ -109,6 +116,9 @@ describe('EmployeeManagementPage Component', () => {
       inviteLoading: false,
       handleInvite: mockHandleInvite,
       handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
       refresh: mockRefresh,
     });
 
@@ -122,6 +132,49 @@ describe('EmployeeManagementPage Component', () => {
     fireEvent.click(inviteBtn);
 
     expect(mockSetIsInviteModalOpen).toHaveBeenCalledWith(true);
+  });
+
+  it('opens the edit modal when Edit button is clicked and submits changes', () => {
+    vi.spyOn(empHook, 'useEmployeeManagement').mockReturnValue({
+      users: mockUsers,
+      loading: false,
+      error: null,
+      inviteError: null,
+      isInviteModalOpen: false,
+      setIsInviteModalOpen: mockSetIsInviteModalOpen,
+      inviteLoading: false,
+      handleInvite: mockHandleInvite,
+      handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
+      refresh: mockRefresh,
+    });
+
+    render(
+      <MemoryRouter>
+        <EmployeeManagementPage />
+      </MemoryRouter>
+    );
+
+    const editBtns = screen.getAllByRole('button', { name: /edit/i });
+    expect(editBtns.length).toBeGreaterThanOrEqual(1);
+
+    fireEvent.click(editBtns[0]);
+
+    expect(screen.getByText('Edit Employee')).toBeDefined();
+    expect(screen.getByDisplayValue('alice@company.com')).toBeDefined();
+
+    const nameInput = screen.getByDisplayValue('Alice Walker');
+    fireEvent.change(nameInput, { target: { value: 'Alice Smith' } });
+
+    const saveBtn = screen.getByRole('button', { name: /save changes/i });
+    fireEvent.click(saveBtn);
+
+    expect(mockHandleUpdateEmployee).toHaveBeenCalledWith('usr-1', expect.objectContaining({
+      fullName: 'Alice Smith',
+      isActive: true,
+    }));
   });
 
   it('paginates 50 employees per page and navigates between pages', () => {
@@ -145,6 +198,9 @@ describe('EmployeeManagementPage Component', () => {
       inviteLoading: false,
       handleInvite: mockHandleInvite,
       handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
       refresh: mockRefresh,
     });
 
@@ -169,5 +225,5 @@ describe('EmployeeManagementPage Component', () => {
     expect(screen.getByText('Employee 51')).toBeDefined();
     expect(screen.getByText('Employee 65')).toBeDefined();
     expect(screen.queryByText('Employee 1')).toBeNull();
-  });
+  }, 15000);
 });

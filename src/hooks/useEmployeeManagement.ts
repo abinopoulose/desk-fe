@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getOrgUsers, inviteEmployee, resendInvitation } from '../api/employeeApi';
-import type { User, InviteEmployeeRequest } from '../types/user';
+import { updateUserProfile } from '../api/userApi';
+import type { User, InviteEmployeeRequest, UpdateUserProfilePayload } from '../types/user';
 import { isAxiosError } from 'axios';
 
 export const useEmployeeManagement = () => {
@@ -10,6 +11,8 @@ export const useEmployeeManagement = () => {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -61,6 +64,25 @@ export const useEmployeeManagement = () => {
     }
   };
 
+  const handleUpdateEmployee = async (userId: string, data: UpdateUserProfilePayload) => {
+    setUpdateLoading(true);
+    setUpdateError(null);
+    try {
+      const updated = await updateUserProfile(userId, data);
+      await fetchUsers();
+      return updated;
+    } catch (err) {
+      if (isAxiosError(err)) {
+        setUpdateError(err.response?.data?.message || 'Failed to update employee');
+      } else {
+        setUpdateError('An unexpected error occurred');
+      }
+      throw err;
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
   return {
     users,
     loading,
@@ -71,6 +93,9 @@ export const useEmployeeManagement = () => {
     inviteLoading,
     handleInvite,
     handleResendInvite,
+    handleUpdateEmployee,
+    updateLoading,
+    updateError,
     refresh: fetchUsers,
   };
 };
