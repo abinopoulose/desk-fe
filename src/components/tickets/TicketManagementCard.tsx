@@ -11,7 +11,10 @@ export interface TicketManagementCardProps {
   assignee?: { id: string; fullName: string; email: string; profilePictureUrl?: string; displayId?: string };
   availableStatuses?: TicketStatusDTO[];
   availableAssignees?: User[];
-  canManage: boolean;
+  canManage?: boolean;
+  canChangeStatus?: boolean;
+  canCloseTicket?: boolean;
+  canManageAssignee?: boolean;
   onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onAssigneeChange: (assigneeIdOrEvent: string | null | React.ChangeEvent<HTMLSelectElement>) => void;
 }
@@ -21,10 +24,28 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
   assignee,
   availableStatuses,
   availableAssignees,
-  canManage,
+  canManage = true,
+  canChangeStatus,
+  canCloseTicket,
+  canManageAssignee,
   onStatusChange,
   onAssigneeChange,
 }) => {
+  const isFullStatusManager = canChangeStatus !== undefined ? canChangeStatus : canManage;
+  const isCloseOnly = !isFullStatusManager && (canCloseTicket ?? false);
+  const canSelectStatus = isFullStatusManager || isCloseOnly;
+
+  const selectableStatuses = React.useMemo(() => {
+    if (!availableStatuses || availableStatuses.length === 0) return [];
+    if (isFullStatusManager) return availableStatuses;
+    if (isCloseOnly) {
+      return availableStatuses.filter((s) => s.id === currentStatus.id || s.mappedState === 'CLOSED');
+    }
+    return [];
+  }, [availableStatuses, isFullStatusManager, isCloseOnly, currentStatus.id]);
+
+  const isAssigneeManager = canManageAssignee !== undefined ? canManageAssignee : canManage;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-5">
       <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -42,14 +63,14 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
         <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
           Status
         </label>
-        {canManage ? (
+        {canSelectStatus ? (
           <select
             className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
             value={currentStatus.id}
             onChange={onStatusChange}
           >
-            {availableStatuses && availableStatuses.length > 0 ? (
-              availableStatuses.map((s) => (
+            {selectableStatuses.length > 0 ? (
+              selectableStatuses.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.mappedState})
                 </option>
@@ -57,7 +78,10 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
             ) : (
               <>
                 <option value={currentStatus.id}>{currentStatus.name}</option>
-                {currentStatus.id !== DEFAULT_CLOSED_STATUS_ID && (
+                {isCloseOnly && currentStatus.id !== DEFAULT_CLOSED_STATUS_ID && (
+                  <option value={DEFAULT_CLOSED_STATUS_ID}>{DEFAULT_CLOSED_STATUS_NAME}</option>
+                )}
+                {!isCloseOnly && currentStatus.id !== DEFAULT_CLOSED_STATUS_ID && (
                   <option value={DEFAULT_CLOSED_STATUS_ID}>{DEFAULT_CLOSED_STATUS_NAME}</option>
                 )}
               </>
@@ -79,7 +103,7 @@ export const TicketManagementCard: React.FC<TicketManagementCardProps> = ({
         <AssigneeSearchBar
           assignee={assignee}
           availableAssignees={availableAssignees}
-          canManage={canManage}
+          canManage={isAssigneeManager}
           onAssigneeChange={(assigneeId) => {
             if (typeof onAssigneeChange === 'function') {
               try {

@@ -26,7 +26,6 @@ export const TicketDetailsPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
 
-  const canManage = true;
   const canWrite = true;
 
   const {
@@ -113,13 +112,20 @@ export const TicketDetailsPage: React.FC = () => {
     },
   });
 
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const [accessRefreshTrigger, setAccessRefreshTrigger] = useState(0);
   const [escalating, setEscalating] = useState(false);
   const [escalateSuccess, setEscalateSuccess] = useState<string | null>(null);
   const [escalateError, setEscalateError] = useState<string | null>(null);
 
   const canEscalate = canUserEscalateTicket(ticket, user?.id);
+
+  const isCreator = Boolean(user?.id && ticket?.requester?.id && user.id === ticket.requester.id);
+  const isTicketOpen = ticket?.currentStatus?.mappedState === 'OPEN';
+
+  const canChangeStatus = ticket?.canChangeStatus !== undefined ? ticket.canChangeStatus : isSuperAdmin;
+  const canCloseTicket = ticket?.canCloseTicket !== undefined ? ticket.canCloseTicket : (canChangeStatus || (isCreator && isTicketOpen));
+  const canManageAssignee = ticket?.canManageTicket !== undefined ? ticket.canManageTicket : canChangeStatus;
 
   const handleEscalate = async () => {
     if (!ticketId || escalating) return;
@@ -430,7 +436,9 @@ export const TicketDetailsPage: React.FC = () => {
               assignee={ticket.assignee}
               availableStatuses={availableStatuses}
               availableAssignees={availableAssignees}
-              canManage={canManage}
+              canChangeStatus={canChangeStatus}
+              canCloseTicket={canCloseTicket}
+              canManageAssignee={canManageAssignee}
               onStatusChange={handleStatusChange}
               onAssigneeChange={handleAssigneeChange}
             />

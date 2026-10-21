@@ -129,6 +129,9 @@ export interface TicketDetailResponse {
   history: TicketHistoryDTO[];
   createdAt: string;
   updatedAt: string;
+  canChangeStatus?: boolean;
+  canCloseTicket?: boolean;
+  canManageTicket?: boolean;
 }
 
 export interface CommentDTO {

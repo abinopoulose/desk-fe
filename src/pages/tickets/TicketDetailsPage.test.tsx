@@ -6,7 +6,7 @@ import { ticketApi } from '../../api/ticketApi';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
 import { getOrgUsers } from '../../api/employeeApi';
 import * as hooks from '../../hooks';
-import type { TicketDetailResponse } from '../../types/ticket';
+import type { TicketDetailResponse, TicketStatusDTO } from '../../types/ticket';
 
 vi.mock('../../store/authStore', () => ({
   useAuth: vi.fn(() => ({
@@ -417,3 +417,167 @@ describe('TicketDetailsPage - SLA Escalation', () => {
     });
   });
 });
+
+describe('TicketDetailsPage - Status & Assignee Permissions', () => {
+  const mockTicketId = 'TECH-2';
+  const baseTicket: TicketDetailResponse = {
+    id: 'TECH-2',
+    displayId: 'TECH-2',
+    title: 'Server Outage in Production',
+    ticketType: { id: 'tt-1', title: 'Technical Issue' },
+    requester: { id: 'USER-1', fullName: 'Abino Poulose', email: 'abino@example.com' },
+    assignee: { id: 'USER-2', fullName: 'Specialist Alice', email: 'alice@example.com' },
+    currentStatus: { id: 's-open', name: 'Open', mappedState: 'OPEN' },
+    priority: 1,
+    formData: {},
+    slaDueAt: new Date().toISOString(),
+    slaBreached: false,
+    escalated: false,
+    comments: [],
+    history: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const mockStatuses: TicketStatusDTO[] = [
+    { id: 's-open', name: 'Open', mappedState: 'OPEN', displayOrder: 0 },
+    { id: 's-progress', name: 'In Progress', mappedState: 'OPEN', displayOrder: 1 },
+    { id: 's-closed', name: 'Closed', mappedState: 'CLOSED', displayOrder: 2 },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(ticketTypeApi.getTicketTypeById).mockResolvedValue({} as any);
+    vi.mocked(ticketTypeApi.getTicketStatuses).mockResolvedValue(mockStatuses);
+    vi.mocked(ticketApi.getTicketAccess).mockResolvedValue({
+      ticketId: 'TECH-2',
+      requester: { id: 'USER-1', fullName: 'Abino Poulose', email: 'abino@example.com' },
+      assignee: null,
+      primaryDepartment: null,
+      sharedUsers: [],
+      sharedDepartments: [],
+    });
+    vi.mocked(getOrgUsers).mockResolvedValue([]);
+    vi.mocked(hooks.useTicketComments).mockReturnValue({
+      comments: [],
+      commentText: '',
+      setCommentText: vi.fn(),
+      submitting: false,
+      handleSubmitComment: vi.fn(),
+    } as any);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.resetAllMocks();
+  });
+
+  it('renders all statuses when canChangeStatus is true on ticket', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: { ...baseTicket, canChangeStatus: true, canCloseTicket: true, canManageTicket: true },
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const select = screen.getByRole('combobox');
+      expect(select).toBeDefined();
+      const options = screen.getAllByRole('option');
+      expect(options).toHaveLength(3);
+    });
+  });
+
+  it('renders only current and closed statuses when canChangeStatus is false but canCloseTicket is true', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: { ...baseTicket, canChangeStatus: false, canCloseTicket: true, canManageTicket: false },
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const select = screen.getByRole('combobox');
+      expect(select).toBeDefined();
+      const options = screen.getAllByRole('option');
+      expect(options).toHaveLength(2);
+      const texts = options.map((o) => o.textContent);
+      expect(texts).toContain('Open (OPEN)');
+      expect(texts).toContain('Closed (CLOSED)');
+      expect(texts).not.toContain('In Progress (OPEN)');
+    });
+  });
+
+  it('renders read-only status and read-only assignee when canChangeStatus and canCloseTicket are false', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: { ...baseTicket, canChangeStatus: false, canCloseTicket: false, canManageTicket: false },
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/tickets/${mockTicketId}`]}>
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('combobox')).toBeNull();
+      expect(screen.getAllByText('Open').length).toBeGreaterThan(0);
+      expect(screen.getByText('Specialist Alice')).toBeDefined();
+    });
+  });
+});
+
