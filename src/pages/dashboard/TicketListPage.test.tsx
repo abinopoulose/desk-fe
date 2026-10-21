@@ -103,4 +103,30 @@ describe('TicketListPage', () => {
       );
     });
   });
+
+  it('restores chosen filters from URL query parameters when returning via back navigation', async () => {
+    const { MemoryRouter } = await import('react-router');
+    render(
+      <MemoryRouter initialEntries={['/dashboard?tab=assigned&mappedState=OPEN&priority=1&search=laptop']}>
+        <TicketListPage />
+      </MemoryRouter>
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search requests by title, reference #, or person...') as HTMLInputElement;
+    expect(searchInput.value).toBe('laptop');
+
+    const prioritySelect = screen.getByLabelText('Filter by priority') as HTMLSelectElement;
+    expect(prioritySelect.value).toBe('1');
+
+    await waitFor(() => {
+      expect(ticketApi.getTickets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tab: 'assigned',
+          mappedState: 'OPEN',
+          priority: 1,
+          search: 'laptop',
+        })
+      );
+    });
+  });
 });

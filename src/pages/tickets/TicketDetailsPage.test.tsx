@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { TicketDetailsPage } from './TicketDetailsPage';
 import { ticketApi } from '../../api/ticketApi';
 import { ticketTypeApi } from '../../api/ticketTypeApi';
@@ -651,6 +651,55 @@ describe('TicketDetailsPage - Status & Assignee Permissions', () => {
       expect(screen.getByRole('button', { expanded: false })).toBeDefined();
       expect(screen.getAllByText('Abino Poulose').length).toBeGreaterThan(0);
     });
+  });
+
+  it('navigates back to the ticket list with preserved filters from location state when Back to Requests is clicked', async () => {
+    vi.mocked(hooks.useTicketDetails).mockReturnValue({
+      ticket: baseTicket,
+      loading: false,
+      error: null,
+      statusCode: null,
+      isForbidden: false,
+      fetchTicketById: vi.fn(),
+      fetchTicket: vi.fn(),
+      refetch: vi.fn(),
+      updateStatus: vi.fn(),
+      updateTicketStatus: vi.fn(),
+      changeStatus: vi.fn(),
+      transitionStatus: vi.fn(),
+      assignTicket: vi.fn(),
+      updateTicket: vi.fn(),
+      setTicket: vi.fn(),
+    });
+
+    let currentPath = '';
+    const TestConsumer = () => {
+      const loc = useLocation();
+      currentPath = `${loc.pathname}${loc.search}`;
+      return null;
+    };
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: `/tickets/${mockTicketId}`,
+            state: { fromList: '/dashboard?tab=assigned&mappedState=OPEN&priority=1' },
+          },
+        ]}
+      >
+        <TestConsumer />
+        <Routes>
+          <Route path="/tickets/:ticketId" element={<TicketDetailsPage />} />
+          <Route path="/dashboard" element={<div>Dashboard Destination</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const backButton = screen.getByRole('button', { name: /back to requests/i });
+    fireEvent.click(backButton);
+
+    expect(currentPath).toBe('/dashboard?tab=assigned&mappedState=OPEN&priority=1');
   });
 });
 

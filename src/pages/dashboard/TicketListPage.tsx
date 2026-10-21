@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { 
   Search, 
   Plus, 
@@ -21,6 +21,7 @@ import { getUserInitial } from '../../utils/userUtils';
 
 export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isSuperAdmin, hasPrivilege } = useAuth();
   const canManage = isSuperAdmin || hasPrivilege('ADMIN_FULL_ACCESS');
 
@@ -29,6 +30,7 @@ export const TicketListPage: React.FC = () => {
     loading,
     filters,
     setFilter,
+    resetFilters,
     handleSort,
     pagination,
   } = useTicketList();
@@ -41,11 +43,7 @@ export const TicketListPage: React.FC = () => {
     filters.priority !== '';
 
   const clearAllFilters = () => {
-    setFilter('search', '');
-    setFilter('status', '');
-    setFilter('assigneeId', '');
-    setFilter('mappedState', '');
-    setFilter('priority', '');
+    resetFilters();
   };
 
   const tabs: { key: 'my' | 'assigned' | 'shared' | 'all'; label: string }[] = [
@@ -259,7 +257,11 @@ export const TicketListPage: React.FC = () => {
                     return (
                       <tr
                         key={t.id}
-                        onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id))}
+                        onClick={() =>
+                          navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id), {
+                            state: { fromList: `${location.pathname}${location.search}` },
+                          })
+                        }
                         className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                       >
                         {/* Title & Short ID */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router';
 import {
   Search,
   ArrowUpDown,
@@ -38,6 +38,8 @@ interface DepartmentViewItem {
 export const DepartmentTicketsPage: React.FC = () => {
   const { departmentId: paramDepartmentId } = useParams<{ departmentId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isSuperAdmin, hasPrivilege } = useAuth();
   const canEditAnyDept = isSuperAdmin || hasPrivilege('DEPARTMENT_EDIT');
 
@@ -50,17 +52,25 @@ export const DepartmentTicketsPage: React.FC = () => {
   const [deptError, setDeptError] = useState<string | null>(null);
   const [isForbidden, setIsForbidden] = useState<boolean>(false);
 
-  // Filter State
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [mappedState, setMappedState] = useState<'' | 'OPEN' | 'CLOSED'>('OPEN');
-  const [priority, setPriority] = useState<string>('');
-  const [assigneeMode, setAssigneeMode] = useState<'all' | 'unassigned' | 'me'>('me');
-  const [sort, setSort] = useState<string>('createdAt,desc');
+  // Filter State initialized from URL search params
+  const initialMappedState = (searchParams.get('mappedState') as '' | 'OPEN' | 'CLOSED') ?? 'OPEN';
+  const initialPriority = searchParams.get('priority') ?? '';
+  const initialAssigneeMode = (searchParams.get('assigneeMode') as 'all' | 'unassigned' | 'me') ?? 'me';
+  const initialSearch = searchParams.get('search') ?? '';
+  const initialSort = searchParams.get('sort') ?? 'createdAt,desc';
+  const initialPage = searchParams.get('page') ? Math.max(0, parseInt(searchParams.get('page')!, 10)) : 0;
+  const initialSize = searchParams.get('size') ? Math.max(1, parseInt(searchParams.get('size')!, 10)) : 20;
+
+  const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+  const [mappedState, setMappedState] = useState<'' | 'OPEN' | 'CLOSED'>(initialMappedState);
+  const [priority, setPriority] = useState<string>(initialPriority);
+  const [assigneeMode, setAssigneeMode] = useState<'all' | 'unassigned' | 'me'>(initialAssigneeMode);
+  const [sort, setSort] = useState<string>(initialSort);
 
   // Pagination State
-  const [page, setPage] = useState<number>(0);
-  const [size, setSize] = useState<number>(20);
+  const [page, setPage] = useState<number>(initialPage);
+  const [size, setSize] = useState<number>(initialSize);
   const [tickets, setTickets] = useState<TicketDTO[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -87,6 +97,96 @@ export const DepartmentTicketsPage: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Sync state to URL search parameters
+  const syncToUrl = useCallback(
+    (
+      newSearch: string,
+      newMappedState: string,
+      newPriority: string,
+      newAssigneeMode: string,
+      newSort: string,
+      newPage: number,
+      newSize: number
+    ) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+
+          if (newMappedState && newMappedState !== 'OPEN') {
+            next.set('mappedState', newMappedState);
+          } else {
+            next.delete('mappedState');
+          }
+
+          if (newPriority) {
+            next.set('priority', newPriority);
+          } else {
+            next.delete('priority');
+          }
+
+          if (newAssigneeMode && newAssigneeMode !== 'me') {
+            next.set('assigneeMode', newAssigneeMode);
+          } else {
+            next.delete('assigneeMode');
+          }
+
+          if (newSearch) {
+            next.set('search', newSearch);
+          } else {
+            next.delete('search');
+          }
+
+          if (newSort && newSort !== 'createdAt,desc') {
+            next.set('sort', newSort);
+          } else {
+            next.delete('sort');
+          }
+
+          if (newPage > 0) {
+            next.set('page', String(newPage));
+          } else {
+            next.delete('page');
+          }
+
+          if (newSize !== 20) {
+            next.set('size', String(newSize));
+          } else {
+            next.delete('size');
+          }
+
+          if (next.toString() === prev.toString()) {
+            return prev;
+          }
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  useEffect(() => {
+    syncToUrl(debouncedSearch, mappedState, priority, assigneeMode, sort, page, size);
+  }, [debouncedSearch, mappedState, priority, assigneeMode, sort, page, size, syncToUrl]);
+
+  useEffect(() => {
+    const nextMappedState = (searchParams.get('mappedState') as '' | 'OPEN' | 'CLOSED') ?? 'OPEN';
+    const nextPriority = searchParams.get('priority') ?? '';
+    const nextAssigneeMode = (searchParams.get('assigneeMode') as 'all' | 'unassigned' | 'me') ?? 'me';
+    const nextSearch = searchParams.get('search') ?? '';
+    const nextSort = searchParams.get('sort') ?? 'createdAt,desc';
+    const nextPage = searchParams.get('page') ? Math.max(0, parseInt(searchParams.get('page')!, 10)) : 0;
+    const nextSize = searchParams.get('size') ? Math.max(1, parseInt(searchParams.get('size')!, 10)) : 20;
+
+    setMappedState((prev) => (prev === nextMappedState ? prev : nextMappedState));
+    setPriority((prev) => (prev === nextPriority ? prev : nextPriority));
+    setAssigneeMode((prev) => (prev === nextAssigneeMode ? prev : nextAssigneeMode));
+    setSearch((prev) => (prev === nextSearch ? prev : nextSearch));
+    setSort((prev) => (prev === nextSort ? prev : nextSort));
+    setPage((prev) => (prev === nextPage ? prev : nextPage));
+    setSize((prev) => (prev === nextSize ? prev : nextSize));
+  }, [searchParams]);
 
   useEffect(() => {
     if (paramDepartmentId && paramDepartmentId !== activeDepartmentId) {
@@ -625,13 +725,21 @@ export const DepartmentTicketsPage: React.FC = () => {
                       <tr
                         key={t.id}
                         className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                        onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
+                        onClick={() =>
+                          navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id), {
+                            state: { fromList: `${location.pathname}${location.search}` },
+                          })
+                        }
                       >
                         {/* Reference / ID */}
                         <td className="py-4 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
-                            onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
+                            onClick={() =>
+                              navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id), {
+                                state: { fromList: `${location.pathname}${location.search}` },
+                              })
+                            }
                             className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
                           >
                             {displayRef}
@@ -745,7 +853,11 @@ export const DepartmentTicketsPage: React.FC = () => {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => navigate(ROUTES.TICKETS.DETAILS(t.id))}
+                              onClick={() =>
+                                navigate(ROUTES.TICKETS.DETAILS(t.displayId || t.id), {
+                                  state: { fromList: `${location.pathname}${location.search}` },
+                                })
+                              }
                               className="text-slate-400 hover:text-slate-700 text-xs font-semibold px-2 py-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
                             >
                               View

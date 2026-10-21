@@ -17,10 +17,13 @@ vi.mock('../../store/authStore', () => ({
 }));
 
 let mockParams: { departmentId?: string } = { departmentId: 'dept-1' };
+let mockSearchParams = new URLSearchParams();
 const mockNavigate = vi.fn();
 vi.mock('react-router', () => ({
   useParams: () => mockParams,
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/departments/dept-1/tickets', search: '' }),
+  useSearchParams: () => [mockSearchParams, vi.fn()],
   Link: ({ children, to }: any) => <a href={to}>{children}</a>,
 }));
 

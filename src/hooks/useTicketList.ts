@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 import { ticketApi } from '../api/ticketApi';
 import type { TicketDTO, TicketFilterParams } from '../types/ticket';
 import { useAuth } from '../store/authStore';
@@ -28,6 +29,7 @@ export interface PaginationState {
 export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
   const { user } = useAuth();
   const isMountedRef = useRef(true);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -36,24 +38,158 @@ export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
     };
   }, []);
 
-  const [filters, setFilters] = useState<TicketListFilters>({
-    tab: initialFilters?.tab || 'my',
-    status: initialFilters?.status || '',
-    mappedState: initialFilters?.mappedState || '',
-    assigneeId: initialFilters?.assigneeId || '',
-    priority: initialFilters?.priority || '',
-    search: initialFilters?.search || '',
-  });
+  // Read initial filter values from URL search params (falling back to initialFilters or defaults)
+  const getInitialFilters = (): TicketListFilters => {
+    const urlTab = searchParams.get('tab') as TicketListFilters['tab'] | null;
+    const validTabs: TicketListFilters['tab'][] = ['my', 'assigned', 'shared', 'all'];
+    const tab = (urlTab && validTabs.includes(urlTab)) ? urlTab : (initialFilters?.tab || 'my');
 
+    return {
+      tab,
+      status: searchParams.get('status') ?? initialFilters?.status ?? '',
+      mappedState: searchParams.get('mappedState') ?? initialFilters?.mappedState ?? '',
+      assigneeId: searchParams.get('assigneeId') ?? initialFilters?.assigneeId ?? '',
+      priority: searchParams.get('priority') ?? initialFilters?.priority ?? '',
+      search: searchParams.get('search') ?? initialFilters?.search ?? '',
+    };
+  };
+
+  const getInitialPage = (): number => {
+    const p = searchParams.get('page');
+    return p ? Math.max(0, parseInt(p, 10)) : 0;
+  };
+
+  const getInitialSize = (): number => {
+    const s = searchParams.get('size');
+    return s ? Math.max(1, parseInt(s, 10)) : APP_CONFIG.TICKETS.DEFAULT_PAGE_SIZE;
+  };
+
+  const getInitialSort = (): string => {
+    return searchParams.get('sort') || APP_CONFIG.TICKETS.DEFAULT_SORT;
+  };
+
+  const [filters, setFilters] = useState<TicketListFilters>(getInitialFilters);
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
   const [tickets, setTickets] = useState<TicketDTO[]>([]);
-  const [page, setPage] = useState<number>(0);
-  const [size, setSize] = useState<number>(APP_CONFIG.TICKETS.DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState<number>(getInitialPage);
+  const [size, setSize] = useState<number>(getInitialSize);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [sort, setSortState] = useState<string>(APP_CONFIG.TICKETS.DEFAULT_SORT);
+  const [sort, setSortState] = useState<string>(getInitialSort);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync state to URL search parameters
+  const syncToUrl = useCallback(
+    (newFilters: TicketListFilters, newPage: number, newSize: number, newSort: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+
+          if (newFilters.tab && newFilters.tab !== 'my') {
+            next.set('tab', newFilters.tab);
+          } else {
+            next.delete('tab');
+          }
+
+          if (newFilters.status) {
+            next.set('status', newFilters.status);
+          } else {
+            next.delete('status');
+          }
+
+          if (newFilters.mappedState) {
+            next.set('mappedState', newFilters.mappedState);
+          } else {
+            next.delete('mappedState');
+          }
+
+          if (newFilters.assigneeId) {
+            next.set('assigneeId', newFilters.assigneeId);
+          } else {
+            next.delete('assigneeId');
+          }
+
+          if (newFilters.priority) {
+            next.set('priority', newFilters.priority);
+          } else {
+            next.delete('priority');
+          }
+
+          if (newFilters.search) {
+            next.set('search', newFilters.search);
+          } else {
+            next.delete('search');
+          }
+
+          if (newPage > 0) {
+            next.set('page', String(newPage));
+          } else {
+            next.delete('page');
+          }
+
+          if (newSize !== APP_CONFIG.TICKETS.DEFAULT_PAGE_SIZE) {
+            next.set('size', String(newSize));
+          } else {
+            next.delete('size');
+          }
+
+          if (newSort !== APP_CONFIG.TICKETS.DEFAULT_SORT) {
+            next.set('sort', newSort);
+          } else {
+            next.delete('sort');
+          }
+
+          if (next.toString() === prev.toString()) {
+            return prev;
+          }
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  // Respond to browser navigation (back/forward) changes in searchParams
+  useEffect(() => {
+    const urlTab = searchParams.get('tab') as TicketListFilters['tab'] | null;
+    const validTabs: TicketListFilters['tab'][] = ['my', 'assigned', 'shared', 'all'];
+    const nextTab = (urlTab && validTabs.includes(urlTab)) ? urlTab : (initialFilters?.tab || 'my');
+    const nextStatus = searchParams.get('status') ?? initialFilters?.status ?? '';
+    const nextMappedState = searchParams.get('mappedState') ?? initialFilters?.mappedState ?? '';
+    const nextAssigneeId = searchParams.get('assigneeId') ?? initialFilters?.assigneeId ?? '';
+    const nextPriority = searchParams.get('priority') ?? initialFilters?.priority ?? '';
+    const nextSearch = searchParams.get('search') ?? initialFilters?.search ?? '';
+    const nextPage = searchParams.get('page') ? Math.max(0, parseInt(searchParams.get('page')!, 10)) : 0;
+    const nextSize = searchParams.get('size') ? Math.max(1, parseInt(searchParams.get('size')!, 10)) : APP_CONFIG.TICKETS.DEFAULT_PAGE_SIZE;
+    const nextSort = searchParams.get('sort') || APP_CONFIG.TICKETS.DEFAULT_SORT;
+
+    setFilters((prev) => {
+      if (
+        prev.tab === nextTab &&
+        prev.status === nextStatus &&
+        prev.mappedState === nextMappedState &&
+        prev.assigneeId === nextAssigneeId &&
+        prev.priority === nextPriority &&
+        prev.search === nextSearch
+      ) {
+        return prev;
+      }
+      return {
+        tab: nextTab,
+        status: nextStatus,
+        mappedState: nextMappedState,
+        assigneeId: nextAssigneeId,
+        priority: nextPriority,
+        search: nextSearch,
+      };
+    });
+
+    setPage((prev) => (prev === nextPage ? prev : nextPage));
+    setSize((prev) => (prev === nextSize ? prev : nextSize));
+    setSortState((prev) => (prev === nextSort ? prev : nextSort));
+  }, [searchParams, initialFilters]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,27 +202,49 @@ export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
 
   const setFilter = useCallback(
     <K extends keyof TicketListFilters>(key: K, value: TicketListFilters[K]) => {
-      setFilters((prev) => ({ ...prev, [key]: value }));
+      setFilters((prev) => {
+        const next = { ...prev, [key]: value };
+        syncToUrl(next, 0, size, sort);
+        return next;
+      });
       setPage(0);
     },
-    []
+    [size, sort, syncToUrl]
   );
+
+  const resetFilters = useCallback(() => {
+    setFilters((prev) => {
+      const next: TicketListFilters = {
+        tab: prev.tab,
+        status: '',
+        mappedState: '',
+        assigneeId: '',
+        priority: '',
+        search: '',
+      };
+      syncToUrl(next, 0, size, sort);
+      return next;
+    });
+    setPage(0);
+  }, [size, sort, syncToUrl]);
 
   const setSort = useCallback((newSort: string) => {
     setSortState(newSort);
     setPage(0);
-  }, []);
+    syncToUrl(filters, 0, size, newSort);
+  }, [filters, size, syncToUrl]);
 
   const handleSort = useCallback((field: string) => {
     setSortState((prev) => {
       const [currentField, currentDir] = prev.split(',');
-      if (currentField === field) {
-        return `${field},${currentDir === 'asc' ? 'desc' : 'asc'}`;
-      }
-      return `${field},asc`;
+      const nextSort = currentField === field
+        ? `${field},${currentDir === 'asc' ? 'desc' : 'asc'}`
+        : `${field},asc`;
+      syncToUrl(filters, 0, size, nextSort);
+      return nextSort;
     });
     setPage(0);
-  }, []);
+  }, [filters, size, syncToUrl]);
 
   const fetchTickets = useCallback(
     async (currentSearch: string) => {
@@ -165,17 +323,26 @@ export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
   }, [fetchTickets, filters.search]);
 
   const nextPage = useCallback(() => {
-    setPage((p) => (p < totalPages - 1 ? p + 1 : p));
-  }, [totalPages]);
+    setPage((p) => {
+      const np = p < totalPages - 1 ? p + 1 : p;
+      syncToUrl(filters, np, size, sort);
+      return np;
+    });
+  }, [totalPages, filters, size, sort, syncToUrl]);
 
   const prevPage = useCallback(() => {
-    setPage((p) => (p > 0 ? p - 1 : p));
-  }, []);
+    setPage((p) => {
+      const np = p > 0 ? p - 1 : p;
+      syncToUrl(filters, np, size, sort);
+      return np;
+    });
+  }, [filters, size, sort, syncToUrl]);
 
   const updateSize = useCallback((newSize: number) => {
     setSize(newSize);
     setPage(0);
-  }, []);
+    syncToUrl(filters, 0, newSize, sort);
+  }, [filters, sort, syncToUrl]);
 
   const pagination: PaginationState = {
     page,
@@ -194,6 +361,7 @@ export function useTicketList(initialFilters?: Partial<TicketListFilters>) {
     error,
     filters,
     setFilter,
+    resetFilters,
     sort,
     setSort,
     handleSort,
