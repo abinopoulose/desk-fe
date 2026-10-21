@@ -12,14 +12,19 @@ import {
   FileText,
   X,
   Download,
-  ExternalLink,
   User as UserIcon,
+  Mail,
+  Copy,
+  Check,
+  Briefcase,
+  Building,
 } from 'lucide-react';
 import { getOrgUsers } from '../../api/employeeApi';
+import { getUserProfile } from '../../api/userApi';
 import type { CommentDTO, TicketHistoryDTO } from '../../types/ticket';
-import type { User } from '../../types/user';
+import type { User, UserProfileResponse } from '../../types/user';
 import { getUserInitial } from '../../utils/userUtils';
-import { ROUTES } from '../../constants';
+import { UserProfileModal } from '../user/UserProfileModal';
 
 const MAX_CHARS = 1000;
 const INITIAL_VISIBLE_COUNT = 10;
@@ -116,16 +121,21 @@ export interface MentionBadgeProps {
   user?: User;
 }
 
-/** Rendered mention block with profile picture, hover card, and profile link */
+/** Rendered mention block with profile picture, rich hover card, and Microsoft Teams-style profile modal */
 export const MentionBadge: React.FC<MentionBadgeProps> = ({ displayName, userId, user }) => {
   const [showCard, setShowCard] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fetchedUser, setFetchedUser] = useState<UserProfileResponse | null>(null);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cleanName = displayName.replace(/^@/, '');
-  const finalName = user?.fullName || cleanName;
-  const initial = getUserInitial(finalName);
   const targetUserId = userId || user?.id;
-  const profileUrl = targetUserId ? ROUTES.USERS.PROFILE(targetUserId) : null;
+  const effectiveUser = fetchedUser || user;
+  const finalName = effectiveUser?.fullName || cleanName;
+  const effectiveEmail = effectiveUser?.email || '';
+  const initial = getUserInitial(finalName);
+  const profilePictureUrl = effectiveUser?.profilePictureUrl;
 
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) {
@@ -133,6 +143,15 @@ export const MentionBadge: React.FC<MentionBadgeProps> = ({ displayName, userId,
       hoverTimeoutRef.current = null;
     }
     setShowCard(true);
+
+    // Fetch full profile details if user lacks email or metadata
+    if (targetUserId && (!user || !user.email) && !fetchedUser) {
+      getUserProfile(targetUserId)
+        .then((data) => {
+          setFetchedUser(data);
+        })
+        .catch(() => {});
+    }
   };
 
   const handleMouseLeave = () => {
@@ -147,101 +166,171 @@ export const MentionBadge: React.FC<MentionBadgeProps> = ({ displayName, userId,
     };
   }, []);
 
+  const handleCopyEmail = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (effectiveEmail) {
+      navigator.clipboard.writeText(effectiveEmail);
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    }
+  };
+
+  const handleOpenProfileModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowCard(false);
+    setIsModalOpen(true);
+  };
+
   return (
-    <span
-      className="relative inline-flex items-center align-baseline mx-0.5"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <>
       <span
-        tabIndex={0}
-        role="button"
-        aria-haspopup="dialog"
-        aria-expanded={showCard}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200/70 hover:border-indigo-300 transition-all cursor-pointer select-none shadow-2xs"
-        data-testid="mention-badge"
+        className="relative inline-flex items-center align-baseline mx-0.5"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {user?.profilePictureUrl ? (
-          <img
-            src={user.profilePictureUrl}
-            alt={finalName}
-            className="w-3.5 h-3.5 rounded-full object-cover shrink-0 pointer-events-none"
-          />
-        ) : (
-          <span className="w-3.5 h-3.5 rounded-full bg-indigo-200 text-indigo-800 text-[9px] font-bold inline-flex items-center justify-center shrink-0 pointer-events-none">
-            {initial}
-          </span>
-        )}
-        <span>{displayName}</span>
-      </span>
-
-      {/* Hover Info Card */}
-      {showCard && (
-        <div
-          role="dialog"
-          aria-label={`User information for ${finalName}`}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className="absolute bottom-full left-0 mb-2 z-50 w-72 p-4 bg-white rounded-2xl shadow-xl border border-slate-200 text-left animate-in fade-in zoom-in-95 duration-150"
-          style={{ minWidth: '18rem' }}
+        <span
+          tabIndex={0}
+          role="button"
+          aria-haspopup="dialog"
+          aria-expanded={showCard}
+          onClick={handleOpenProfileModal}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200/70 hover:border-indigo-300 transition-all cursor-pointer select-none shadow-2xs"
+          data-testid="mention-badge"
         >
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden shadow-2xs">
-              {user?.profilePictureUrl ? (
-                <img
-                  src={user.profilePictureUrl}
-                  alt={finalName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{initial}</span>
-              )}
-            </div>
+          {profilePictureUrl ? (
+            <img
+              src={profilePictureUrl}
+              alt={finalName}
+              className="w-3.5 h-3.5 rounded-full object-cover shrink-0 pointer-events-none"
+            />
+          ) : (
+            <span className="w-3.5 h-3.5 rounded-full bg-indigo-200 text-indigo-800 text-[9px] font-bold inline-flex items-center justify-center shrink-0 pointer-events-none">
+              {initial}
+            </span>
+          )}
+          <span>{displayName}</span>
+        </span>
 
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-slate-900 truncate" title={finalName}>
-                {finalName}
-              </h4>
-              {user?.email && (
-                <p className="text-xs text-slate-500 truncate" title={user.email}>
-                  {user.email}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-1 mt-1.5">
-                {user?.title && (
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 truncate max-w-[150px]">
-                    {user.title}
+        {/* Rich Hover Info Card */}
+        {showCard && (
+          <div
+            role="dialog"
+            aria-label={`User information for ${finalName}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="absolute bottom-full left-0 mb-2 z-50 w-80 p-4 bg-white rounded-2xl shadow-xl border border-slate-200/90 text-left animate-in fade-in zoom-in-95 duration-150"
+            style={{ minWidth: '19rem' }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 text-indigo-700 flex items-center justify-center text-base font-bold overflow-hidden shadow-2xs">
+                  {profilePictureUrl ? (
+                    <img
+                      src={profilePictureUrl}
+                      alt={finalName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{initial}</span>
+                  )}
+                </div>
+                <span
+                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                    (effectiveUser as any)?.status === 'ACTIVE' || (effectiveUser as any)?.isActive !== false
+                      ? 'bg-emerald-500'
+                      : 'bg-slate-400'
+                  }`}
+                  title="Active"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-sm font-bold text-slate-900 truncate" title={finalName}>
+                    {finalName}
+                  </h4>
+                  {effectiveUser?.displayId && (
+                    <span className="font-mono text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded border border-slate-200 font-medium">
+                      {effectiveUser.displayId}
+                    </span>
+                  )}
+                </div>
+
+                {/* Email Address with Copy action */}
+                <div className="flex items-center gap-1.5 mt-0.5 text-slate-500">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span
+                    className="text-xs truncate font-mono text-slate-600"
+                    title={effectiveEmail || 'No email available'}
+                  >
+                    {effectiveEmail || 'No email available'}
                   </span>
-                )}
-                {user?.departmentName && (
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 truncate max-w-[150px]">
-                    {user.departmentName}
-                  </span>
-                )}
-                {(!user?.title && !user?.departmentName && user?.roles && user.roles.length > 0) && (
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-                    {user.roles[0]}
-                  </span>
-                )}
+                  {effectiveEmail && (
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors ml-auto shrink-0 cursor-pointer"
+                      title="Copy email address"
+                    >
+                      {copiedEmail ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Job Title, Department & Role badges */}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {effectiveUser?.title && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 truncate max-w-[150px]">
+                      <Briefcase className="w-2.5 h-2.5 text-slate-400" />
+                      <span>{effectiveUser.title}</span>
+                    </span>
+                  )}
+                  {effectiveUser?.departmentName && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 truncate max-w-[150px]">
+                      <Building className="w-2.5 h-2.5 text-indigo-400" />
+                      <span>{effectiveUser.departmentName}</span>
+                    </span>
+                  )}
+                  {(!effectiveUser?.title &&
+                    !effectiveUser?.departmentName &&
+                    effectiveUser?.roles &&
+                    effectiveUser.roles.length > 0) && (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                      {effectiveUser.roles[0]}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {profileUrl && (
+            {/* View Profile Action Button */}
             <div className="mt-3.5 pt-3 border-t border-slate-100">
-              <a
-                href={profileUrl}
-                className="w-full py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-indigo-200/60"
+              <button
+                type="button"
+                onClick={handleOpenProfileModal}
+                className="w-full py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-indigo-200/60 shadow-2xs"
+                data-testid="view-profile-btn"
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>View Profile</span>
-                <ExternalLink className="w-3 h-3 ml-auto opacity-60" />
-              </a>
+              </button>
             </div>
-          )}
-        </div>
-      )}
-    </span>
+          </div>
+        )}
+      </span>
+
+      {/* Microsoft Teams Style Profile Modal with Hierarchy Graph */}
+      <UserProfileModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userId={targetUserId || null}
+        initialUser={effectiveUser}
+      />
+    </>
   );
 };
 

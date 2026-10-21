@@ -27,6 +27,7 @@ export interface UserSummaryDTO {
   fullName: string;
   email: string;
   title?: string;
+  profilePictureUrl?: string;
 }
 
 export interface UserProfileResponse {

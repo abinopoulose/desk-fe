@@ -8,11 +8,16 @@ import {
   formatFileSize,
 } from './TicketCommentsSection';
 import * as employeeApi from '../../api/employeeApi';
+import * as userApi from '../../api/userApi';
 import type { CommentDTO, TicketHistoryDTO } from '../../types/ticket';
 import type { User } from '../../types/user';
 
 vi.mock('../../api/employeeApi', () => ({
   getOrgUsers: vi.fn(),
+}));
+
+vi.mock('../../api/userApi', () => ({
+  getUserProfile: vi.fn(),
 }));
 
 describe('TicketCommentsSection', () => {
@@ -356,7 +361,35 @@ describe('TicketCommentsSection', () => {
     expect(editor.querySelector('[data-mention-unit="true"]')).toBeNull();
   });
 
-  it('renders mention badge with profile picture and displays hover card with details and profile link', async () => {
+  it('renders mention badge with profile picture, displays hover card with details, and opens Teams profile modal with hierarchy graph', async () => {
+    vi.mocked(userApi.getUserProfile).mockResolvedValue({
+      id: 'u-avatar',
+      displayId: 'EMP-100',
+      fullName: 'John Doe',
+      email: 'john@example.com',
+      title: 'Tech Lead',
+      departmentName: 'Engineering',
+      roles: ['EMPLOYEE'],
+      isActive: true,
+      profilePictureUrl: 'https://example.com/john.png',
+      manager: {
+        id: 'u-mgr',
+        displayId: 'EMP-010',
+        fullName: 'Sarah Connor',
+        email: 'sarah@example.com',
+        title: 'VP of Engineering',
+      },
+      reportees: [
+        {
+          id: 'u-rep1',
+          displayId: 'EMP-101',
+          fullName: 'Bob Dylan',
+          email: 'bob@example.com',
+          title: 'Junior Developer',
+        },
+      ],
+    } as any);
+
     const commentsWithMention: CommentDTO[] = [
       {
         id: 'c-mention',
@@ -370,6 +403,7 @@ describe('TicketCommentsSection', () => {
     const users: User[] = [
       {
         id: 'u-avatar',
+        displayId: 'EMP-100',
         fullName: 'John Doe',
         email: 'john@example.com',
         profilePictureUrl: 'https://example.com/john.png',
@@ -411,8 +445,26 @@ describe('TicketCommentsSection', () => {
       expect(screen.getByText('Engineering')).toBeDefined();
     });
 
-    // Profile link exists and navigates to user profile
-    const profileLink = screen.getByRole('link', { name: /view profile/i });
-    expect(profileLink.getAttribute('href')).toBe('/users/u-avatar');
+    // View Profile button exists in hover card
+    const viewProfileBtn = screen.getByTestId('view-profile-btn');
+    expect(viewProfileBtn).toBeDefined();
+
+    // Clicking View Profile button opens the Microsoft Teams-style profile modal
+    fireEvent.click(viewProfileBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('teams-profile-modal')).toBeDefined();
+      expect(screen.getByTestId('hierarchy-graph-section')).toBeDefined();
+      expect(screen.getByText('Sarah Connor')).toBeDefined();
+      expect(screen.getByText('Bob Dylan')).toBeDefined();
+    });
+
+    // Close button dismisses the modal
+    const closeBtn = screen.getByTestId('profile-modal-close-btn');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('teams-profile-modal')).toBeNull();
+    });
   });
 });
