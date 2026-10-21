@@ -20,8 +20,25 @@ vi.mock('../../store/appStore', () => ({
   }),
 }));
 
+let mockHasDepartmentAccess = true;
+vi.mock('../../hooks', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useDepartmentAccess: () => ({
+      hasDepartmentAccess: mockHasDepartmentAccess,
+      myDepartments: [],
+      isLoading: false,
+      isInitialized: true,
+      canEditAnyDept: false,
+      refetch: vi.fn(),
+    }),
+  };
+});
+
 describe('AppLayout Top Navigation', () => {
   afterEach(() => {
+    mockHasDepartmentAccess = true;
     cleanup();
   });
 
@@ -54,5 +71,35 @@ describe('AppLayout Top Navigation', () => {
       expect(screen.queryByRole('navigation', { name: /breadcrumb/i })).toBeNull();
       expect(screen.queryByText('Home')).toBeNull();
     });
+  });
+
+  it('renders "Department Tickets" nav item when user has department access', () => {
+    mockHasDepartmentAccess = true;
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="dashboard" element={<div>Dashboard Page Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Department Tickets')).toBeDefined();
+  });
+
+  it('does NOT render "Department Tickets" nav item when user has no department access', () => {
+    mockHasDepartmentAccess = false;
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="dashboard" element={<div>Dashboard Page Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('Department Tickets')).toBeNull();
   });
 });

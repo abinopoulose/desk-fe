@@ -11,6 +11,7 @@ export interface NavItemConfig {
   icon: ComponentType<{ className?: string }>;
   label: string;
   requiredPrivilege?: string;
+  requiresDepartmentAccess?: boolean;
 }
 
 export interface NavGroup {
@@ -25,7 +26,7 @@ export const navConfig: NavGroup[] = [
     label: 'Workspace',
     items: [
       { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
-      { to: ROUTES.DEPARTMENT_TICKETS, icon: Inbox, label: 'Department Tickets' },
+      { to: ROUTES.DEPARTMENT_TICKETS, icon: Inbox, label: 'Department Tickets', requiresDepartmentAccess: true },
       { to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'DEPARTMENT_EDIT' },
     ],
   },

@@ -15,7 +15,7 @@ import {
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { ROUTES, APP_CONFIG } from '../../constants';
 import { useAuth } from '../../store/authStore';
-import { useTicketList } from '../../hooks';
+import { useTicketList, useDepartmentAccess } from '../../hooks';
 import { getPriorityStyle, getTicketDisplayReference } from '../../utils/ticketUtils';
 import { getUserInitial } from '../../utils/userUtils';
 
@@ -23,6 +23,7 @@ export const TicketListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isSuperAdmin, hasPrivilege } = useAuth();
+  const { hasDepartmentAccess } = useDepartmentAccess();
   const canManage = isSuperAdmin || hasPrivilege('ADMIN_FULL_ACCESS');
 
   const {
@@ -81,16 +82,20 @@ export const TicketListPage: React.FC = () => {
                   </button>
                 );
               })}
-              <div className="h-4 w-px bg-slate-200 mx-1 shrink-0" />
-              <button
-                type="button"
-                onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
-                title="Triage incoming requests for your department"
-              >
-                <Inbox className="w-3.5 h-3.5" />
-                <span>Department Queue</span>
-              </button>
+              {hasDepartmentAccess && (
+                <>
+                  <div className="h-4 w-px bg-slate-200 mx-1 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.DEPARTMENT_TICKETS)}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
+                    title="Triage incoming requests for your department"
+                  >
+                    <Inbox className="w-3.5 h-3.5" />
+                    <span>Department Queue</span>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* State filter: All / Open / Closed & Create Request */}

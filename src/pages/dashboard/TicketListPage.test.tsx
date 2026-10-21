@@ -13,6 +13,22 @@ vi.mock('../../store/authStore', () => ({
   }),
 }));
 
+let mockHasDeptAccess = true;
+vi.mock('../../hooks', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useDepartmentAccess: () => ({
+      hasDepartmentAccess: mockHasDeptAccess,
+      myDepartments: [],
+      isLoading: false,
+      isInitialized: true,
+      canEditAnyDept: false,
+      refetch: vi.fn(),
+    }),
+  };
+});
+
 const mockResponse = {
   tickets: [
     {
@@ -49,6 +65,7 @@ describe('TicketListPage', () => {
 
   afterEach(() => {
     cleanup();
+    mockHasDeptAccess = true;
     vi.resetAllMocks();
   });
 
@@ -128,5 +145,27 @@ describe('TicketListPage', () => {
         })
       );
     });
+  });
+
+  it('renders Department Queue button when user has department access', () => {
+    mockHasDeptAccess = true;
+    render(
+      <BrowserRouter>
+        <TicketListPage />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByRole('button', { name: /department queue/i })).toBeDefined();
+  });
+
+  it('does NOT render Department Queue button when user has no department access', () => {
+    mockHasDeptAccess = false;
+    render(
+      <BrowserRouter>
+        <TicketListPage />
+      </BrowserRouter>
+    );
+
+    expect(screen.queryByRole('button', { name: /department queue/i })).toBeNull();
   });
 });

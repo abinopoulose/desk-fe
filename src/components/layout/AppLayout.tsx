@@ -6,6 +6,7 @@ import type { NavGroup } from '../../constants';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
 import { useAuth, useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
+import { useDepartmentAccess } from '../../hooks';
 import {
   Menu, ChevronLeft,
   LogOut, ShieldCheck, AlertTriangle,
@@ -90,7 +91,17 @@ function NavItem({ to, icon: Icon, label, isSidebarOpen }: NavItemProps) {
   return <div className="w-full my-0.5">{linkNode}</div>;
 }
 
-function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGroup, isSidebarOpen: boolean, hasPrivilege: (p: string) => boolean }) {
+function NavGroupRenderer({
+  group,
+  isSidebarOpen,
+  hasPrivilege,
+  hasDepartmentAccess,
+}: {
+  group: NavGroup;
+  isSidebarOpen: boolean;
+  hasPrivilege: (p: string) => boolean;
+  hasDepartmentAccess: boolean;
+}) {
   const [open, setOpen] = useState(() => {
     if (!group.collapsible) return true;
     const saved = localStorage.getItem(`nav_group_${group.label}`);
@@ -104,7 +115,15 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
     localStorage.setItem(`nav_group_${group.label}`, String(newState));
   };
 
-  const visibleItems = group.items.filter(item => !item.requiredPrivilege || hasPrivilege(item.requiredPrivilege));
+  const visibleItems = group.items.filter((item) => {
+    if (item.requiredPrivilege && !hasPrivilege(item.requiredPrivilege)) {
+      return false;
+    }
+    if (item.requiresDepartmentAccess && !hasDepartmentAccess) {
+      return false;
+    }
+    return true;
+  });
   if (visibleItems.length === 0) return null;
 
   return (
@@ -142,6 +161,7 @@ function NavGroupRenderer({ group, isSidebarOpen, hasPrivilege }: { group: NavGr
 
 export function AppLayout() {
   const { user, hasPrivilege } = useAuth();
+  const { hasDepartmentAccess } = useDepartmentAccess();
   const { isSidebarOpen, toggleSidebar, setSidebarOpen, isBackendDown } = useAppStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -245,7 +265,13 @@ export function AppLayout() {
       {/* Navigation Groups */}
       <nav className="px-3 flex flex-col flex-1 overflow-y-auto no-scrollbar pb-2">
         {navConfig.map(group => (
-          <NavGroupRenderer key={group.label} group={group} isSidebarOpen={isSidebarOpen} hasPrivilege={hasPrivilege} />
+          <NavGroupRenderer
+            key={group.label}
+            group={group}
+            isSidebarOpen={isSidebarOpen}
+            hasPrivilege={hasPrivilege}
+            hasDepartmentAccess={hasDepartmentAccess}
+          />
         ))}
       </nav>
 

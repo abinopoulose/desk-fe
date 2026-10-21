@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import type { UserDTO } from '../types/auth';
 import { tokenStorage } from '../utils/tokenStorage';
 import { getCurrentUser, logout as logoutApi } from '../api/authApi';
+import { useDepartmentAccessStore } from './departmentAccessStore';
 
 export interface AuthState {
   user: UserDTO | null;
@@ -87,6 +88,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     logoutApi();
     tokenStorage.clearAll();
+    useDepartmentAccessStore.getState().reset();
     set({ user: null, token: null, isAuthenticated: false, privileges: [] });
     // redirect to login if not already on the login page
     if (typeof window !== 'undefined' && window.location.pathname !== ROUTES.AUTH.LOGIN) {

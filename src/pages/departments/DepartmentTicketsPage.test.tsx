@@ -25,6 +25,7 @@ vi.mock('react-router', () => ({
   useLocation: () => ({ pathname: '/departments/dept-1/tickets', search: '' }),
   useSearchParams: () => [mockSearchParams, vi.fn()],
   Link: ({ children, to }: any) => <a href={to}>{children}</a>,
+  Navigate: ({ to }: any) => <div data-testid="navigate-to" data-to={to} />,
 }));
 
 describe('DepartmentTicketsPage', () => {
@@ -262,16 +263,16 @@ describe('DepartmentTicketsPage', () => {
     });
   });
 
-  it('displays No Department Assigned when user has 0 assigned departments', async () => {
+  it('redirects to dashboard and does not show Department Tickets page when user has 0 assigned departments', async () => {
     mockParams = { departmentId: undefined };
     vi.mocked(departmentApi.getMyDepartments).mockResolvedValue([]);
 
     render(<DepartmentTicketsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('No Department Assigned')).toBeDefined();
-      expect(screen.getByText(/You are not currently assigned to any department/i)).toBeDefined();
-      expect(screen.getByText('Back to Dashboard')).toBeDefined();
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      expect(screen.queryByText('No Department Assigned')).toBeNull();
+      expect(screen.queryByText('Department Tickets')).toBeNull();
     });
   });
 

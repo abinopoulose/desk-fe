@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router';
+import { useParams, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router';
 import {
   Search,
   ArrowUpDown,
@@ -259,6 +259,9 @@ export const DepartmentTicketsPage: React.FC = () => {
         setActiveDepartmentId('');
         setMyRole(null);
         setLoadingDept(false);
+        if (!canEditAnyDept) {
+          navigate(ROUTES.DASHBOARD, { replace: true });
+        }
         return;
       }
 
@@ -414,6 +417,11 @@ export const DepartmentTicketsPage: React.FC = () => {
     );
   }
 
+  // If the user has no access to any department, do not show Department Tickets page - redirect to dashboard
+  if (!loadingDept && !canEditAnyDept && (!department || myDepartments.length === 0)) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  }
+
   if (deptError || !department) {
     return (
       <div className="min-h-full bg-slate-50 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-12">
@@ -455,6 +463,9 @@ export const DepartmentTicketsPage: React.FC = () => {
   // Access gate: Must be assigned to this department or have admin privileges
   const isMemberOfDept = Boolean(myRole) || canEditAnyDept;
   if (isForbidden || !isMemberOfDept) {
+    if (!canEditAnyDept && myDepartments.length === 0) {
+      return <Navigate to={ROUTES.DASHBOARD} replace />;
+    }
     return (
       <div className="min-h-full bg-slate-50 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-12">
         <div className="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-3 max-w-lg mx-auto shadow-xs">

@@ -20,3 +20,4 @@ export * from './useTicketTypeForm';
 export * from './useUserProfile';
 export * from './useOrgChart';
 export * from './useArchiveBrowser';
+export * from './useDepartmentAccess';
