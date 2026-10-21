@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router';
 import {
-  ArrowLeft,
   Pencil,
   Mail,
   Briefcase,
@@ -188,16 +187,7 @@ export const UserProfilePage: React.FC = () => {
       {/* Top Actions Bar (shown when inspecting another employee's profile) */}
       {!isSelf && (
         <div className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-2xs">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3 flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.ADMIN.EMPLOYEES)}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Employees</span>
-            </button>
-
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-3 flex items-center justify-end gap-4">
             <button
               type="button"
               onClick={startEdit}

@@ -75,6 +75,7 @@ describe('UserProfilePage Component', () => {
     expect(screen.getByText('John Manager')).toBeDefined();
     expect(screen.getByText('ADMIN')).toBeDefined();
     expect(screen.getByText('Bob Junior')).toBeDefined();
+    expect(screen.queryByText('Back to Employees')).toBeNull();
   });
 
   it('allows clicking Edit Details button to trigger editing', () => {
