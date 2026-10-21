@@ -6,7 +6,6 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { OrgSignupPage } from './pages/auth/OrgSignupPage';
 import { SetPasswordPage } from './pages/auth/SetPasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { OrgChartPage } from './pages/org/OrgChartPage';
 import { BrowseFoldersPage } from './pages/folders/BrowseFoldersPage';
 import { TicketTypeFormPage } from './pages/admin/TicketTypeFormPage';
 import { TicketStatusManager } from './pages/admin/TicketStatusManager';
@@ -64,7 +63,7 @@ function App() {
             <Route path={ROUTES.TICKETS.NEW} element={<CreateTicketPage />} />
             <Route path={ROUTES.TICKETS.DETAILS_PATH} element={<TicketDetailsPage />} />
             <Route path={ROUTES.TICKETS.BASE} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-            <Route path={ROUTES.ORG_CHART} element={<OrgChartPage />} />
+            <Route path={ROUTES.ORG_CHART} element={<Navigate to="/admin/employees?view=tree" replace />} />
             <Route path={ROUTES.USERS.PROFILE_PATH} element={<UserProfilePage />} />
 
             {/* Administration Routes (Protected by PrivilegeGate) */}

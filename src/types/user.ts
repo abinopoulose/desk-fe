@@ -63,5 +63,6 @@ export interface OrgNode {
   email: string;
   departmentId?: string | null;
   departmentName?: string | null;
+  profilePictureUrl?: string;
   children?: OrgNode[];
 }

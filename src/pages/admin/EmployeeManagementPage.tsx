@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import {
   Users,
   UserPlus,
@@ -18,15 +18,31 @@ import {
   ChevronLeft,
   Pencil,
   ChevronDown,
+  Network,
 } from 'lucide-react';
 import { DataGridSkeleton } from '../../components/common/Skeletons';
 import { PrivilegeGate } from '../../components/auth/PrivilegeGate';
+import { OrgChartView } from '../../components/org/OrgChartView';
 import { useEmployeeManagement } from '../../hooks/useEmployeeManagement';
 import { ROUTES } from '../../constants';
 import { getUserSlug } from '../../utils/userUtils';
 import type { InviteEmployeeRequest, User } from '../../types/user';
 
 export const EmployeeManagementPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('view') === 'tree' ? 'tree' : 'directory';
+
+  const handleTabChange = (view: 'directory' | 'tree') => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (view === 'tree') {
+        next.set('view', 'tree');
+      } else {
+        next.delete('view');
+      }
+      return next;
+    });
+  };
   const {
     users,
     loading,
@@ -234,8 +250,63 @@ export const EmployeeManagementPage: React.FC = () => {
             </div>
           )}
 
-          {/* Metric Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* View Mode Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+            <div className="flex items-center gap-1.5 p-1 bg-slate-200/70 rounded-2xl w-fit shadow-2xs">
+              <button
+                type="button"
+                onClick={() => handleTabChange('directory')}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'directory'
+                    ? 'bg-white text-indigo-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Employee Directory</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-semibold ${
+                    activeTab === 'directory'
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  {stats.total}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('tree')}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'tree'
+                    ? 'bg-white text-indigo-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                }`}
+              >
+                <Network className="w-4 h-4" />
+                <span>Organization Tree</span>
+              </button>
+            </div>
+
+            {activeTab === 'tree' && (
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Invite Employee</span>
+              </button>
+            )}
+          </div>
+
+          {activeTab === 'tree' ? (
+            <OrgChartView onEditEmployee={handleOpenEdit} usersList={users} />
+          ) : (
+            <>
+              {/* Metric Stats Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-slate-500">Total Employees</span>
@@ -639,6 +710,8 @@ export const EmployeeManagementPage: React.FC = () => {
                 </div>
               )}
             </div>
+          )}
+            </>
           )}
 
         </div>

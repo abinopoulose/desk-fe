@@ -1,6 +1,6 @@
-import type { ComponentType } from "react";
+import type { ComponentType } from 'react';
 import {
-  LayoutDashboard, Network,
+  LayoutDashboard,
   Settings, Building2, Users, Shield,
   BarChart3, Inbox
 } from 'lucide-react';
@@ -26,7 +26,6 @@ export const navConfig: NavGroup[] = [
     items: [
       { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
       { to: ROUTES.DEPARTMENT_TICKETS, icon: Inbox, label: 'Department Tickets' },
-      { to: ROUTES.ORG_CHART, icon: Network, label: 'Org Chart' },
       { to: ROUTES.METRICS, icon: BarChart3, label: 'Metrics', requiredPrivilege: 'DEPARTMENT_EDIT' },
     ],
   },

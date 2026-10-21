@@ -9,6 +9,25 @@ vi.mock('../../components/auth/PrivilegeGate', () => ({
   PrivilegeGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('../../hooks/useOrgChart', () => ({
+  useOrgChart: () => ({
+    orgData: [
+      {
+        id: 'usr-1',
+        fullName: 'Alice Walker',
+        email: 'alice@company.com',
+        title: 'CEO',
+        displayId: 'EMP-001',
+        departmentName: 'Executive',
+        children: [],
+      },
+    ],
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
 describe('EmployeeManagementPage Component', () => {
   const mockUsers: User[] = [
     {
@@ -226,4 +245,71 @@ describe('EmployeeManagementPage Component', () => {
     expect(screen.getByText('Employee 65')).toBeDefined();
     expect(screen.queryByText('Employee 1')).toBeNull();
   }, 15000);
+
+  it('switches between Employee Directory and Organization Tree tabs', () => {
+    vi.spyOn(empHook, 'useEmployeeManagement').mockReturnValue({
+      users: mockUsers,
+      loading: false,
+      error: null,
+      inviteError: null,
+      isInviteModalOpen: false,
+      setIsInviteModalOpen: mockSetIsInviteModalOpen,
+      inviteLoading: false,
+      handleInvite: mockHandleInvite,
+      handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
+      refresh: mockRefresh,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/employees']}>
+        <EmployeeManagementPage />
+      </MemoryRouter>
+    );
+
+    // Initial view: Directory
+    expect(screen.getByText('Employee Directory')).toBeDefined();
+    expect(screen.getByText('Organization Tree')).toBeDefined();
+    expect(screen.getByText('Total Employees')).toBeDefined();
+
+    // Switch to Organization Tree
+    fireEvent.click(screen.getByRole('button', { name: /organization tree/i }));
+
+    // Tree view toolbar and controls should be displayed
+    expect(screen.getByPlaceholderText('Search tree by name, role, email...')).toBeDefined();
+    expect(screen.getByRole('button', { name: /expand all/i })).toBeDefined();
+
+    // Switch back to Employee Directory
+    fireEvent.click(screen.getByRole('button', { name: /employee directory/i }));
+    expect(screen.getByText('Total Employees')).toBeDefined();
+  });
+
+  it('renders Organization Tree view directly when initial route has view=tree', () => {
+    vi.spyOn(empHook, 'useEmployeeManagement').mockReturnValue({
+      users: mockUsers,
+      loading: false,
+      error: null,
+      inviteError: null,
+      isInviteModalOpen: false,
+      setIsInviteModalOpen: mockSetIsInviteModalOpen,
+      inviteLoading: false,
+      handleInvite: mockHandleInvite,
+      handleResendInvite: mockHandleResendInvite,
+      handleUpdateEmployee: mockHandleUpdateEmployee,
+      updateLoading: false,
+      updateError: null,
+      refresh: mockRefresh,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/employees?view=tree']}>
+        <EmployeeManagementPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByPlaceholderText('Search tree by name, role, email...')).toBeDefined();
+    expect(screen.queryByText('Total Employees')).toBeNull();
+  });
 });
