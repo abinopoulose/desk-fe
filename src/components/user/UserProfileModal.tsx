@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Mail,
   Briefcase,
   Building,
   ExternalLink,
-  Copy,
-  Check,
   ChevronRight,
   ArrowLeft,
   Users,
@@ -40,7 +38,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'organization' | 'overview'>('organization');
-  const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
 
   // Sync activeUserId when userId prop changes and modal opens
   useEffect(() => {
@@ -104,12 +101,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       setActiveUserId(prevUserId);
     }
   };
-
-  const handleCopyEmail = useCallback((emailText: string) => {
-    navigator.clipboard.writeText(emailText);
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2000);
-  }, []);
 
   if (!isOpen) return null;
 
@@ -207,40 +198,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 }`}
                 title={isActive ? 'Active' : 'Inactive'}
               />
-            </div>
-
-            {/* Quick Action buttons */}
-            <div className="flex items-center gap-2 sm:mb-2">
-              {email && (
-                <>
-                  <a
-                    href={`mailto:${email}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
-                    title={`Send email to ${email}`}
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>Send Email</span>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyEmail(email)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
-                    title="Copy email address"
-                  >
-                    {copiedEmail ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-emerald-700">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                </>
-              )}
             </div>
           </div>
 
@@ -544,19 +501,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       <span className="text-slate-400 block text-[10px] uppercase font-semibold">
                         Email Address
                       </span>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="font-mono text-slate-800 break-all">{email || '—'}</span>
-                        {email && (
-                          <button
-                            type="button"
-                            onClick={() => handleCopyEmail(email)}
-                            className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors"
-                            title="Copy email"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
+                      <span className="font-mono text-slate-800 break-all block mt-0.5">{email || '—'}</span>
                     </div>
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-semibold">

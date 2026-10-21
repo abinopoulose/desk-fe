@@ -183,12 +183,8 @@ describe('UserProfileModal Component', () => {
     });
   });
 
-  it('copies email to clipboard and displays feedback', async () => {
+  it('does not render Send Email link or Copy button in profile modal', async () => {
     vi.mocked(userApi.getUserProfile).mockResolvedValue(mockProfile);
-    const writeTextSpy = vi.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, {
-      clipboard: { writeText: writeTextSpy },
-    });
 
     render(<UserProfileModal userId="user-100" isOpen={true} onClose={vi.fn()} />);
 
@@ -196,13 +192,8 @@ describe('UserProfileModal Component', () => {
       expect(screen.getAllByText('jane.doe@example.com').length).toBeGreaterThan(0);
     });
 
-    const copyBtn = screen.getByRole('button', { name: /copy/i });
-    fireEvent.click(copyBtn);
-
-    expect(writeTextSpy).toHaveBeenCalledWith('jane.doe@example.com');
-    await waitFor(() => {
-      expect(screen.getByText('Copied')).toBeDefined();
-    });
+    expect(screen.queryByRole('link', { name: /send email/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /copy/i })).toBeNull();
   });
 
   it('closes on Close button click and Escape key press', async () => {
