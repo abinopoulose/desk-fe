@@ -257,7 +257,13 @@ export const UserProfilePage: React.FC = () => {
                       disabled={saving}
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                          uploadPicture(e.target.files[0]);
+                          const file = e.target.files[0];
+                          if (file.size > 5 * 1024 * 1024) {
+                            alert('Profile picture must be under 5MB.');
+                            e.target.value = '';
+                            return;
+                          }
+                          uploadPicture(file);
                         }
                       }}
                     />

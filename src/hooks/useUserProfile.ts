@@ -121,6 +121,11 @@ export function useUserProfile(userId: string | undefined) {
 
   const uploadPicture = useCallback(async (file: File) => {
     if (!userId) return;
+    const MAX_SIZE_MB = 5;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      alert(`Profile picture must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
