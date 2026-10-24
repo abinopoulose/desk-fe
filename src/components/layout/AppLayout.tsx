@@ -8,12 +8,12 @@ import { useAuth, useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import { useDepartmentAccess } from '../../hooks';
 import {
-  Menu, ChevronLeft,
+  Menu, ChevronLeft, X,
   LogOut, ShieldCheck, AlertTriangle,
   PlusCircle, ChevronDown, UserCircle, Search, Bell
 } from 'lucide-react';
 import { 
-  SwipeableDrawer, Drawer, useMediaQuery, useTheme, IconButton, 
+  Drawer, useMediaQuery, useTheme, IconButton, 
   Collapse, Divider, 
   Avatar, Menu as MuiMenu, MenuItem, Tooltip, Badge, InputBase, Box
 } from '@mui/material';
@@ -27,9 +27,10 @@ interface NavItemProps {
   icon: ComponentType<{ className?: string }>;
   label: string;
   isSidebarOpen: boolean;
+  onClick?: () => void;
 }
 
-function NavItem({ to, icon: Icon, label, isSidebarOpen }: NavItemProps) {
+function NavItem({ to, icon: Icon, label, isSidebarOpen, onClick }: NavItemProps) {
   const location = useLocation();
   const isDepartmentItem = to === ROUTES.DEPARTMENT_TICKETS;
   const isCustomActive = isDepartmentItem && (
@@ -40,6 +41,7 @@ function NavItem({ to, icon: Icon, label, isSidebarOpen }: NavItemProps) {
   const linkNode = (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) => {
         const active = isActive || isCustomActive;
         return `relative transition-all duration-150 flex items-center group ${
@@ -96,11 +98,13 @@ function NavGroupRenderer({
   isSidebarOpen,
   hasPrivilege,
   hasDepartmentAccess,
+  onItemClick,
 }: {
   group: NavGroup;
   isSidebarOpen: boolean;
   hasPrivilege: (p: string) => boolean;
   hasDepartmentAccess: boolean;
+  onItemClick?: () => void;
 }) {
   const [open, setOpen] = useState(() => {
     if (!group.collapsible) return true;
@@ -151,7 +155,14 @@ function NavGroupRenderer({
       <Collapse in={open || !isSidebarOpen} timeout="auto" unmountOnExit>
         <div className="flex flex-col">
           {visibleItems.map(item => (
-            <NavItem key={item.to} to={item.to} icon={item.icon} label={item.label} isSidebarOpen={isSidebarOpen} />
+            <NavItem
+              key={item.to}
+              to={item.to}
+              icon={item.icon}
+              label={item.label}
+              isSidebarOpen={isSidebarOpen}
+              onClick={onItemClick}
+            />
           ))}
         </div>
       </Collapse>
@@ -195,14 +206,16 @@ export function AppLayout() {
     setAnchorEl(null);
   };
 
+  const isEffectiveExpanded = isMobile || isSidebarOpen;
+
   const drawerContent = (
     <div
       className="h-full bg-white flex flex-col transition-all duration-300 select-none"
-      style={{ width: isSidebarOpen ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH }}
+      style={{ width: isEffectiveExpanded ? LAYOUT.SIDEBAR_WIDTH : LAYOUT.SIDEBAR_COLLAPSED_WIDTH }}
     >
       {/* Brand Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200/80 shrink-0 bg-white">
-        {isSidebarOpen ? (
+        {isEffectiveExpanded ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
             <LogoIcon size={36} badge={true} className="shrink-0 shadow-xs rounded-xl" />
             <div className="flex flex-col min-w-0">
@@ -225,7 +238,17 @@ export function AppLayout() {
             </button>
           </Tooltip>
         )}
-        {!isMobile && isSidebarOpen && (
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            aria-label="Close navigation menu"
+            title="Close navigation menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        ) : isSidebarOpen ? (
           <button 
             type="button"
             onClick={toggleSidebar} 
@@ -235,15 +258,18 @@ export function AppLayout() {
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-        )}
+        ) : null}
       </div>
       
       {/* Primary Action Button */}
       <div className="p-3 shrink-0">
-        {isSidebarOpen ? (
+        {isEffectiveExpanded ? (
           <button
             type="button"
-            onClick={() => navigate(ROUTES.TICKETS.NEW)}
+            onClick={() => {
+              if (isMobile) setSidebarOpen(false);
+              navigate(ROUTES.TICKETS.NEW);
+            }}
             className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-xl shadow-xs hover:shadow transition-all group cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 transition-transform group-hover:rotate-90 duration-200" />
@@ -268,9 +294,10 @@ export function AppLayout() {
           <NavGroupRenderer
             key={group.label}
             group={group}
-            isSidebarOpen={isSidebarOpen}
+            isSidebarOpen={isEffectiveExpanded}
             hasPrivilege={hasPrivilege}
             hasDepartmentAccess={hasDepartmentAccess}
+            onItemClick={isMobile ? () => setSidebarOpen(false) : undefined}
           />
         ))}
       </nav>
@@ -281,13 +308,12 @@ export function AppLayout() {
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
       {isMobile ? (
-        <SwipeableDrawer
+        <Drawer
           variant="temporary"
           anchor="left"
           open={isSidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          onOpen={() => setSidebarOpen(true)}
-          ModalProps={{ keepMounted: true }}
+          ModalProps={{ keepMounted: false }}
           sx={{
             '& .MuiDrawer-paper': {
               width: LAYOUT.SIDEBAR_WIDTH,
@@ -298,7 +324,7 @@ export function AppLayout() {
           }}
         >
           {drawerContent}
-        </SwipeableDrawer>
+        </Drawer>
       ) : (
         <Drawer
           variant="permanent"

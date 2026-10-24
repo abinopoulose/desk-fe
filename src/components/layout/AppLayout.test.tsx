@@ -11,11 +11,19 @@ vi.mock('../../store/authStore', () => ({
   useAuthStore: (selector: (state: { logout: () => void }) => unknown) => selector({ logout: vi.fn() }),
 }));
 
+let mockIsSidebarOpen = true;
+const mockSetSidebarOpen = vi.fn((val: boolean) => {
+  mockIsSidebarOpen = val;
+});
+const mockToggleSidebar = vi.fn(() => {
+  mockIsSidebarOpen = !mockIsSidebarOpen;
+});
+
 vi.mock('../../store/appStore', () => ({
   useAppStore: () => ({
-    isSidebarOpen: true,
-    toggleSidebar: vi.fn(),
-    setSidebarOpen: vi.fn(),
+    isSidebarOpen: mockIsSidebarOpen,
+    toggleSidebar: mockToggleSidebar,
+    setSidebarOpen: mockSetSidebarOpen,
     isBackendDown: false,
   }),
 }));
@@ -101,5 +109,94 @@ describe('AppLayout Top Navigation', () => {
     );
 
     expect(screen.queryByText('Department Tickets')).toBeNull();
+  });
+});
+
+describe('AppLayout Mobile View Interactions', () => {
+  const setupMobileMatchMedia = (isMobile: boolean) => {
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: isMobile,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  };
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it('does not render modal overlay when mobile drawer is closed, allowing button clicks', () => {
+    setupMobileMatchMedia(true);
+    mockIsSidebarOpen = false;
+
+    let clicked = false;
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="dashboard" element={
+              <button id="mobile-action-btn" onClick={() => { clicked = true; }}>
+                Click Me On Mobile
+              </button>
+            } />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // No modal backdrop should be in the DOM
+    expect(document.querySelector('.MuiModal-root')).toBeNull();
+
+    // The content button should be clickable
+    const btn = screen.getByRole('button', { name: 'Click Me On Mobile' });
+    btn.click();
+    expect(clicked).toBe(true);
+  });
+
+  it('opens mobile drawer when hamburger menu is clicked', () => {
+    setupMobileMatchMedia(true);
+    mockIsSidebarOpen = false;
+    mockSetSidebarOpen.mockClear();
+
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="dashboard" element={<div>Dashboard Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: 'Open navigation menu' });
+    menuButton.click();
+    expect(mockSetSidebarOpen).toHaveBeenCalledWith(true);
+  });
+
+  it('renders close button and closes drawer when clicked on mobile', () => {
+    setupMobileMatchMedia(true);
+    mockIsSidebarOpen = true;
+    mockSetSidebarOpen.mockClear();
+
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="dashboard" element={<div>Dashboard Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const closeBtn = screen.getByRole('button', { name: 'Close navigation menu' });
+    expect(closeBtn).toBeDefined();
+    closeBtn.click();
+    expect(mockSetSidebarOpen).toHaveBeenCalledWith(false);
   });
 });

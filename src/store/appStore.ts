@@ -8,8 +8,10 @@ interface AppState {
   setBackendDown: (status: boolean) => void;
 }
 
+const isInitialMobile = typeof window !== 'undefined' ? window.innerWidth < 900 : false;
+
 export const useAppStore = create<AppState>((set) => ({
-  isSidebarOpen: true,
+  isSidebarOpen: !isInitialMobile,
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
   isBackendDown: false,
